@@ -26,6 +26,8 @@ namespace OrderService.Domain.AggregatesModel
 		{
 			if (quantity <= 0)
 				throw new ArgumentException("Quantity must be greater than 0");
+			if (unitPrice <= 0)
+				throw new ArgumentException("UnitPrice must be greater than 0");
 
 			Items.Add(new OrderItem(productId, quantity, unitPrice));
 		}

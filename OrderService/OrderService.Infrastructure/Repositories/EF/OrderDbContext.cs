@@ -17,14 +17,13 @@ namespace OrderService.Infrastructure.Repositories.EF
 			{
 				order.HasKey(o => o.Id);
 				order.OwnsOne(o => o.ShippingAddress); // Because Address is a ValueObject
-				order.Navigation(o => o.Items).AutoInclude(); // اگر خواستی Lazy نباشه
 
 				order.HasMany(o => o.Items)
 					  .WithOne()
 					  .HasForeignKey("OrderId");
 			});
 
-			modelBuilder.Entity<OrderItem>().HasKey("ProductId", "OrderId"); // Composite Key
+			modelBuilder.Entity<OrderItem>().HasKey(o => o.Id);
 		}
 	}
 }	

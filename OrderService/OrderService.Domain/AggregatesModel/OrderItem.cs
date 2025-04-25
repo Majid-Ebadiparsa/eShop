@@ -2,7 +2,7 @@
 
 namespace OrderService.Domain.AggregatesModel
 {
-	public class OrderItem: IEntity
+	public class OrderItem: BaseEntity
 	{
 		public Guid ProductId { get; private set; }
 		public int Quantity { get; private set; }
@@ -12,6 +12,7 @@ namespace OrderService.Domain.AggregatesModel
 
 		public OrderItem(Guid productId, int quantity, decimal unitPrice)
 		{
+			Id = Guid.NewGuid();
 			ProductId = productId;
 			Quantity = quantity;
 			UnitPrice = unitPrice;

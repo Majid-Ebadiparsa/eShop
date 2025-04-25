@@ -2,9 +2,8 @@
 
 namespace OrderService.Domain.AggregatesModel
 {
-	public class Order: IEntity, IAggregateRoot
+	public class Order: BaseEntity, IAggregateRoot
 	{
-		public Guid Id { get; private set; }
 		public Guid CustomerId { get; private set; }
 		public Address ShippingAddress { get; private set; }
 		public DateTime OrderDate { get; private set; }

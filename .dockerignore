@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+**/TestResults/
+Dockerfile
+docker-compose.yml
+.dockerignore
+.git/
+.gitignore
+*.md
+*.sln
+*.user

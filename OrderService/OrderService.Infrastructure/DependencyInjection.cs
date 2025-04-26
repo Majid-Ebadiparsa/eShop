@@ -12,16 +12,16 @@ namespace OrderService.Infrastructure
 		public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
 		{
 			services.AddTransient(typeof(IOrderRepository), typeof(OrderRepository));
-
+			
 			//EF: SQLServer
 			services.AddDbContext<OrderDbContext>(options =>
 				 options.UseSqlServer(
 					  configuration.GetConnectionString("OrderDb"),
 					  b => b.MigrationsAssembly(typeof(OrderDbContext).Assembly.FullName)));
-
+			
 			//EF: InMemory
 			//services.AddDbContext<OrderDbContext>(options =>
-			//	 options.UseInMemoryDatabase(databaseName: "OrderDB"), ServiceLifetime.Scoped, ServiceLifetime.Scoped);
+			//	 options.UseInMemoryDatabase(databaseName: "OrderDb"), ServiceLifetime.Scoped, ServiceLifetime.Scoped);
 
 			return services;
 		}

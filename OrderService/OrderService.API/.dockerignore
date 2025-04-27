@@ -1,2 +1,9 @@
-**/bin/
-**/obj/
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.db
+*.log
+Dockerfile
+.dockerignore

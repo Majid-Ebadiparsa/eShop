@@ -1,43 +1,50 @@
-# Use the official .NET SDK image for build
+# Base image for build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG CONFIGURATION=Release
 
 WORKDIR /app
 
-# Copy csproj files
+# Install dotnet-ef globally
+RUN dotnet tool install --global dotnet-ef
+ENV PATH="$PATH:/root/.dotnet/tools"
+
+# Copy only .csproj files to leverage Docker cache
 COPY ["OrderService.API/OrderService.API.csproj", "OrderService.API/"]
 COPY ["OrderService.Application/OrderService.Application.csproj", "OrderService.Application/"]
 COPY ["OrderService.Infrastructure/OrderService.Infrastructure.csproj", "OrderService.Infrastructure/"]
 COPY ["OrderService.Domain/OrderService.Domain.csproj", "OrderService.Domain/"]
 
-# Restore dependencies
-WORKDIR /app/OrderService.API
-RUN dotnet restore "OrderService.API.csproj"
+# Restore dependencies (cached if csproj files don't change)
+RUN dotnet restore "OrderService.API/OrderService.API.csproj"
 
-# Copy source files only
+# Copy the full source code
 COPY OrderService.API/ OrderService.API/
 COPY OrderService.Application/ OrderService.Application/
 COPY OrderService.Infrastructure/ OrderService.Infrastructure/
 COPY OrderService.Domain/ OrderService.Domain/
 
-# Clean bin/obj folders to avoid duplicate attributes
-RUN find . -type d -name bin -exec rm -rf {} + && find . -type d -name obj -exec rm -rf {} +
+# Light restore because in the previouse step, NuGet packages were already restored
+RUN dotnet restore "OrderService.API/OrderService.API.csproj"
 
-# Build
-RUN dotnet build "OrderService.API.csproj" -c $CONFIGURATION
+# Build and Publish the application directly
+RUN dotnet publish "OrderService.API/OrderService.API.csproj" -c $CONFIGURATION -o /out --no-restore
 
-# Publish
-FROM build AS publish
-RUN dotnet publish "OrderService.API.csproj" -c $CONFIGURATION -o /app/publish --no-restore
-
-# Final runtime stage
+# Final runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+
 WORKDIR /app
 
+# Healthcheck to monitor service availability
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s CMD curl --fail http://localhost/health || exit 1
 
-COPY --from=publish /app/publish .
+# Copy published output from the build stage
+COPY --from=build /out .
 
-ENV ASPNETCORE_URLS=http://+:80
+# Copy a small script for database migration
+COPY OrderService.API/docker-entrypoint.sh ./docker-entrypoint.sh
 
-ENTRYPOINT ["dotnet", "OrderService.API.dll"]
+# Make the script executable
+RUN chmod +x docker-entrypoint.sh
+
+# Entry point to run migration first, then start app
+ENTRYPOINT ["./docker-entrypoint.sh"]

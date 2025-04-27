@@ -12,6 +12,7 @@ builder.Services.AddControllers().AddJsonOptions(x =>
 
 
 builder.Services
+	.AddCustomEnvironmentSettings(builder.Configuration)
 	.AddCustomSwagger()
 	.AddMediatR()
 	.AddInfrastructure(builder.Configuration);

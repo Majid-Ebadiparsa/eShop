@@ -20,7 +20,7 @@ services:
     depends_on:
       - sqlserver
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Docker
     networks:
       - ordershopnetwork
 

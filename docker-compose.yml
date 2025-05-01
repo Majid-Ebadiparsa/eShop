@@ -20,6 +20,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Docker
     networks:
       - ordershopnetwork
+    restart: "no"
 
   orderserviceapi:
     build:

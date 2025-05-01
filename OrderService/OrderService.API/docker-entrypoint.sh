@@ -13,4 +13,7 @@ for i in {1..30}; do
 done
 
 echo "Applying database migrations..."
-dotnet ef database update --project OrderService.Infrastructure/OrderService.Infrastructure.csproj --startup-project OrderService.API/OrderService.API.csproj
+dotnet ef database update \
+  --project OrderService.Infrastructure/OrderService.Infrastructure.csproj \
+  --startup-project OrderService.API/OrderService.API.csproj \
+  --context OrderDbContext

@@ -23,7 +23,7 @@ namespace OrderService.Application.Commands
 				order.AddItem(item.ProductId, item.Quantity, item.UnitPrice);
 			}
 
-			await _orderRepository.AddAsync(order);
+			await _orderRepository.AddAsync(order, cancellationToken);
 			return order.Id;
 		}
 	}

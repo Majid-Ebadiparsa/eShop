@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderService.Application", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderService.Tests", "OrderService\OrderService.Tests\OrderService.Tests.csproj", "{06DA80D6-7C97-4342-B6DC-1FF5E157AA4E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderService.Shared", "OrderService\OrderService.Shared\OrderService.Shared.csproj", "{3AF7CD38-793F-44AB-B8DD-D3C967466F0F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{06DA80D6-7C97-4342-B6DC-1FF5E157AA4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{06DA80D6-7C97-4342-B6DC-1FF5E157AA4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{06DA80D6-7C97-4342-B6DC-1FF5E157AA4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3AF7CD38-793F-44AB-B8DD-D3C967466F0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AF7CD38-793F-44AB-B8DD-D3C967466F0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AF7CD38-793F-44AB-B8DD-D3C967466F0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AF7CD38-793F-44AB-B8DD-D3C967466F0F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

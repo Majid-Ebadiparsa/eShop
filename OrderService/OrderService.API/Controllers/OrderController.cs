@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using OrderService.Application.Commands;
+using OrderService.Application.Queries;
 
 namespace OrderService.API.Controllers
 {
@@ -14,7 +15,7 @@ namespace OrderService.API.Controllers
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> CreateOrder([FromBody] PlaceOrderCommand command, CancellationToken cancellationToken)
+		public async Task<IActionResult> CreateOrderAsync([FromBody] PlaceOrderCommand command, CancellationToken cancellationToken)
 		{
 			_logger.LogInformation($"Request => {JsonConvert.SerializeObject(command)}");
 
@@ -27,14 +28,18 @@ namespace OrderService.API.Controllers
 
 			_logger.LogInformation($"Response => {orderId}");
 
-			return CreatedAtAction(nameof(GetOrderById), new { id = orderId }, orderId);
+			return CreatedAtAction(nameof(CreateOrderAsync), new { id = orderId }, orderId);
 		}
 
-		// ToDO: Implement this method to retrieve order details
-		[HttpGet("{id}")]
-		public IActionResult GetOrderById(Guid id)
+
+		[HttpGet("{id:guid}")]
+		public async Task<IActionResult> GetOrderByIdAsync(Guid id)
 		{
-			return Ok($"Order Details for {id} (to be implemented)");
+			var orderDto = await Mediator.Send(new GetOrderByIdQuery(id));
+
+			return orderDto is null
+				? NotFound()
+				: Ok(orderDto);
 		}
 	}
 }

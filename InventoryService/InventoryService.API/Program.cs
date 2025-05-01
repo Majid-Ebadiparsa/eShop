@@ -1,4 +1,6 @@
 using InventoryService.API.Configuration;
+using InventoryService.Application;
+using InventoryService.Infrastructure;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,9 +12,9 @@ builder.Services.AddControllers().AddJsonOptions(x =>
 
 builder.Services
 	.AddCustomEnvironmentSettings(builder.Configuration)
-	.AddCustomSwagger();
-	//.AddMediatR()
-	//.AddInfrastructure(builder.Configuration);
+	.AddCustomSwagger()
+	.AddMediatR()
+	.AddInfrastructure(builder.Configuration);
 
 
 var app = builder.Build();

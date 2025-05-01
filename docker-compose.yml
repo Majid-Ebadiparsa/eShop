@@ -16,6 +16,8 @@ services:
       dockerfile: OrderService.API/MigrationDockerfile
     depends_on:
       - sqlserver
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
     networks:
       - ordershopnetwork
 

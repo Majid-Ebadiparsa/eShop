@@ -14,6 +14,3 @@ done
 
 echo "Applying database migrations..."
 dotnet ef database update --project OrderService.Infrastructure/OrderService.Infrastructure.csproj --startup-project OrderService.API/OrderService.API.csproj
-
-echo "Starting the application..."
-exec dotnet OrderService.API.dll

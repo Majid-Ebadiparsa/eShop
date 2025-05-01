@@ -6,7 +6,7 @@ namespace OrderService.API.Configuration
 	{
 		public static IServiceCollection AddCustomEnvironmentSettings(this IServiceCollection services, IConfiguration configuration)
 		{
-			var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+			var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
 			if (configuration is ConfigurationManager configManager)
 			{

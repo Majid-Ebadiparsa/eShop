@@ -12,8 +12,8 @@ using OrderService.Infrastructure.Repositories.EF;
 namespace OrderService.Infrastructure.Migrations
 {
     [DbContext(typeof(OrderDbContext))]
-    [Migration("20250426075825_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250501125513_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

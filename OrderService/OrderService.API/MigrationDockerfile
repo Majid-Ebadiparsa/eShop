@@ -1,0 +1,19 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0
+
+WORKDIR /app
+
+RUN dotnet tool install --global dotnet-ef
+ENV PATH="$PATH:/root/.dotnet/tools"
+
+COPY ["OrderService.API/OrderService.API.csproj", "OrderService.API/"]
+COPY ["OrderService.Application/OrderService.Application.csproj", "OrderService.Application/"]
+COPY ["OrderService.Infrastructure/OrderService.Infrastructure.csproj", "OrderService.Infrastructure/"]
+COPY ["OrderService.Domain/OrderService.Domain.csproj", "OrderService.Domain/"]
+
+RUN dotnet restore "OrderService.API/OrderService.API.csproj"
+
+COPY . .
+
+WORKDIR /app
+
+CMD bash OrderService.API/docker-entrypoint.sh

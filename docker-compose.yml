@@ -10,6 +10,15 @@ services:
     networks:
       - ordershopnetwork
 
+  db-migrator:
+    build:
+      context: ./OrderService
+      dockerfile: OrderService.API/MigrationDockerfile
+    depends_on:
+      - sqlserver
+    networks:
+      - ordershopnetwork
+
   orderserviceapi:
     build:
       context: ./OrderService
@@ -18,7 +27,7 @@ services:
     ports:
       - "5000:80"
     depends_on:
-      - sqlserver
+      - db-migrator
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
     networks:

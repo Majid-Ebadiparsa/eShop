@@ -4,9 +4,6 @@ ARG CONFIGURATION=Release
 
 WORKDIR /app
 
-# Install dotnet-ef globally
-RUN dotnet tool install --global dotnet-ef
-ENV PATH="$PATH:/root/.dotnet/tools"
 
 # Copy only .csproj files to leverage Docker cache
 COPY ["OrderService.API/OrderService.API.csproj", "OrderService.API/"]
@@ -40,11 +37,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s CMD curl --fail http:
 # Copy published output from the build stage
 COPY --from=build /out .
 
-# Copy a small script for database migration
-COPY OrderService.API/docker-entrypoint.sh ./docker-entrypoint.sh
-
-# Make the script executable
-RUN chmod +x docker-entrypoint.sh
-
-# Entry point to run migration first, then start app
-ENTRYPOINT ["./docker-entrypoint.sh"]
+# Start the application
+ENTRYPOINT ["dotnet", "OrderService.API.dll"]

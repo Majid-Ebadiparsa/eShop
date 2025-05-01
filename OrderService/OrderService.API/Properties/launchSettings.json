@@ -8,6 +8,7 @@
 			"applicationUrl": "http://localhost:5077",
 			"environmentVariables": {
 				"ASPNETCORE_ENVIRONMENT": "Development"
+				//"ASPNETCORE_ENVIRONMENT": "Docker"
 			}
 		},
 		"IIS Express": {
@@ -15,6 +16,7 @@
 			"launchBrowser": true,
 			"environmentVariables": {
 				"ASPNETCORE_ENVIRONMENT": "Development"
+				//"ASPNETCORE_ENVIRONMENT": "Docker"
 			}
 		}
 	},

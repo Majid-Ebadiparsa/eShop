@@ -10,6 +10,7 @@ COPY ["OrderService.API/OrderService.API.csproj", "OrderService.API/"]
 COPY ["OrderService.Application/OrderService.Application.csproj", "OrderService.Application/"]
 COPY ["OrderService.Infrastructure/OrderService.Infrastructure.csproj", "OrderService.Infrastructure/"]
 COPY ["OrderService.Domain/OrderService.Domain.csproj", "OrderService.Domain/"]
+COPY ["OrderService.Shared/OrderService.Shared.csproj", "OrderService.Shared/"]
 
 # Restore dependencies (cached if csproj files don't change)
 RUN dotnet restore "OrderService.API/OrderService.API.csproj"
@@ -19,6 +20,7 @@ COPY OrderService.API/ OrderService.API/
 COPY OrderService.Application/ OrderService.Application/
 COPY OrderService.Infrastructure/ OrderService.Infrastructure/
 COPY OrderService.Domain/ OrderService.Domain/
+COPY OrderService.Shared/ OrderService.Shared/
 
 # Light restore because in the previouse step, NuGet packages were already restored
 RUN dotnet restore "OrderService.API/OrderService.API.csproj"

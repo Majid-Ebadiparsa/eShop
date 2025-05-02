@@ -9,8 +9,9 @@ namespace InventoryService.Domain.AggregatesModel
 
 		private InventoryItem() { }
 
-		public InventoryItem(Guid productId, int initialQuantity)
+		public InventoryItem(Guid id, Guid productId, int initialQuantity)
 		{
+			Id = id;
 			ProductId = productId;
 			Quantity = initialQuantity;
 		}

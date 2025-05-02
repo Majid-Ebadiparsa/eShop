@@ -19,6 +19,12 @@ namespace InventoryService.Infrastructure.Repositories.EF
 				item.Property(i => i.ProductId).IsRequired();
 				item.Property(i => i.Quantity).IsRequired();
 			});
+
+			// Seed data for testing purposes
+			modelBuilder.Entity<InventoryItem>().HasData(new InventoryItem(		
+				Guid.NewGuid(),
+				Guid.Parse("11111111-1111-1111-1111-111111111111"),
+				100));
 		}
 	}
 }

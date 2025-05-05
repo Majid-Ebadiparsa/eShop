@@ -1,4 +1,4 @@
-🚧 Project Status: In Progress
+🚧 **Project Status:** In Progress
 This project is currently under active development and is not yet complete.
 I am continuously adding new features, refining the architecture, and improving code quality.
 

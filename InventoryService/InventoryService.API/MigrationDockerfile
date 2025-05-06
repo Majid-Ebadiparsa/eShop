@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0
 
 WORKDIR /app/inventoryservice
 
@@ -10,7 +10,7 @@ COPY ["InventoryService.Application/InventoryService.Application.csproj", "Inven
 COPY ["InventoryService.Infrastructure/InventoryService.Infrastructure.csproj", "InventoryService.Infrastructure/"]
 COPY ["InventoryService.Domain/InventoryService.Domain.csproj", "InventoryService.Domain/"]
 
-RUN dotnet restore InventoryService.API/InventoryService.API.csproj
+RUN dotnet restore "InventoryService.API/InventoryService.API.csproj"
 
 COPY . .
 

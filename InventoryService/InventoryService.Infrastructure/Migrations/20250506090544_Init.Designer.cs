@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InventoryService.Infrastructure.Migrations
 {
     [DbContext(typeof(InventoryDbContext))]
-    [Migration("20250501224330_Init")]
+    [Migration("20250506090544_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -40,6 +40,14 @@ namespace InventoryService.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("InventoryItems");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("e6e572b5-75ff-4c70-aac1-9f27fd0e1e52"),
+                            ProductId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Quantity = 100
+                        });
                 });
 #pragma warning restore 612, 618
         }

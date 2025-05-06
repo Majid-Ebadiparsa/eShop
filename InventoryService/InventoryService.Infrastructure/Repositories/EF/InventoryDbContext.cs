@@ -22,7 +22,7 @@ namespace InventoryService.Infrastructure.Repositories.EF
 
 			// Seed data for testing purposes
 			modelBuilder.Entity<InventoryItem>().HasData(new InventoryItem(		
-				Guid.NewGuid(),
+				Guid.Parse("e6e572b5-75ff-4c70-aac1-9f27fd0e1e52"),
 				Guid.Parse("11111111-1111-1111-1111-111111111111"),
 				100));
 		}

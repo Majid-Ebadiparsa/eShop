@@ -23,6 +23,11 @@ namespace InventoryService.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_InventoryItems", x => x.Id);
                 });
+
+            migrationBuilder.InsertData(
+                table: "InventoryItems",
+                columns: new[] { "Id", "ProductId", "Quantity" },
+                values: new object[] { new Guid("e6e572b5-75ff-4c70-aac1-9f27fd0e1e52"), new Guid("11111111-1111-1111-1111-111111111111"), 100 });
         }
 
         /// <inheritdoc />

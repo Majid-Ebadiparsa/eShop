@@ -38,4 +38,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s CMD curl --fail http:
 COPY --from=build /out .
 
 # Start the application
-ENTRYPOINT ["dotnet", "InventoryService.API.dll"]
+ENTRYPOINT ["dotnet", "inventoryservice/InventoryService.API.dll"]

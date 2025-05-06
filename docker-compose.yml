@@ -1,16 +1,16 @@
 services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: sqlserver-orderdb
+    container_name: sqlserver-db
     environment:
       SA_PASSWORD: "eSh@pDem@1"
       ACCEPT_EULA: "Y"
     ports:
       - "1433:1433"
     networks:
-      - ordershopnetwork
+      - eshopnetwork
 
-  db-migrator:
+  order-db-migrator:
     build:
       context: ./OrderService
       dockerfile: OrderService.API/MigrationDockerfile
@@ -19,7 +19,19 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
     networks:
-      - ordershopnetwork
+      - eshopnetwork
+    restart: "no"
+
+  inventory-db-migrator:
+    build:
+      context: ./InventoryService
+      dockerfile: InventoryService.API/MigrationDockerfile
+    depends_on:
+      - sqlserver
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+    networks:
+      - eshopnetwork
     restart: "no"
 
   orderserviceapi:
@@ -30,12 +42,26 @@ services:
     ports:
       - "5000:8080"
     depends_on:
-      - db-migrator
+      - order-db-migrator
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
     networks:
-      - ordershopnetwork
+      - eshopnetwork
+
+  inventoryserviceapi:
+    build:
+      context: ./InventoryService
+      dockerfile: InventoryService.API/Dockerfile
+    container_name: inventoryservice-api
+    ports:
+      - "5001:8080"
+    depends_on:
+      - inventory-db-migrator
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+    networks:
+      - eshopnetwork
 
 networks:
-  ordershopnetwork:
+  eshopnetwork:
     driver: bridge

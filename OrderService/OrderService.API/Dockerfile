@@ -2,7 +2,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG CONFIGURATION=Release
 
-WORKDIR /app
+WORKDIR /app/orderservice
 
 
 # Copy only .csproj files to leverage Docker cache
@@ -31,7 +31,7 @@ RUN dotnet publish "OrderService.API/OrderService.API.csproj" -c $CONFIGURATION 
 # Final runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 
-WORKDIR /app
+WORKDIR /app/orderservice
 
 # Healthcheck to monitor service availability
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s CMD curl --fail http://localhost/health || exit 1

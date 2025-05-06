@@ -22,10 +22,8 @@ namespace InventoryService.Infrastructure.Repositories.EF
 			});
 
 			// Seed data for testing purposes
-			modelBuilder.Entity<InventoryItem>().HasData(new InventoryItem(		
-				Guid.Parse("e6e572b5-75ff-4c70-aac1-9f27fd0e1e52"),
-				InventoryDefaults.DefaultProductId,
-				100));
+			var inventoryItem = new InventoryItem(Guid.NewGuid(), InventoryDefaults.DefaultProductId, 100);
+			modelBuilder.Entity<InventoryItem>().HasData(inventoryItem);
 		}
 	}
 }

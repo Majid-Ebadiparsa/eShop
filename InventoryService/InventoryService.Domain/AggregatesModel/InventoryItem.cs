@@ -7,7 +7,7 @@ namespace InventoryService.Domain.AggregatesModel
 		public Guid ProductId { get; private set; }
 		public int Quantity { get; private set; }
 
-		private InventoryItem() { }
+		private InventoryItem() { } // For EF
 
 		public InventoryItem(Guid id, Guid productId, int initialQuantity)
 		{

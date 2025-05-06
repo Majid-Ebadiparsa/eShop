@@ -54,7 +54,7 @@ services:
       dockerfile: InventoryService.API/Dockerfile
     container_name: inventoryservice-api
     ports:
-      - "5001:8081"
+      - "5001:8080"
     depends_on:
       - inventory-db-migrator
     environment:

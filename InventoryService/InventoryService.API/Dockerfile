@@ -10,6 +10,7 @@ COPY ["InventoryService.API/InventoryService.API.csproj", "InventoryService.API/
 COPY ["InventoryService.Application/InventoryService.Application.csproj", "InventoryService.Application/"]
 COPY ["InventoryService.Infrastructure/InventoryService.Infrastructure.csproj", "InventoryService.Infrastructure/"]
 COPY ["InventoryService.Domain/InventoryService.Domain.csproj", "InventoryService.Domain/"]
+COPY ["InventoryService.Shared/InventoryService.Shared.csproj", "InventoryService.Shared/"]
 
 # Restore dependencies (cached if csproj files don't change)
 RUN dotnet restore "InventoryService.API/InventoryService.API.csproj"
@@ -19,6 +20,7 @@ COPY InventoryService.API/ InventoryService.API/
 COPY InventoryService.Application/ InventoryService.Application/
 COPY InventoryService.Infrastructure/ InventoryService.Infrastructure/
 COPY InventoryService.Domain/ InventoryService.Domain/
+COPY InventoryService.Shared/ InventoryService.Shared/
 
 # Light restore because in the previouse step, NuGet packages were already restored
 RUN dotnet restore "InventoryService.API/InventoryService.API.csproj"
@@ -38,4 +40,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s CMD curl --fail http:
 COPY --from=build /out .
 
 # Start the application
-ENTRYPOINT ["dotnet", "inventoryservice/InventoryService.API.dll"]
+ENTRYPOINT ["dotnet", "InventoryService.API.dll"]

@@ -9,6 +9,7 @@ COPY ["InventoryService.API/InventoryService.API.csproj", "InventoryService.API/
 COPY ["InventoryService.Application/InventoryService.Application.csproj", "InventoryService.Application/"]
 COPY ["InventoryService.Infrastructure/InventoryService.Infrastructure.csproj", "InventoryService.Infrastructure/"]
 COPY ["InventoryService.Domain/InventoryService.Domain.csproj", "InventoryService.Domain/"]
+COPY ["InventoryService.Shared/InventoryService.Shared.csproj", "InventoryService.Shared/"]
 
 RUN dotnet restore "InventoryService.API/InventoryService.API.csproj"
 

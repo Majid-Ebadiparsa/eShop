@@ -15,6 +15,8 @@ namespace InventoryService.API.Configuration
 					Version = "V1",
 					Description = "eShop Demo",
 				});
+
+				c.OperationFilter<AddDefaultExampleSchemaFilter>();
 			});
 
 			return services;

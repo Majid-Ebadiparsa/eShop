@@ -40,4 +40,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s CMD curl --fail http:
 COPY --from=build /out .
 
 # Start the application
-ENTRYPOINT ["dotnet", "orderservice/OrderService.API.dll"]
+ENTRYPOINT ["dotnet", "OrderService.API.dll"]

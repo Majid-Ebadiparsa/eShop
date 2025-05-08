@@ -16,7 +16,13 @@ services:
       - "15672:15672"  # UI
       - "5672:5672"    # Transport
     networks:
-      - eshopnetwork
+      - eshopnetwork    
+    # Healthcheck for RabbitMQ and other services does not run if the RabbitMQ container is not running
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   order-db-migrator:
     build:
@@ -50,7 +56,10 @@ services:
     ports:
       - "5000:8080"
     depends_on:
-      - order-db-migrator
+      rabbitmq:
+        condition: service_healthy
+      order-db-migrator:
+        condition: service_completed_successfully
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
     networks:
@@ -64,7 +73,10 @@ services:
     ports:
       - "5001:8080"
     depends_on:
-      - inventory-db-migrator
+      rabbitmq:
+        condition: service_healthy
+      inventory-db-migrator:
+        condition: service_completed_successfully
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
     networks:

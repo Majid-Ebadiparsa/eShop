@@ -1,4 +1,5 @@
 ﻿using InventoryService.Application.Interfaces;
+using InventoryService.Infrastructure.Configuration;
 using InventoryService.Infrastructure.Handlers;
 using InventoryService.Infrastructure.Messaging;
 using InventoryService.Infrastructure.Repositories;
@@ -14,8 +15,46 @@ namespace InventoryService.Infrastructure
 	{
 		public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
 		{
-			services.AddTransient(typeof(IInventoryRepository), typeof(InventoryRepository));
+			services
+				.AddTransient(typeof(IInventoryRepository), typeof(InventoryRepository))
+				.RegisterDbContext(configuration)
+				.RegisterMassTransit(configuration);
 
+			services.AddScoped<IOrderEventConsumer, OrderEventConsumerHandler>();
+
+
+			return services;
+		}
+
+		private static IServiceCollection RegisterMassTransit(this IServiceCollection services, IConfiguration configuration)
+		{
+			var rabbitMqSettings = new RabbitMqSettings();
+			configuration.GetSection("RabbitMq").Bind(rabbitMqSettings);
+
+			services.AddMassTransit(x =>
+			{
+				x.AddConsumer<OrderCreatedEventConsumer>();
+
+				x.UsingRabbitMq((context, cfg) =>
+				{
+					cfg.Host(rabbitMqSettings.Host, rabbitMqSettings.VirtualHost, h =>
+					{
+						h.Username(rabbitMqSettings.Username);
+						h.Password(rabbitMqSettings.Password);
+					});
+
+					cfg.ReceiveEndpoint(rabbitMqSettings.ReceiveEndpoint, e =>
+					{
+						e.ConfigureConsumer<OrderCreatedEventConsumer>(context);
+					});
+				});
+			});
+
+			return services;
+		}
+
+		private static IServiceCollection RegisterDbContext(this IServiceCollection services, IConfiguration configuration)
+		{
 			//EF: SQLServer
 			services.AddDbContext<InventoryDbContext>(options =>
 				 options.UseSqlServer(
@@ -25,29 +64,6 @@ namespace InventoryService.Infrastructure
 			//EF: InMemory
 			//services.AddDbContext<InventoryDbContext>(options =>
 			//	 options.UseInMemoryDatabase(databaseName: "InventoryDb"), ServiceLifetime.Scoped, ServiceLifetime.Scoped);
-
-
-			services.AddScoped<IOrderEventConsumer, OrderEventConsumerHandler>();
-
-			services.AddMassTransit(x =>
-			{
-				x.AddConsumer<OrderCreatedEventConsumer>();
-
-				x.UsingRabbitMq((context, cfg) =>
-				{
-					cfg.Host("rabbitmq", "/", h =>
-					{
-						h.Username("guest");
-						h.Password("guest");
-					});
-
-					cfg.ReceiveEndpoint("order-created-event-queue", e =>
-					{
-						e.ConfigureConsumer<OrderCreatedEventConsumer>(context);
-					});
-				});
-			});
-
 
 			return services;
 		}

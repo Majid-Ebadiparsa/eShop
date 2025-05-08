@@ -14,8 +14,7 @@ builder.Services
 	.AddCustomEnvironmentSettings(builder.Configuration)
 	.AddCustomSwagger()
 	.AddMediatR()
-	.AddInfrastructure(builder.Configuration)
-	.AddCustomMassTransit();
+	.AddInfrastructure(builder.Configuration);
 
 
 var app = builder.Build();

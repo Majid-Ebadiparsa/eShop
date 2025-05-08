@@ -22,7 +22,7 @@ namespace InventoryService.Infrastructure.Repositories.EF
 			});
 
 			// Seed data for testing purposes
-			var inventoryItem = new InventoryItem(Guid.NewGuid(), InventoryDefaults.DefaultProductId, 100);
+			var inventoryItem = new InventoryItem(Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa6"), InventoryDefaults.DefaultProductId, 100);
 			modelBuilder.Entity<InventoryItem>().HasData(inventoryItem);
 		}
 	}

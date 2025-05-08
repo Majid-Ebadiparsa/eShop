@@ -1,5 +1,4 @@
-﻿using MassTransit;
-using MediatR;
+﻿using MediatR;
 using OrderService.Application.Events;
 using OrderService.Application.Interfaces;
 using OrderService.Domain.AggregatesModel;
@@ -9,12 +8,12 @@ namespace OrderService.Application.Commands
 	public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, Guid>
 	{
 		private readonly IOrderRepository _orderRepository;
-		private readonly IPublishEndpoint _publishEndpoint;
+		private readonly IEventPublisher _eventPublisher;
 
-		public PlaceOrderCommandHandler(IOrderRepository orderRepository, IPublishEndpoint publishEndpoint)
+		public PlaceOrderCommandHandler(IOrderRepository orderRepository, IEventPublisher eventPublisher)
 		{
 			_orderRepository = orderRepository;
-			_publishEndpoint = publishEndpoint;
+			_eventPublisher = eventPublisher;
 		}
 
 		public async Task<Guid> Handle(PlaceOrderCommand request, CancellationToken cancellationToken)
@@ -35,7 +34,8 @@ namespace OrderService.Application.Commands
 				order.Items.Select(i => new Events.OrderItem(i.ProductId, i.Quantity)).ToList()
 			);
 
-			await _publishEndpoint.Publish(orderCreatedEvent, cancellationToken);
+			await _eventPublisher.PublishOrderCreatedAsync(order.Id, order.Items
+				.Select(i => (i.ProductId, i.Quantity)).ToList());
 
 			return order.Id;
 		}

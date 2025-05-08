@@ -7,16 +7,16 @@
 			"launchUrl": "swagger",
 			"applicationUrl": "http://localhost:5077",
 			"environmentVariables": {
-				//"ASPNETCORE_ENVIRONMENT": "Development"
-				"ASPNETCORE_ENVIRONMENT": "Docker"
+				"ASPNETCORE_ENVIRONMENT": "Development"
+				//"ASPNETCORE_ENVIRONMENT": "Docker"
 			}
 		},
 		"IIS Express": {
 			"commandName": "IISExpress",
 			"launchBrowser": true,
 			"environmentVariables": {
-				//"ASPNETCORE_ENVIRONMENT": "Development"
-				"ASPNETCORE_ENVIRONMENT": "Docker"
+				"ASPNETCORE_ENVIRONMENT": "Development"
+				//"ASPNETCORE_ENVIRONMENT": "Docker"
 			}
 		}
 	},

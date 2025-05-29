@@ -21,7 +21,7 @@ builder.Services
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-//app.UseCustomExceptionHandler();
+app.UseCustomExceptionHandler();
 app.UseHttpsRedirection();
 app.UseSwagger();
 app.UseCustomSwaggerUiExceptionHandler();

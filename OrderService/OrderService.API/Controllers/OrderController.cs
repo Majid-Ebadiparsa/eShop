@@ -14,6 +14,8 @@ namespace OrderService.API.Controllers
 		}
 
 		[HttpPost]
+		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> CreateOrderAsync([FromBody] PlaceOrderCommand command, CancellationToken cancellationToken)
 		{
 			_logger.LogInformation($"Request => {JsonConvert.SerializeObject(command)}");
@@ -27,12 +29,12 @@ namespace OrderService.API.Controllers
 
 			_logger.LogInformation($"Response => {orderId}");
 
-			//return CreatedAtAction(nameof(GetOrderByIdAsync), new { id = orderId }, orderId);
-			return Created($"/api/Order/{orderId}", orderId);
+			return CreatedAtAction(nameof(GetOrderByIdAsync), new { id = orderId }, orderId);
 		}
 
-
-		[HttpGet("{id:guid}")]
+		[HttpGet("{id:guid}"), ActionName(nameof(GetOrderByIdAsync))]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		public async Task<IActionResult> GetOrderByIdAsync(Guid id)
 		{
 			var orderDto = await Mediator.Send(new GetOrderByIdQuery(id));

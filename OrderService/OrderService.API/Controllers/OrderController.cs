@@ -8,7 +8,6 @@ namespace OrderService.API.Controllers
 	public class OrderController : BaseApiController
 	{
 		private readonly ILogger<OrderController> _logger;
-
 		public OrderController(ILogger<OrderController> logger)
 		{
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -28,7 +27,8 @@ namespace OrderService.API.Controllers
 
 			_logger.LogInformation($"Response => {orderId}");
 
-			return CreatedAtAction(nameof(CreateOrderAsync), new { id = orderId }, orderId);
+			//return CreatedAtAction(nameof(GetOrderByIdAsync), new { id = orderId }, orderId);
+			return Created($"/api/Order/{orderId}", orderId);
 		}
 
 

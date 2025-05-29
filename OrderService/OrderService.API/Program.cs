@@ -21,11 +21,19 @@ builder.Services
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-app.UseCustomExceptionHandler();
+//app.UseCustomExceptionHandler();
 app.UseHttpsRedirection();
 app.UseSwagger();
 app.UseCustomSwaggerUiExceptionHandler();
 app.UseAuthorization();
 app.MapControllers();
+
+
+app.Use(async (context, next) =>
+{
+	var endpoint = context.GetEndpoint();
+	Console.WriteLine($"🔍 Endpoint: {endpoint?.DisplayName}");
+	await next();
+});
 
 app.Run();

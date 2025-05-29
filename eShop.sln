@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryService.Infrastruc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryService.Shared", "InventoryService\InventoryService.Shared\InventoryService.Shared.csproj", "{CABB24FC-5415-4398-8EED-8C0EABE0BE43}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedService.Contracts", "SharedService\SharedService.Contracts\SharedService.Contracts.csproj", "{0114C002-DCFB-49C3-8C6B-C85180E51A7D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,10 @@ Global
 		{CABB24FC-5415-4398-8EED-8C0EABE0BE43}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CABB24FC-5415-4398-8EED-8C0EABE0BE43}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CABB24FC-5415-4398-8EED-8C0EABE0BE43}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0114C002-DCFB-49C3-8C6B-C85180E51A7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0114C002-DCFB-49C3-8C6B-C85180E51A7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0114C002-DCFB-49C3-8C6B-C85180E51A7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0114C002-DCFB-49C3-8C6B-C85180E51A7D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

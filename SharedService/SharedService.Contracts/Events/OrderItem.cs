@@ -1,4 +1,4 @@
-﻿namespace OrderService.Application.Events
+﻿namespace SharedService.Contracts.Events
 {
 	public record OrderItem(Guid ProductId, int Quantity);
 }

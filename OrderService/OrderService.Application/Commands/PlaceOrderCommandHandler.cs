@@ -1,7 +1,7 @@
 ﻿using MediatR;
-using OrderService.Application.Events;
 using OrderService.Application.Interfaces;
 using OrderService.Domain.AggregatesModel;
+using SharedService.Contracts.Events;
 
 namespace OrderService.Application.Commands
 {
@@ -31,7 +31,7 @@ namespace OrderService.Application.Commands
 			// Publish the OrderCreatedEvent after the order is saved
 			var orderCreatedEvent = new OrderCreatedEvent(
 				order.Id,
-				order.Items.Select(i => new Events.OrderItem(i.ProductId, i.Quantity)).ToList()
+				order.Items.Select(i => new SharedService.Contracts.Events.OrderItem(i.ProductId, i.Quantity)).ToList()
 			);
 
 			await _eventPublisher.PublishOrderCreatedAsync(order.Id, order.Items

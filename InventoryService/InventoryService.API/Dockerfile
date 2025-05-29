@@ -6,27 +6,29 @@ WORKDIR /app/inventoryservice
 
 
 # Copy only .csproj files to leverage Docker cache
-COPY ["InventoryService.API/InventoryService.API.csproj", "InventoryService.API/"]
-COPY ["InventoryService.Application/InventoryService.Application.csproj", "InventoryService.Application/"]
-COPY ["InventoryService.Infrastructure/InventoryService.Infrastructure.csproj", "InventoryService.Infrastructure/"]
-COPY ["InventoryService.Domain/InventoryService.Domain.csproj", "InventoryService.Domain/"]
-COPY ["InventoryService.Shared/InventoryService.Shared.csproj", "InventoryService.Shared/"]
+COPY ["InventoryService/InventoryService.API/InventoryService.API.csproj", "InventoryService/InventoryService.API/"]
+COPY ["InventoryService/InventoryService.Application/InventoryService.Application.csproj", "InventoryService/InventoryService.Application/"]
+COPY ["InventoryService/InventoryService.Infrastructure/InventoryService.Infrastructure.csproj", "InventoryService/InventoryService.Infrastructure/"]
+COPY ["InventoryService/InventoryService.Domain/InventoryService.Domain.csproj", "InventoryService/InventoryService.Domain/"]
+COPY ["InventoryService/InventoryService.Shared/InventoryService.Shared.csproj", "InventoryService/InventoryService.Shared/"]
+COPY ["SharedService/SharedService.Contracts/SharedService.Contracts.csproj", "SharedService/SharedService.Contracts/"]
 
 # Restore dependencies (cached if csproj files don't change)
-RUN dotnet restore "InventoryService.API/InventoryService.API.csproj"
+RUN dotnet restore "InventoryService/InventoryService.API/InventoryService.API.csproj"
 
 # Copy the full source code
-COPY InventoryService.API/ InventoryService.API/
-COPY InventoryService.Application/ InventoryService.Application/
-COPY InventoryService.Infrastructure/ InventoryService.Infrastructure/
-COPY InventoryService.Domain/ InventoryService.Domain/
-COPY InventoryService.Shared/ InventoryService.Shared/
+COPY InventoryService/InventoryService.API/ InventoryService/InventoryService.API/
+COPY InventoryService/InventoryService.Application/ InventoryService/InventoryService.Application/
+COPY InventoryService/InventoryService.Infrastructure/ InventoryService/InventoryService.Infrastructure/
+COPY InventoryService/InventoryService.Domain/ InventoryService/InventoryService.Domain/
+COPY InventoryService/InventoryService.Shared/ InventoryService/InventoryService.Shared/
+COPY SharedService/SharedService.Contracts/ SharedService/SharedService.Contracts/
 
 # Light restore because in the previouse step, NuGet packages were already restored
-RUN dotnet restore "InventoryService.API/InventoryService.API.csproj"
+RUN dotnet restore "InventoryService/InventoryService.API/InventoryService.API.csproj"
 
 # Build and Publish the application directly
-RUN dotnet publish "InventoryService.API/InventoryService.API.csproj" -c $CONFIGURATION -o /out --no-restore
+RUN dotnet publish "InventoryService/InventoryService.API/InventoryService.API.csproj" -c $CONFIGURATION -o /out --no-restore
 
 # Final runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final

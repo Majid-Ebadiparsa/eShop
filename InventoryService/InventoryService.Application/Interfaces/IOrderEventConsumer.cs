@@ -1,4 +1,4 @@
-﻿using InventoryService.Application.Events;
+﻿using SharedService.Contracts.Events;
 
 namespace InventoryService.Application.Interfaces
 {

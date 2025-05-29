@@ -6,27 +6,29 @@ WORKDIR /app/orderservice
 
 
 # Copy only .csproj files to leverage Docker cache
-COPY ["OrderService.API/OrderService.API.csproj", "OrderService.API/"]
-COPY ["OrderService.Application/OrderService.Application.csproj", "OrderService.Application/"]
-COPY ["OrderService.Infrastructure/OrderService.Infrastructure.csproj", "OrderService.Infrastructure/"]
-COPY ["OrderService.Domain/OrderService.Domain.csproj", "OrderService.Domain/"]
-COPY ["OrderService.Shared/OrderService.Shared.csproj", "OrderService.Shared/"]
+COPY ["OrderService/OrderService.API/OrderService.API.csproj", "OrderService/OrderService.API/"]
+COPY ["OrderService/OrderService.Application/OrderService.Application.csproj", "OrderService/OrderService.Application/"]
+COPY ["OrderService/OrderService.Infrastructure/OrderService.Infrastructure.csproj", "OrderService/OrderService.Infrastructure/"]
+COPY ["OrderService/OrderService.Domain/OrderService.Domain.csproj", "OrderService/OrderService.Domain/"]
+COPY ["OrderService/OrderService.Shared/OrderService.Shared.csproj", "OrderService/OrderService.Shared/"]
+COPY ["SharedService/SharedService.Contracts/SharedService.Contracts.csproj", "../SharedService/SharedService.Contracts/"]
 
 # Restore dependencies (cached if csproj files don't change)
-RUN dotnet restore "OrderService.API/OrderService.API.csproj"
+RUN dotnet restore "OrderService/OrderService.API/OrderService.API.csproj"
 
 # Copy the full source code
-COPY OrderService.API/ OrderService.API/
-COPY OrderService.Application/ OrderService.Application/
-COPY OrderService.Infrastructure/ OrderService.Infrastructure/
-COPY OrderService.Domain/ OrderService.Domain/
-COPY OrderService.Shared/ OrderService.Shared/
+COPY OrderService/OrderService.API/ OrderService/OrderService.API/
+COPY OrderService/OrderService.Application/ OrderService/OrderService.Application/
+COPY OrderService/OrderService.Infrastructure/ OrderService/OrderService.Infrastructure/
+COPY OrderService/OrderService.Domain/ OrderService/OrderService.Domain/
+COPY OrderService/OrderService.Shared/ OrderService/OrderService.Shared/
+COPY SharedService/SharedService.Contracts/ SharedService/SharedService.Contracts/
 
 # Light restore because in the previouse step, NuGet packages were already restored
-RUN dotnet restore "OrderService.API/OrderService.API.csproj"
+RUN dotnet restore "OrderService/OrderService.API/OrderService.API.csproj"
 
 # Build and Publish the application directly
-RUN dotnet publish "OrderService.API/OrderService.API.csproj" -c $CONFIGURATION -o /out --no-restore
+RUN dotnet publish "OrderService/OrderService.API/OrderService.API.csproj" -c $CONFIGURATION -o /out --no-restore
 
 # Final runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final

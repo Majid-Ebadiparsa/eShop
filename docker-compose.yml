@@ -26,8 +26,8 @@ services:
 
   order-db-migrator:
     build:
-      context: ./OrderService
-      dockerfile: OrderService.API/MigrationDockerfile
+      context: ./
+      dockerfile: OrderService/OrderService.API/MigrationDockerfile
     depends_on:
       - sqlserver
     environment:
@@ -38,8 +38,8 @@ services:
 
   inventory-db-migrator:
     build:
-      context: ./InventoryService
-      dockerfile: InventoryService.API/MigrationDockerfile
+      context: ./
+      dockerfile: InventoryService/InventoryService.API/MigrationDockerfile
     depends_on:
       - sqlserver
     environment:
@@ -50,8 +50,8 @@ services:
 
   orderserviceapi:
     build:
-      context: ./OrderService
-      dockerfile: OrderService.API/Dockerfile
+      context: ./
+      dockerfile: OrderService/OrderService.API/Dockerfile
     container_name: orderservice-api
     ports:
       - "5000:8080"
@@ -67,8 +67,8 @@ services:
 
   inventoryserviceapi:
     build:
-      context: ./InventoryService
-      dockerfile: InventoryService.API/Dockerfile
+      context: ./
+      dockerfile: InventoryService/InventoryService.API/Dockerfile
     container_name: inventoryservice-api
     ports:
       - "5001:8080"

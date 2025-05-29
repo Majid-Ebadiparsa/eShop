@@ -1,8 +1,8 @@
-﻿using InventoryService.Application.Events;
-using InventoryService.Application.Interfaces;
+﻿using InventoryService.Application.Interfaces;
 using InventoryService.Infrastructure.Repositories.EF;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SharedService.Contracts.Events;
 
 namespace InventoryService.Infrastructure.Handlers
 {

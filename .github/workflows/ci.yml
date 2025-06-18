@@ -5,6 +5,8 @@ on:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
+  
+  workflow_dispatch: {}
 
 jobs:
 
@@ -22,7 +24,7 @@ jobs:
         ports:
           - 1433:1433
         options: >-
-          --health-cmd "echo 'SELECT 1' | /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P eSh@pDem@1"
+          --health-cmd "bash -c 'echo > /dev/tcp/localhost/1433'"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5

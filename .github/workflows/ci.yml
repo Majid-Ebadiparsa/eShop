@@ -7,7 +7,10 @@ on:
     branches: [ "main", "master" ]
 
 jobs:
-  build-and-test:
+
+  # Build & Test OrderService
+  build-and-test-order:
+    name: Build & Test OrderService
     runs-on: ubuntu-latest
 
     services:
@@ -33,11 +36,34 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Restore dependencies
+    - name: Restore dependencies - OrderService
       run: dotnet restore ./OrderService/OrderService.API/OrderService.API.csproj
 
-    - name: Build
+    - name: Build - OrderService
       run: dotnet build ./OrderService/OrderService.API/OrderService.API.csproj --no-restore --configuration Release
 
-    - name: Run Unit Tests
+    - name: Test - OrderService
       run: dotnet test ./OrderService/OrderService.Tests/OrderService.Tests.csproj --no-build --verbosity normal
+
+  # Build & Test InventoryService
+  build-and-test-inventory:
+    name: Build & Test InventoryService
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies - InventoryService
+      run: dotnet restore ./InventoryService/InventoryService.API/InventoryService.API.csproj
+
+    - name: Build - InventoryService
+      run: dotnet build ./InventoryService/InventoryService.API/InventoryService.API.csproj --no-restore --configuration Release
+
+    - name: Test - InventoryService
+      run: dotnet test ./InventoryService/InventoryService.Tests/InventoryService.Tests.csproj --no-build --verbosity normal

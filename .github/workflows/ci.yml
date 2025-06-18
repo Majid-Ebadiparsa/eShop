@@ -1,0 +1,43 @@
+name: EShop CI Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          SA_PASSWORD: "eSh@pDem@1"
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "echo 'SELECT 1' | /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P eSh@pDem@1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore ./OrderService/OrderService.API/OrderService.API.csproj
+
+    - name: Build
+      run: dotnet build ./OrderService/OrderService.API/OrderService.API.csproj --no-restore --configuration Release
+
+    - name: Run Unit Tests
+      run: dotnet test ./OrderService/OrderService.Tests/OrderService.Tests.csproj --no-build --verbosity normal

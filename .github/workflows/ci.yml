@@ -5,29 +5,12 @@ on:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
-  
   workflow_dispatch: {}
 
 jobs:
 
-  # Build & Test OrderService
-  build-and-test-order:
-    name: Build & Test OrderService
+  build-and-test:
     runs-on: ubuntu-latest
-
-    services:
-      sqlserver:
-        image: mcr.microsoft.com/mssql/server:2022-latest
-        env:
-          ACCEPT_EULA: "Y"
-          SA_PASSWORD: "eSh@pDem@1"
-        ports:
-          - 1433:1433
-        options: >-
-          --health-cmd "bash -c 'echo > /dev/tcp/localhost/1433'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
     - name: Checkout code
@@ -38,6 +21,27 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
+    - name: Start SQL Server container
+      run: |
+        docker run -d --name sqlserver \
+          -e "ACCEPT_EULA=Y" \
+          -e "SA_PASSWORD=eSh@pDem@1" \
+          -p 1433:1433 \
+          mcr.microsoft.com/mssql/server:2022-latest
+
+    - name: Wait for SQL Server to be ready
+      run: |
+        for i in {1..30}; do
+          if docker exec sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'eSh@pDem@1' -Q "SELECT 1" &> /dev/null; then
+            echo "SQL Server is ready!"
+            break
+          else
+            echo "Waiting for SQL Server..."
+            sleep 5
+          fi
+        done
+
+    # Build & Test OrderService
     - name: Restore dependencies - OrderService
       run: dotnet restore ./OrderService/OrderService.API/OrderService.API.csproj
 
@@ -47,20 +51,7 @@ jobs:
     - name: Test - OrderService
       run: dotnet test ./OrderService/OrderService.Tests/OrderService.Tests.csproj --no-build --verbosity normal
 
-  # Build & Test InventoryService
-  build-and-test-inventory:
-    name: Build & Test InventoryService
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '8.0.x'
-
+    # Build & Test InventoryService
     - name: Restore dependencies - InventoryService
       run: dotnet restore ./InventoryService/InventoryService.API/InventoryService.API.csproj
 

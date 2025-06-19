@@ -12,6 +12,20 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: eSh@pDem@1
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd " /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'eSh@pDem@1' -Q 'SELECT 1'" 
+          --health-interval 10s 
+          --health-timeout 5s 
+          --health-retries 10
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -20,26 +34,6 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '8.0.x'
-
-    - name: Start SQL Server container
-      run: |
-        docker run -d --name sqlserver \
-          -e "ACCEPT_EULA=Y" \
-          -e "SA_PASSWORD=eSh@pDem@1" \
-          -p 1433:1433 \
-          mcr.microsoft.com/mssql/server:2022-latest
-
-    - name: Wait for SQL Server to be ready
-      run: |
-        for i in {1..30}; do
-          if docker exec sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'eSh@pDem@1' -Q "SELECT 1" &> /dev/null; then
-            echo "SQL Server is ready!"
-            break
-          else
-            echo "Waiting for SQL Server..."
-            sleep 5
-          fi
-        done
 
     # Build & Test OrderService
     - name: Restore dependencies - OrderService

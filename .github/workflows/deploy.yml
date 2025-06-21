@@ -17,17 +17,12 @@ jobs:
   deploy:
     runs-on: self-hosted
 
+    env:
+      COMPOSE_FILE: deploy/docker-compose.${{ github.event.inputs.environment }}.yml
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-
-    - name: Select Compose File
-      id: select-compose
-      run: |
-        if ("${{ github.event.inputs.environment }}" -eq "Dev") { echo "COMPOSE_FILE=deploy/docker-compose.dev.yml" } `
-        elseif ("${{ github.event.inputs.environment }}" -eq "Staging") { echo "COMPOSE_FILE=deploy/docker-compose.staging.yml" } `
-        elseif ("${{ github.event.inputs.environment }}" -eq "Production") { echo "COMPOSE_FILE=deploy/docker-compose.prod.yml" }
-      shell: pwsh
 
     - name: Pull latest OrderService image
       run: docker pull majidebadiparsajob/orderservice:latest
@@ -39,10 +34,10 @@ jobs:
       shell: pwsh
       run: |
         try {
-          docker-compose -f deploy/docker-compose.${{ toLower(github.event.inputs.environment) }}.yml down
+          docker-compose -f $env:COMPOSE_FILE down
         } catch {
           Write-Host "Ignoring error"
         }
 
     - name: Deploy using docker-compose
-      run: docker-compose -f deploy/docker-compose.${{ toLower(github.event.inputs.environment) }}.yml up -d
+      run: docker-compose -f $env:COMPOSE_FILE up -d

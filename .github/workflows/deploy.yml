@@ -17,9 +17,6 @@ jobs:
   deploy:
     runs-on: self-hosted
 
-    env:
-      COMPOSE_FILE: deploy/docker-compose.${{ github.event.inputs.environment }}.yml
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
@@ -31,8 +28,8 @@ jobs:
       run: docker pull majidebadiparsajob/inventoryservice:latest
 
     - name: Clean previous containers
-      run: docker-compose -f %COMPOSE_FILE% down
+      run: docker-compose -f deploy/docker-compose.${{ github.event.inputs.environment }}.yml down
       continue-on-error: true
 
     - name: Deploy using docker-compose
-      run: docker-compose -f %COMPOSE_FILE% up -d
+      run: docker-compose -f deploy/docker-compose.${{ github.event.inputs.environment }}.yml up -d

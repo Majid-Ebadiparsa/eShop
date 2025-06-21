@@ -1,8 +1,10 @@
 name: Deploy to Dev
 
 on:
-  push:
-    branches: [ main ]
+  workflow_run:
+    workflows: ["Docker Push"]
+    types:
+      - completed
 
 jobs:
   deploy:
@@ -10,7 +12,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./
+        working-directory: ./  # درست است، مسیر ریشه پروژه
 
     steps:
     - name: Checkout repository

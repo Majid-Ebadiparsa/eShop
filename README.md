@@ -5,4 +5,4 @@ I am continuously adding new features, refining the architecture, and improving 
 The goal of this sample project is to demonstrate my skills in backend development using modern .NET technologies and microservices architecture.
 
 Feel free to explore the available code, and I would appreciate any feedback or suggestions.
-Please note that some modules, tests, or documentation may still be in progress.
+Please note that some modules, tests, or documentation may still be in progress. 

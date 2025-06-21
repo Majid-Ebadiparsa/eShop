@@ -1,14 +1,23 @@
-name: Deploy to Dev
+name: Deploy to Environment
 
 on:
-  workflow_run:
-    workflows: ["Docker Push"]
-    types:
-      - completed
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'Dev'
+        type: choice
+        options:
+          - Dev
+          - Staging
+          - Production
 
 jobs:
   deploy:
     runs-on: self-hosted
+
+    environment: ${{ github.event.inputs.environment }}
 
     steps:
     - name: Checkout repository

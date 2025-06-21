@@ -18,7 +18,7 @@ jobs:
       uses: docker/setup-buildx-action@v2
 
     - name: Build OrderService Image
-      run: docker build -t myeshop/orderservice:latest -f OrderService/OrderService.API/Dockerfile OrderService/OrderService.API
+      run: docker build -t myeshop/orderservice:latest -f OrderService/OrderService.API/Dockerfile .
 
     - name: Build InventoryService Image
-      run: docker build -t myeshop/inventoryservice:latest -f InventoryService/InventoryService.API/Dockerfile InventoryService/InventoryService.API
+      run: docker build -t myeshop/inventoryservice:latest -f InventoryService/InventoryService.API/Dockerfile .

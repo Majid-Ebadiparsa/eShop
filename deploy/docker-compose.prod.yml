@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+
+  orderservice:
+    image: majidebadiparsajob/orderservice:latest
+    ports:
+      - "5004:80"
+    restart: always
+
+  inventoryservice:
+    image: majidebadiparsajob/inventoryservice:latest
+    ports:
+      - "5005:80"
+    restart: always

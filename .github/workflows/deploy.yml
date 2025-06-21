@@ -1,0 +1,48 @@
+name: Deploy to Environment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'Dev'
+        type: choice
+        options:
+          - Dev
+          - Staging
+          - Production
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Select Compose File
+      id: select-compose
+      run: |
+        if ("${{ github.event.inputs.environment }}" -eq "Dev") { echo "COMPOSE_FILE=deploy/docker-compose.dev.yml" } `
+        elseif ("${{ github.event.inputs.environment }}" -eq "Staging") { echo "COMPOSE_FILE=deploy/docker-compose.staging.yml" } `
+        elseif ("${{ github.event.inputs.environment }}" -eq "Production") { echo "COMPOSE_FILE=deploy/docker-compose.prod.yml" }
+      shell: pwsh
+
+    - name: Pull latest OrderService image
+      run: docker pull majidebadiparsajob/orderservice:latest
+
+    - name: Pull latest InventoryService image
+      run: docker pull majidebadiparsajob/inventoryservice:latest
+
+    - name: Clean previous containers
+      shell: pwsh
+      run: |
+        try {
+          docker-compose -f deploy/docker-compose.${{ github.event.inputs.environment | ToLower() }}.yml down
+        } catch {
+          Write-Host "Ignoring error"
+        }
+
+    - name: Deploy using docker-compose
+      run: docker-compose -f deploy/docker-compose.${{ github.event.inputs.environment | ToLower() }}.yml up -d

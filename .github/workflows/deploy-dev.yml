@@ -1,14 +1,16 @@
-name: Deploy to Dev (Local Self-Hosted Runner)
+name: Deploy to Dev
 
 on:
-  workflow_run:
-    workflows: ["Docker Push"]
-    types:
-      - completed
+  push:
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: self-hosted
+
+    defaults:
+      run:
+        working-directory: ./
 
     steps:
     - name: Checkout repository
@@ -20,5 +22,5 @@ jobs:
     - name: Pull latest InventoryService image
       run: docker pull majidebadiparsajob/inventoryservice:latest
 
-    - name: Deploy using docker-compose
-      run: docker-compose -f deploy/docker-compose.dev.yml up -d
+    - name: Deploy using docker-compose.dev
+      run: docker-compose.dev -f deploy/docker-compose.dev.yml up -d

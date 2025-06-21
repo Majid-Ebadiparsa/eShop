@@ -26,12 +26,12 @@ jobs:
 
     - name: Build and Push OrderService Image
       run: |
-        docker build -t myeshop/orderservice:latest -t myeshop/orderservice:${{ env.sha_short }} -f OrderService/OrderService.API/Dockerfile .
-        docker push myeshop/orderservice:latest
-        docker push myeshop/orderservice:${{ env.sha_short }}
+        docker build -t majidebadiparsajob/orderservice:latest -t majidebadiparsajob/orderservice:${{ env.sha_short }} -f OrderService/OrderService.API/Dockerfile .
+        docker push majidebadiparsajob/orderservice:latest
+        docker push majidebadiparsajob/orderservice:${{ env.sha_short }}
 
     - name: Build and Push InventoryService Image
       run: |
-        docker build -t myeshop/inventoryservice:latest -t myeshop/inventoryservice:${{ env.sha_short }} -f InventoryService/InventoryService.API/Dockerfile .
-        docker push myeshop/inventoryservice:latest
-        docker push myeshop/inventoryservice:${{ env.sha_short }}
+        docker build -t majidebadiparsajob/inventoryservice:latest -t majidebadiparsajob/inventoryservice:${{ env.sha_short }} -f InventoryService/InventoryService.API/Dockerfile .
+        docker push majidebadiparsajob/inventoryservice:latest
+        docker push majidebadiparsajob/inventoryservice:${{ env.sha_short }}

@@ -31,13 +31,8 @@ jobs:
       run: docker pull majidebadiparsajob/inventoryservice:latest
 
     - name: Clean previous containers
-      shell: pwsh
-      run: |
-        try {
-          docker-compose -f $env:COMPOSE_FILE down
-        } catch {
-          Write-Host "Ignoring error"
-        }
+      run: docker-compose -f %COMPOSE_FILE% down
+      continue-on-error: true
 
     - name: Deploy using docker-compose
-      run: docker-compose -f $env:COMPOSE_FILE up -d
+      run: docker-compose -f %COMPOSE_FILE% up -d

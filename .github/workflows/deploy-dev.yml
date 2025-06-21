@@ -22,5 +22,5 @@ jobs:
     - name: Pull latest InventoryService image
       run: docker pull majidebadiparsajob/inventoryservice:latest
 
-    - name: Deploy using docker-compose.dev
-      run: docker-compose.dev -f deploy/docker-compose.dev.yml up -d
+    - name: Deploy using docker-compose
+      run: docker-compose -f deploy/docker-compose.dev.yml up -d

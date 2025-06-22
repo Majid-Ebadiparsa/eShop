@@ -22,5 +22,6 @@ COPY OrderService/OrderService.Shared/ OrderService/OrderService.Shared/
 COPY SharedService/SharedService.Contracts/ SharedService/SharedService.Contracts/
 
 COPY ["OrderService/OrderService.API/docker-entrypoint.sh", "docker-entrypoint.sh"]
+RUN chmod +x docker-entrypoint.sh
 
 CMD ["./docker-entrypoint.sh"]

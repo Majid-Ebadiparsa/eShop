@@ -22,5 +22,6 @@ COPY InventoryService/InventoryService.Shared/ InventoryService/InventoryService
 COPY SharedService/SharedService.Contracts/ SharedService/SharedService.Contracts/
 
 COPY ["InventoryService/InventoryService.API/docker-entrypoint.sh", "docker-entrypoint.sh"]
+RUN chmod +x docker-entrypoint.sh
 
 CMD ["./docker-entrypoint.sh"]

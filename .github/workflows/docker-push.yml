@@ -3,7 +3,8 @@ name: Docker Push
 on:
   workflow_run:
     workflows: ["Docker Build"]
-    types: [completed]
+    types:
+      - completed
 
 jobs:
   push-docker-images:
@@ -24,22 +25,30 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Push OrderService Image
+    - name: Tag and Push OrderService Image
       run: |
         docker tag myeshop/orderservice:latest majidebadiparsajob/orderservice:latest
+        docker tag myeshop/orderservice:latest majidebadiparsajob/orderservice:${{ env.sha_short }}
         docker push majidebadiparsajob/orderservice:latest
+        docker push majidebadiparsajob/orderservice:${{ env.sha_short }}
 
-    - name: Push InventoryService Image
+    - name: Tag and Push InventoryService Image
       run: |
         docker tag myeshop/inventoryservice:latest majidebadiparsajob/inventoryservice:latest
+        docker tag myeshop/inventoryservice:latest majidebadiparsajob/inventoryservice:${{ env.sha_short }}
         docker push majidebadiparsajob/inventoryservice:latest
+        docker push majidebadiparsajob/inventoryservice:${{ env.sha_short }}
 
-    - name: Push OrderDb Migrator Image
+    - name: Tag and Push OrderDb Migrator Image
       run: |
         docker tag myeshop/orderdb-migrator:latest majidebadiparsajob/orderdb-migrator:latest
+        docker tag myeshop/orderdb-migrator:latest majidebadiparsajob/orderdb-migrator:${{ env.sha_short }}
         docker push majidebadiparsajob/orderdb-migrator:latest
+        docker push majidebadiparsajob/orderdb-migrator:${{ env.sha_short }}
 
-    - name: Push InventoryDb Migrator Image
+    - name: Tag and Push InventoryDb Migrator Image
       run: |
         docker tag myeshop/inventorydb-migrator:latest majidebadiparsajob/inventorydb-migrator:latest
+        docker tag myeshop/inventorydb-migrator:latest majidebadiparsajob/inventorydb-migrator:${{ env.sha_short }}
         docker push majidebadiparsajob/inventorydb-migrator:latest
+        docker push majidebadiparsajob/inventorydb-migrator:${{ env.sha_short }}

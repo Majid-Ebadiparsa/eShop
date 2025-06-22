@@ -3,7 +3,8 @@ name: Docker Build
 on:
   workflow_run:
     workflows: ["Build and Test"]
-    types: [completed]
+    types:
+      - completed
 
 jobs:
   build-docker-images:
@@ -18,21 +19,17 @@ jobs:
       uses: docker/setup-buildx-action@v2
 
     - name: Build OrderService Image
-      run: |
-        cd OrderService/OrderService.API
-        docker build -t myeshop/orderservice:latest -f Dockerfile .
+      working-directory: ./OrderService/OrderService.API
+      run: docker build -t myeshop/orderservice:latest -f Dockerfile .
 
     - name: Build InventoryService Image
-      run: |
-        cd InventoryService/InventoryService.API
-        docker build -t myeshop/inventoryservice:latest -f Dockerfile .
+      working-directory: ./InventoryService/InventoryService.API
+      run: docker build -t myeshop/inventoryservice:latest -f Dockerfile .
 
     - name: Build OrderDb Migrator Image
-      run: |
-        cd OrderService/OrderService.API
-        docker build -t myeshop/orderdb-migrator:latest -f MigrationDockerfile .
+      working-directory: ./OrderService/OrderService.API
+      run: docker build -t myeshop/orderdb-migrator:latest -f MigrationDockerfile .
 
     - name: Build InventoryDb Migrator Image
-      run: |
-        cd InventoryService/InventoryService.API
-        docker build -t myeshop/inventorydb-migrator:latest -f MigrationDockerfile .
+      working-directory: ./InventoryService/InventoryService.API
+      run: docker build -t myeshop/inventorydb-migrator:latest -f MigrationDockerfile .

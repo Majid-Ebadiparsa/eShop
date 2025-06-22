@@ -2,6 +2,25 @@ version: '3.8'
 
 services:
 
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=@@SQLSERVER_SA_PASSWORD@@
+    restart: always
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=@@RABBITMQ_USERNAME@@
+      - RABBITMQ_DEFAULT_PASS=@@RABBITMQ_PASSWORD@@
+    restart: always
+
   orderservice:
     image: majidebadiparsajob/orderservice:latest
     ports:

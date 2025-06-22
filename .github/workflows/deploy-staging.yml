@@ -9,12 +9,12 @@ jobs:
     environment: staging
 
     env:
+      SQLSERVER_SA_PASSWORD: ${{ secrets.SQLSERVER_SA_PASSWORD }}
       ORDERDB_CONNECTIONSTRING: ${{ secrets.ORDERDB_CONNECTIONSTRING }}
       INVENTORYDB_CONNECTIONSTRING: ${{ secrets.INVENTORYDB_CONNECTIONSTRING }}
-      RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
-      RABBITMQ_VIRTUALHOST: ${{ secrets.RABBITMQ_VIRTUALHOST }}
       RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
       RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
+      RABBITMQ_VIRTUALHOST: ${{ secrets.RABBITMQ_VIRTUALHOST }}
 
     steps:
       - name: Checkout repository
@@ -24,12 +24,12 @@ jobs:
         shell: powershell
         run: |
           (Get-Content deploy/docker-compose.staging.yml) `
+          -replace '@@SQLSERVER_SA_PASSWORD@@', "$env:SQLSERVER_SA_PASSWORD" `
           -replace '@@ORDERDB_CONNECTIONSTRING@@', "$env:ORDERDB_CONNECTIONSTRING" `
           -replace '@@INVENTORYDB_CONNECTIONSTRING@@', "$env:INVENTORYDB_CONNECTIONSTRING" `
-          -replace '@@RABBITMQ_HOST@@', "$env:RABBITMQ_HOST" `
-          -replace '@@RABBITMQ_VIRTUALHOST@@', "$env:RABBITMQ_VIRTUALHOST" `
           -replace '@@RABBITMQ_USERNAME@@', "$env:RABBITMQ_USERNAME" `
           -replace '@@RABBITMQ_PASSWORD@@', "$env:RABBITMQ_PASSWORD" `
+          -replace '@@RABBITMQ_VIRTUALHOST@@', "$env:RABBITMQ_VIRTUALHOST" `
           | Set-Content deploy/docker-compose.staging.yml
 
       - name: Pull latest images
@@ -43,10 +43,24 @@ jobs:
         run: docker-compose -f deploy/docker-compose.staging.yml down
         continue-on-error: true
 
+      - name: Start Infrastructure (DB + RabbitMQ)
+        run: docker-compose -f deploy/docker-compose.staging.yml up -d sqlserver rabbitmq
+
+      - name: Wait for SQL Server to be ready
+        run: |
+          echo "Waiting for SQL Server..."
+          for i in {1..30}; do
+            if docker exec $(docker ps -qf "name=sqlserver") /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$env:SQLSERVER_SA_PASSWORD" -Q "SELECT 1" > /dev/null 2>&1; then
+              echo "SQL Server is ready."
+              break
+            fi
+            sleep 2
+          done
+
       - name: Run Database Migrations
         run: |
-          docker run --rm majidebadiparsajob/orderdb-migrator:latest
-          docker run --rm majidebadiparsajob/inventorydb-migrator:latest
+          docker run --rm -e ConnectionStrings__OrderDb="${{ secrets.ORDERDB_CONNECTIONSTRING }}" majidebadiparsajob/orderdb-migrator:latest
+          docker run --rm -e ConnectionStrings__InventoryDb="${{ secrets.INVENTORYDB_CONNECTIONSTRING }}" majidebadiparsajob/inventorydb-migrator:latest
 
-      - name: Deploy using docker-compose
-        run: docker-compose -f deploy/docker-compose.staging.yml up -d
+      - name: Deploy Application Services
+        run: docker-compose -f deploy/docker-compose.staging.yml up -d orderservice inventoryservice

@@ -7,9 +7,21 @@ services:
     ports:
       - "5002:80"
     restart: always
+    environment:
+      - ConnectionStrings__OrderDb=@@ORDERDB_CONNECTIONSTRING@@
+      - RabbitMq__Host=@@RABBITMQ_HOST@@
+      - RabbitMq__VirtualHost=@@RABBITMQ_VIRTUALHOST@@
+      - RabbitMq__Username=@@RABBITMQ_USERNAME@@
+      - RabbitMq__Password=@@RABBITMQ_PASSWORD@@
 
   inventoryservice:
     image: majidebadiparsajob/inventoryservice:latest
     ports:
       - "5003:80"
     restart: always
+    environment:
+      - ConnectionStrings__InventoryDb=@@INVENTORYDB_CONNECTIONSTRING@@
+      - RabbitMq__Host=@@RABBITMQ_HOST@@
+      - RabbitMq__VirtualHost=@@RABBITMQ_VIRTUALHOST@@
+      - RabbitMq__Username=@@RABBITMQ_USERNAME@@
+      - RabbitMq__Password=@@RABBITMQ_PASSWORD@@

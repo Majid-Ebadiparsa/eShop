@@ -7,16 +7,24 @@
 			"launchUrl": "swagger",
 			"applicationUrl": "http://localhost:5077",
 			"environmentVariables": {
-				"ASPNETCORE_ENVIRONMENT": "Development"
-				//"ASPNETCORE_ENVIRONMENT": "Docker"
+				"ASPNETCORE_ENVIRONMENT": "Development",
+				"OrderDb": "Server=localhost;Database=OrderDb;User Id=sa;Password=eSh@pDem@1;TrustServerCertificate=True;",
+				"RabbitMq__Host": "localhost",
+				"RabbitMq__VirtualHost": "/",
+				"RabbitMq__Username": "guest",
+				"RabbitMq__Password": "guest"
 			}
 		},
 		"IIS Express": {
 			"commandName": "IISExpress",
 			"launchBrowser": true,
 			"environmentVariables": {
-				"ASPNETCORE_ENVIRONMENT": "Development"
-				//"ASPNETCORE_ENVIRONMENT": "Docker"
+				"ASPNETCORE_ENVIRONMENT": "Development",
+				"OrderDb": "Server=localhost;Database=OrderDb;User Id=sa;Password=eSh@pDem@1;TrustServerCertificate=True;",
+				"RabbitMq__Host": "localhost",
+				"RabbitMq__VirtualHost": "/",
+				"RabbitMq__Username": "guest",
+				"RabbitMq__Password": "guest"
 			}
 		}
 	},

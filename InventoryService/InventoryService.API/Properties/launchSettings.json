@@ -7,20 +7,30 @@
       "launchUrl": "swagger",
       "applicationUrl": "http://localhost:5233",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-        //"ASPNETCORE_ENVIRONMENT": "Docker"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "InventoryDb": "Server=localhost;Database=InventoryDb;User Id=sa;Password=eSh@pDem@1;TrustServerCertificate=True;",
+        "RabbitMq__Host": "localhost",
+        "RabbitMq__VirtualHost": "/",
+        "RabbitMq__Username": "guest",
+        "RabbitMq__Password": "guest",
+        "RabbitMq__ReceiveEndpoint": "order-created-event-queue"
       }
     },
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-        //"ASPNETCORE_ENVIRONMENT": "Docker"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "InventoryDb": "Server=localhost;Database=InventoryDb;User Id=sa;Password=eSh@pDem@1;TrustServerCertificate=True;",
+        "RabbitMq__Host": "localhost",
+        "RabbitMq__VirtualHost": "/",
+        "RabbitMq__Username": "guest",
+        "RabbitMq__Password": "guest",
+        "RabbitMq__ReceiveEndpoint": "order-created-event-queue"
       }
     }
   },
-  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "$schema": "https://json.schemastore.org/launchsettings.json",
   "iisSettings": {
     "windowsAuthentication": false,
     "anonymousAuthentication": true,

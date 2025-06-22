@@ -19,13 +19,13 @@ jobs:
       uses: docker/setup-buildx-action@v2
 
     - name: Build OrderService Image
-      run: docker build -t myeshop/orderservice:latest -f OrderService/OrderService.API/Dockerfile .
+      run: docker build -t myeshop/orderservice:latest -f OrderService/OrderService.API/Dockerfile ./OrderService/OrderService.API
 
     - name: Build InventoryService Image
-      run: docker build -t myeshop/inventoryservice:latest -f InventoryService/InventoryService.API/Dockerfile .
+      run: docker build -t myeshop/inventoryservice:latest -f InventoryService/InventoryService.API/Dockerfile ./InventoryService/InventoryService.API
 
     - name: Build OrderDb Migrator Image
-      run: docker build -t myeshop/orderdb-migrator:latest -f OrderService/OrderService.API/MigrationDockerfile .
+      run: docker build -t myeshop/orderdb-migrator:latest -f OrderService/OrderService.API/MigrationDockerfile ./OrderService/OrderService.API
 
     - name: Build InventoryDb Migrator Image
-      run: docker build -t myeshop/inventorydb-migrator:latest -f InventoryService/InventoryService.API/MigrationDockerfile .
+      run: docker build -t myeshop/inventorydb-migrator:latest -f InventoryService/InventoryService.API/MigrationDockerfile ./InventoryService/InventoryService.API

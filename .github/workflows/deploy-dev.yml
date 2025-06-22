@@ -56,7 +56,7 @@ jobs:
           Write-Host "Waiting for SQL Server..."
           for ($i = 1; $i -le 30; $i++) {
             try {
-              docker exec $(docker ps -qf "name=sqlserver") /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $env:SQLSERVER_SA_PASSWORD -Q "SELECT 1" > $null 2>&1
+              docker exec $(docker ps -qf "name=sqlserver") /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $env:SQLSERVER_SA_PASSWORD -Q "SELECT 1"; $LASTEXITCODE = 0
               Write-Host "SQL Server is ready."
               break
             }
@@ -64,7 +64,6 @@ jobs:
               Start-Sleep -Seconds 2
             }
           }
-
 
       - name: Run Database Migrations
         run: |

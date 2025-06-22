@@ -51,7 +51,7 @@ jobs:
         run: docker-compose -f deploy/docker-compose.dev.yml up -d sqlserver rabbitmq
 
       - name: Wait for SQL Server to be ready
-        shell: pwsh
+        shell: powershell
         run: |
           Write-Host "Waiting for SQL Server..."
           for ($i = 1; $i -le 30; $i++) {

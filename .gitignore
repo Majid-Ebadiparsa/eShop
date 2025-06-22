@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/OrderService/OrderService.API/appsettings.Development.json
+/OrderService/OrderService.API/appsettings.Docker.json
+/InventoryService/InventoryService.API/appsettings.Development.json
+/InventoryService/InventoryService.API/appsettings.Docker.json

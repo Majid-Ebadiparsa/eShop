@@ -4,9 +4,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy-prod:
+  deploy-production:
     runs-on: self-hosted
-
     environment: production
 
     env:
@@ -25,42 +24,29 @@ jobs:
         shell: pwsh
         run: |
           (Get-Content deploy/docker-compose.production.yml) `
-          -replace '@@ORDERDB_CONNECTIONSTRING@@', '${{ env:ORDERDB_CONNECTIONSTRING }}' `
-          -replace '@@INVENTORYDB_CONNECTIONSTRING@@', '${{ env:INVENTORYDB_CONNECTIONSTRING }}' `
-          -replace '@@RABBITMQ_HOST@@', '${{ env:RABBITMQ_HOST }}' `
-          -replace '@@RABBITMQ_VIRTUALHOST@@', '${{ env:RABBITMQ_VIRTUALHOST }}' `
-          -replace '@@RABBITMQ_USERNAME@@', '${{ env:RABBITMQ_USERNAME }}' `
-          -replace '@@RABBITMQ_PASSWORD@@', '${{ env:RABBITMQ_PASSWORD }}' `
+          -replace '@@ORDERDB_CONNECTIONSTRING@@', "$env:ORDERDB_CONNECTIONSTRING" `
+          -replace '@@INVENTORYDB_CONNECTIONSTRING@@', "$env:INVENTORYDB_CONNECTIONSTRING" `
+          -replace '@@RABBITMQ_HOST@@', "$env:RABBITMQ_HOST" `
+          -replace '@@RABBITMQ_VIRTUALHOST@@', "$env:RABBITMQ_VIRTUALHOST" `
+          -replace '@@RABBITMQ_USERNAME@@', "$env:RABBITMQ_USERNAME" `
+          -replace '@@RABBITMQ_PASSWORD@@', "$env:RABBITMQ_PASSWORD" `
           | Set-Content deploy/docker-compose.production.yml
 
       - name: Pull latest images
         run: |
           docker pull majidebadiparsajob/orderservice:latest
           docker pull majidebadiparsajob/inventoryservice:latest
-
-      - name: Run OrderService Migrations
-        run: |
-          docker run --rm `
-          --network="host" `
-          -e ConnectionStrings__OrderDb="${{ env:ORDERDB_CONNECTIONSTRING }}" `
-          -e RabbitMq__Host="${{ env:RABBITMQ_HOST }}" `
-          -e RabbitMq__VirtualHost="${{ env:RABBITMQ_VIRTUALHOST }}" `
-          -e RabbitMq__Username="${{ env:RABBITMQ_USERNAME }}" `
-          -e RabbitMq__Password="${{ env:RABBITMQ_PASSWORD }}" `
-          majidebadiparsajob/orderservice:latest `
-          dotnet ef database update --context OrderDbContext
-
-      - name: Run InventoryService Migrations
-        run: |
-          docker run --rm `
-          --network="host" `
-          -e ConnectionStrings__InventoryDb="${{ env:INVENTORYDB_CONNECTIONSTRING }}" `
-          majidebadiparsajob/inventoryservice:latest `
-          dotnet ef database update --context InventoryDbContext
+          docker pull majidebadiparsajob/orderdb-migrator:latest
+          docker pull majidebadiparsajob/inventorydb-migrator:latest
 
       - name: Clean previous containers
         run: docker-compose -f deploy/docker-compose.production.yml down
         continue-on-error: true
+
+      - name: Run Database Migrations
+        run: |
+          docker run --rm majidebadiparsajob/orderdb-migrator:latest
+          docker run --rm majidebadiparsajob/inventorydb-migrator:latest
 
       - name: Deploy using docker-compose
         run: docker-compose -f deploy/docker-compose.production.yml up -d

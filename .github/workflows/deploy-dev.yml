@@ -51,15 +51,20 @@ jobs:
         run: docker-compose -f deploy/docker-compose.dev.yml up -d sqlserver rabbitmq
 
       - name: Wait for SQL Server to be ready
+        shell: pwsh
         run: |
-          echo "Waiting for SQL Server..."
-          for i in {1..30}; do
-            if docker exec $(docker ps -qf "name=sqlserver") /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$env:SQLSERVER_SA_PASSWORD" -Q "SELECT 1" > /dev/null 2>&1; then
-              echo "SQL Server is ready."
+          Write-Host "Waiting for SQL Server..."
+          for ($i = 1; $i -le 30; $i++) {
+            try {
+              docker exec $(docker ps -qf "name=sqlserver") /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $env:SQLSERVER_SA_PASSWORD -Q "SELECT 1" > $null 2>&1
+              Write-Host "SQL Server is ready."
               break
-            fi
-            sleep 2
-          done
+            }
+            catch {
+              Start-Sleep -Seconds 2
+            }
+          }
+
 
       - name: Run Database Migrations
         run: |

@@ -1,27 +1,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0
 
-WORKDIR /app/inventoryservice
+WORKDIR /app
 
-RUN dotnet tool install --global dotnet-ef
-ENV PATH="$PATH:/root/.dotnet/tools"
+COPY deploy/sql/inventorydb-migration.sql ./migration/migration.sql
+COPY migration-runner.sh ./migration-runner.sh
 
-COPY ["InventoryService/InventoryService.API/InventoryService.API.csproj", "InventoryService/InventoryService.API/"]
-COPY ["InventoryService/InventoryService.Application/InventoryService.Application.csproj", "InventoryService/InventoryService.Application/"]
-COPY ["InventoryService/InventoryService.Infrastructure/InventoryService.Infrastructure.csproj", "InventoryService/InventoryService.Infrastructure/"]
-COPY ["InventoryService/InventoryService.Domain/InventoryService.Domain.csproj", "InventoryService/InventoryService.Domain/"]
-COPY ["InventoryService/InventoryService.Shared/InventoryService.Shared.csproj", "InventoryService/InventoryService.Shared/"]
-COPY ["SharedService/SharedService.Contracts/SharedService.Contracts.csproj", "SharedService/SharedService.Contracts/"]
+RUN chmod +x ./migration-runner.sh
 
-RUN dotnet restore "InventoryService/InventoryService.API/InventoryService.API.csproj"
-
-COPY InventoryService/InventoryService.API/ InventoryService/InventoryService.API/
-COPY InventoryService/InventoryService.Application/ InventoryService/InventoryService.Application/
-COPY InventoryService/InventoryService.Infrastructure/ InventoryService/InventoryService.Infrastructure/
-COPY InventoryService/InventoryService.Domain/ InventoryService/InventoryService.Domain/
-COPY InventoryService/InventoryService.Shared/ InventoryService/InventoryService.Shared/
-COPY SharedService/SharedService.Contracts/ SharedService/SharedService.Contracts/
-
-COPY ["InventoryService/InventoryService.API/docker-entrypoint.sh", "docker-entrypoint.sh"]
-RUN chmod +x docker-entrypoint.sh
-
-CMD ["./docker-entrypoint.sh"]
+ENTRYPOINT ["./migration-runner.sh"]

@@ -1,27 +1,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0
 
-WORKDIR /app/orderservice
+WORKDIR /app
 
-RUN dotnet tool install --global dotnet-ef
-ENV PATH="$PATH:/root/.dotnet/tools"
+COPY deploy/sql/orderdb-migration.sql ./migration/migration.sql
+COPY migration-runner.sh ./migration-runner.sh
 
-COPY ["OrderService/OrderService.API/OrderService.API.csproj", "OrderService/OrderService.API/"]
-COPY ["OrderService/OrderService.Application/OrderService.Application.csproj", "OrderService/OrderService.Application/"]
-COPY ["OrderService/OrderService.Infrastructure/OrderService.Infrastructure.csproj", "OrderService/OrderService.Infrastructure/"]
-COPY ["OrderService/OrderService.Domain/OrderService.Domain.csproj", "OrderService/OrderService.Domain/"]
-COPY ["OrderService/OrderService.Shared/OrderService.Shared.csproj", "OrderService/OrderService.Shared/"]
-COPY ["SharedService/SharedService.Contracts/SharedService.Contracts.csproj", "SharedService/SharedService.Contracts/"]
+RUN chmod +x ./migration-runner.sh
 
-RUN dotnet restore "OrderService/OrderService.API/OrderService.API.csproj"
-
-COPY OrderService/OrderService.API/ OrderService/OrderService.API/
-COPY OrderService/OrderService.Application/ OrderService/OrderService.Application/
-COPY OrderService/OrderService.Infrastructure/ OrderService/OrderService.Infrastructure/
-COPY OrderService/OrderService.Domain/ OrderService/OrderService.Domain/
-COPY OrderService/OrderService.Shared/ OrderService/OrderService.Shared/
-COPY SharedService/SharedService.Contracts/ SharedService/SharedService.Contracts/
-
-COPY ["OrderService/OrderService.API/docker-entrypoint.sh", "docker-entrypoint.sh"]
-RUN chmod +x docker-entrypoint.sh
-
-CMD ["./docker-entrypoint.sh"]
+ENTRYPOINT ["./migration-runner.sh"]

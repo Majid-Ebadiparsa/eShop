@@ -1,9 +1,11 @@
+version: '3.8'
+
 services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: sqlserver-db
     environment:
-      SA_PASSWORD: "eSh@pDem@1"
+      SA_PASSWORD: "@@SQLSERVER_SA_PASSWORD@@"
       ACCEPT_EULA: "Y"
     ports:
       - "1433:1433"
@@ -13,70 +15,54 @@ services:
   rabbitmq:
     image: rabbitmq:3-management
     ports:
-      - "15672:15672"  # UI
-      - "5672:5672"    # Transport
+      - "15672:15672"
+      - "5672:5672"
     networks:
-      - eshopnetwork    
-    # Healthcheck for RabbitMQ and other services does not run if the RabbitMQ container is not running
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      - eshopnetwork
 
   order-db-migrator:
-    build:
-      context: ./
-      dockerfile: OrderService/OrderService.API/MigrationDockerfile
+    image: majidebadiparsajob/orderdb-migrator:latest
     depends_on:
       - sqlserver
     environment:
-      - ASPNETCORE_ENVIRONMENT=Docker
+      SQLSERVER_HOST: sqlserver-db
+      SQLSERVER_SA_PASSWORD: "@@SQLSERVER_SA_PASSWORD@@"
     networks:
       - eshopnetwork
     restart: "no"
 
   inventory-db-migrator:
-    build:
-      context: ./
-      dockerfile: InventoryService/InventoryService.API/MigrationDockerfile
+    image: majidebadiparsajob/inventorydb-migrator:latest
     depends_on:
       - sqlserver
     environment:
-      - ASPNETCORE_ENVIRONMENT=Docker
+      SQLSERVER_HOST: sqlserver-db
+      SQLSERVER_SA_PASSWORD: "@@SQLSERVER_SA_PASSWORD@@"
     networks:
       - eshopnetwork
     restart: "no"
 
   orderserviceapi:
-    build:
-      context: ./
-      dockerfile: OrderService/OrderService.API/Dockerfile
+    image: majidebadiparsajob/orderservice:latest
     container_name: orderservice-api
     ports:
       - "5000:8080"
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-      order-db-migrator:
-        condition: service_completed_successfully
+      - rabbitmq
+      - order-db-migrator
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
     networks:
       - eshopnetwork
 
   inventoryserviceapi:
-    build:
-      context: ./
-      dockerfile: InventoryService/InventoryService.API/Dockerfile
+    image: majidebadiparsajob/inventoryservice:latest
     container_name: inventoryservice-api
     ports:
       - "5001:8080"
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-      inventory-db-migrator:
-        condition: service_completed_successfully
+      - rabbitmq
+      - inventory-db-migrator
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
     networks:

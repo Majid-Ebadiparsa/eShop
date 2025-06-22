@@ -3,11 +3,11 @@ name: Docker Build
 on:
   workflow_run:
     workflows: ["Build and Test"]
-    types:
-      - completed
+    types: [completed]
 
 jobs:
   build-docker-images:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -23,8 +23,8 @@ jobs:
     - name: Build InventoryService Image
       run: docker build -t myeshop/inventoryservice:latest -f InventoryService/InventoryService.API/Dockerfile .
 
-    - name: Build OrderDb Migrator
-      run: docker build -t myeshop/orderdb-migrator:latest -f OrderService/OrderService.Infrastructure/MigrationDockerfile .
+    - name: Build OrderDb Migrator Image
+      run: docker build -t myeshop/orderdb-migrator:latest -f OrderService/OrderService.API/MigrationDockerfile .
 
-    - name: Build InventoryDb Migrator
-      run: docker build -t myeshop/inventorydb-migrator:latest -f InventoryService/InventoryService.Infrastructure/MigrationDockerfile .
+    - name: Build InventoryDb Migrator Image
+      run: docker build -t myeshop/inventorydb-migrator:latest -f InventoryService/InventoryService.API/MigrationDockerfile .

@@ -3,11 +3,11 @@ name: Docker Push
 on:
   workflow_run:
     workflows: ["Docker Build"]
-    types:
-      - completed
+    types: [completed]
 
 jobs:
   push-docker-images:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -24,24 +24,22 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build and Push OrderService Image
+    - name: Push OrderService Image
       run: |
-        docker build -t majidebadiparsajob/orderservice:latest -t majidebadiparsajob/orderservice:${{ env.sha_short }} -f OrderService/OrderService.API/Dockerfile .
+        docker tag myeshop/orderservice:latest majidebadiparsajob/orderservice:latest
         docker push majidebadiparsajob/orderservice:latest
-        docker push majidebadiparsajob/orderservice:${{ env.sha_short }}
 
-    - name: Build and Push InventoryService Image
+    - name: Push InventoryService Image
       run: |
-        docker build -t majidebadiparsajob/inventoryservice:latest -t majidebadiparsajob/inventoryservice:${{ env.sha_short }} -f InventoryService/InventoryService.API/Dockerfile .
+        docker tag myeshop/inventoryservice:latest majidebadiparsajob/inventoryservice:latest
         docker push majidebadiparsajob/inventoryservice:latest
-        docker push majidebadiparsajob/inventoryservice:${{ env.sha_short }}
 
-    - name: Push OrderDb Migrator
+    - name: Push OrderDb Migrator Image
       run: |
         docker tag myeshop/orderdb-migrator:latest majidebadiparsajob/orderdb-migrator:latest
         docker push majidebadiparsajob/orderdb-migrator:latest
 
-    - name: Push InventoryDb Migrator
+    - name: Push InventoryDb Migrator Image
       run: |
         docker tag myeshop/inventorydb-migrator:latest majidebadiparsajob/inventorydb-migrator:latest
         docker push majidebadiparsajob/inventorydb-migrator:latest

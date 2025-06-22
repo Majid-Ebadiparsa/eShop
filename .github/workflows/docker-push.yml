@@ -35,3 +35,13 @@ jobs:
         docker build -t majidebadiparsajob/inventoryservice:latest -t majidebadiparsajob/inventoryservice:${{ env.sha_short }} -f InventoryService/InventoryService.API/Dockerfile .
         docker push majidebadiparsajob/inventoryservice:latest
         docker push majidebadiparsajob/inventoryservice:${{ env.sha_short }}
+
+    - name: Push OrderDb Migrator
+      run: |
+        docker tag myeshop/orderdb-migrator:latest majidebadiparsajob/orderdb-migrator:latest
+        docker push majidebadiparsajob/orderdb-migrator:latest
+
+    - name: Push InventoryDb Migrator
+      run: |
+        docker tag myeshop/inventorydb-migrator:latest majidebadiparsajob/inventorydb-migrator:latest
+        docker push majidebadiparsajob/inventorydb-migrator:latest

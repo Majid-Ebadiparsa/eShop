@@ -22,3 +22,9 @@ jobs:
 
     - name: Build InventoryService Image
       run: docker build -t myeshop/inventoryservice:latest -f InventoryService/InventoryService.API/Dockerfile .
+
+    - name: Build OrderDb Migrator
+      run: docker build -t myeshop/orderdb-migrator:latest -f OrderService/OrderService.Infrastructure/MigrationDockerfile .
+
+    - name: Build InventoryDb Migrator
+      run: docker build -t myeshop/inventorydb-migrator:latest -f InventoryService/InventoryService.Infrastructure/MigrationDockerfile .

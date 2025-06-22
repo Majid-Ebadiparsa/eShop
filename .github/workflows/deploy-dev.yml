@@ -2,7 +2,7 @@ name: Deploy to Dev
 
 on:
   workflow_run:
-    workflows: ["Docker Push"]
+    workflows: ["Docker Build and Push"]
     types:
       - completed
 

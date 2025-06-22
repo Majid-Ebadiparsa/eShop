@@ -1,13 +1,13 @@
-name: Docker Push
+name: Docker Build and Push
 
 on:
   workflow_run:
-    workflows: ["Docker Build"]
+    workflows: ["Build and Test"]
     types:
       - completed
 
 jobs:
-  push-docker-images:
+  build-and-push:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
@@ -19,36 +19,35 @@ jobs:
       id: vars
       run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
     - name: Login to DockerHub
       uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Tag and Push OrderService Image
+    - name: Build and Push OrderService
       run: |
-        docker tag myeshop/orderservice:latest majidebadiparsajob/orderservice:latest
-        docker tag myeshop/orderservice:latest majidebadiparsajob/orderservice:${{ env.sha_short }}
+        docker build -t majidebadiparsajob/orderservice:latest -t majidebadiparsajob/orderservice:${{ env.sha_short }} -f OrderService/OrderService.API/Dockerfile .
         docker push majidebadiparsajob/orderservice:latest
         docker push majidebadiparsajob/orderservice:${{ env.sha_short }}
 
-    - name: Tag and Push InventoryService Image
+    - name: Build and Push InventoryService
       run: |
-        docker tag myeshop/inventoryservice:latest majidebadiparsajob/inventoryservice:latest
-        docker tag myeshop/inventoryservice:latest majidebadiparsajob/inventoryservice:${{ env.sha_short }}
+        docker build -t majidebadiparsajob/inventoryservice:latest -t majidebadiparsajob/inventoryservice:${{ env.sha_short }} -f InventoryService/InventoryService.API/Dockerfile .
         docker push majidebadiparsajob/inventoryservice:latest
         docker push majidebadiparsajob/inventoryservice:${{ env.sha_short }}
 
-    - name: Tag and Push OrderDb Migrator Image
+    - name: Build and Push OrderDb Migrator
       run: |
-        docker tag myeshop/orderdb-migrator:latest majidebadiparsajob/orderdb-migrator:latest
-        docker tag myeshop/orderdb-migrator:latest majidebadiparsajob/orderdb-migrator:${{ env.sha_short }}
+        docker build -t majidebadiparsajob/orderdb-migrator:latest -t majidebadiparsajob/orderdb-migrator:${{ env.sha_short }} -f OrderService/OrderService.API/MigrationDockerfile .
         docker push majidebadiparsajob/orderdb-migrator:latest
         docker push majidebadiparsajob/orderdb-migrator:${{ env.sha_short }}
 
-    - name: Tag and Push InventoryDb Migrator Image
+    - name: Build and Push InventoryDb Migrator
       run: |
-        docker tag myeshop/inventorydb-migrator:latest majidebadiparsajob/inventorydb-migrator:latest
-        docker tag myeshop/inventorydb-migrator:latest majidebadiparsajob/inventorydb-migrator:${{ env.sha_short }}
+        docker build -t majidebadiparsajob/inventorydb-migrator:latest -t majidebadiparsajob/inventorydb-migrator:${{ env.sha_short }} -f InventoryService/InventoryService.API/MigrationDockerfile .
         docker push majidebadiparsajob/inventorydb-migrator:latest
         docker push majidebadiparsajob/inventorydb-migrator:${{ env.sha_short }}

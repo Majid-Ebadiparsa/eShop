@@ -51,8 +51,8 @@ jobs:
           --output deploy/sql/InventoryDb.sql \
           --idempotent
 
-    - name: Cache SQL scripts artifact
-      uses: actions/cache@v4
+    - name: Upload SQL scripts artifact
+      uses: actions/upload-artifact@v4
       with:
+        name: sql-scripts
         path: deploy/sql/
-        key: sql-scripts-${{ github.run_id }}

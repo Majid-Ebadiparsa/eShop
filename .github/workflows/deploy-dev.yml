@@ -24,12 +24,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Restore cached SQL scripts
-    - name: Restore SQL scripts from cache
-      uses: actions/cache@v4
+    - name: Download SQL scripts artifact
+      uses: actions/download-artifact@v4
       with:
+        name: sql-scripts
         path: deploy/sql/
-        key: sql-scripts-${{ github.event.workflow_run.run_id }}
 
     - name: Replace secrets in Docker Compose
       shell: powershell
@@ -57,25 +56,7 @@ jobs:
     - name: Start infrastructure (DB + RabbitMQ)
       run: docker-compose -f deploy/docker-compose.dev.yml up -d sqlserver rabbitmq
 
-    # Step 1: Wait until container created
-    - name: Verify sqlserver-db container exists
-      shell: powershell
-      run: |
-        Write-Host "Checking if container sqlserver-db exists..."
-        for ($i = 1; $i -le 10; $i++) {
-          $containerExists = docker ps -a --format "{{.Names}}" | Select-String "sqlserver-db"
-          if ($containerExists) {
-            Write-Host "Container sqlserver-db detected."
-            break
-          }
-          else {
-            Write-Host "Container not created yet. Waiting 2 seconds..."
-            Start-Sleep -Seconds 2
-          }
-        }
-
-    # Step 2: Wait for SQL Server inside container
-    - name: Wait for SQL Server to be ready
+    - name: Wait for SQL Server to become ready
       shell: powershell
       run: |
         Write-Host "Waiting for SQL Server to become ready..."
@@ -91,15 +72,12 @@ jobs:
           }
         }
 
-
-    # Apply OrderDb SQL
     - name: Apply OrderDb SQL script
       shell: powershell
       run: |
         docker run --rm --network host -v ${env:GITHUB_WORKSPACE}\deploy\sql:/sql mcr.microsoft.com/mssql-tools `
         /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$env:SQLSERVER_SA_PASSWORD" -d master -i /sql/OrderDb.sql
 
-    # Apply InventoryDb SQL
     - name: Apply InventoryDb SQL script
       shell: powershell
       run: |

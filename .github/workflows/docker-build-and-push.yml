@@ -15,12 +15,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Restore cached SQL scripts
-    - name: Restore SQL scripts from cache
-      uses: actions/cache@v4
+    - name: Download SQL scripts artifact
+      uses: actions/download-artifact@v4
       with:
+        name: sql-scripts
         path: deploy/sql/
-        key: sql-scripts-${{ github.event.workflow_run.run_id }}
 
     - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -31,25 +30,21 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    # Build and push OrderService image
     - name: Build and push OrderService
       run: |
         docker build -t majidebadiparsajob/orderservice:latest -f OrderService/OrderService.API/Dockerfile .
         docker push majidebadiparsajob/orderservice:latest
 
-    # Build and push InventoryService image
     - name: Build and push InventoryService
       run: |
         docker build -t majidebadiparsajob/inventoryservice:latest -f InventoryService/InventoryService.API/Dockerfile .
         docker push majidebadiparsajob/inventoryservice:latest
 
-    # Build and push OrderDb Migrator image
     - name: Build and push OrderDb Migrator
       run: |
         docker build -t majidebadiparsajob/orderdb-migrator:latest -f OrderService/OrderService.API/MigrationDockerfile .
         docker push majidebadiparsajob/orderdb-migrator:latest
 
-    # Build and push InventoryDb Migrator image
     - name: Build and push InventoryDb Migrator
       run: |
         docker build -t majidebadiparsajob/inventorydb-migrator:latest -f InventoryService/InventoryService.API/MigrationDockerfile .

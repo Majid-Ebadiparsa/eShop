@@ -81,7 +81,7 @@ jobs:
         Write-Host "Waiting for SQL Server to become ready..."
         for ($i = 1; $i -le 30; $i++) {
           try {
-            docker exec sqlserver-db /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$env:SQLSERVER_SA_PASSWORD" -Q "SELECT 1"
+            docker run --rm --network host mcr.microsoft.com/mssql-tools /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$env:SQLSERVER_SA_PASSWORD" -Q "SELECT 1"
             Write-Host "SQL Server is ready."
             break
           }
@@ -90,6 +90,7 @@ jobs:
             Start-Sleep -Seconds 2
           }
         }
+
 
     # Apply OrderDb SQL
     - name: Apply OrderDb SQL script

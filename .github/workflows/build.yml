@@ -55,7 +55,7 @@ jobs:
 
     # Upload SQL scripts as build artifact
     - name: Upload SQL scripts artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: sql-scripts
         path: deploy/sql/

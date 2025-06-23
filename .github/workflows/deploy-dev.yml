@@ -56,8 +56,7 @@ jobs:
         Write-Host "Waiting for SQL Server to become ready..."
         for ($i = 1; $i -le 30; $i++) {
           try {
-            docker run --rm --network eshop_eshopnetwork mcr.microsoft.com/mssql-tools `
-              /opt/mssql-tools/bin/sqlcmd -S sqlserver-db -U sa -P "$env:SQLSERVER_SA_PASSWORD" -Q "SELECT 1"
+            docker run --rm --network eshop_eshopnetwork mcr.microsoft.com/mssql-tools /opt/mssql-tools/bin/sqlcmd -S sqlserver-db -U sa -P "$env:SQLSERVER_SA_PASSWORD" -Q "SELECT 1"
             Write-Host "SQL Server is ready."
             break
           }

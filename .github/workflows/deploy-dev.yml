@@ -21,63 +21,62 @@ jobs:
       RABBITMQ_VIRTUALHOST: ${{ secrets.RABBITMQ_VIRTUALHOST }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Download SQL scripts artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: sql-scripts
-          path: deploy/sql/
+    # Restore cached SQL scripts
+    - name: Restore SQL scripts from cache
+      uses: actions/cache@v4
+      with:
+        path: deploy/sql/
+        key: sql-scripts-${{ github.event.workflow_run.run_id }}
 
-      - name: Replace secrets in Docker Compose
-        shell: powershell
-        run: |
-          (Get-Content deploy/docker-compose.dev.yml) `
-          -replace '@@SQLSERVER_SA_PASSWORD@@', "$env:SQLSERVER_SA_PASSWORD" `
-          -replace '@@ORDERDB_CONNECTIONSTRING@@', "$env:ORDERDB_CONNECTIONSTRING" `
-          -replace '@@INVENTORYDB_CONNECTIONSTRING@@', "$env:INVENTORYDB_CONNECTIONSTRING" `
-          -replace '@@RABBITMQ_USERNAME@@', "$env:RABBITMQ_USERNAME" `
-          -replace '@@RABBITMQ_PASSWORD@@', "$env:RABBITMQ_PASSWORD" `
-          -replace '@@RABBITMQ_VIRTUALHOST@@', "$env:RABBITMQ_VIRTUALHOST" `
-          | Set-Content deploy/docker-compose.dev.yml
+    - name: Replace secrets in Docker Compose
+      shell: powershell
+      run: |
+        (Get-Content deploy/docker-compose.dev.yml) `
+        -replace '@@SQLSERVER_SA_PASSWORD@@', "$env:SQLSERVER_SA_PASSWORD" `
+        -replace '@@ORDERDB_CONNECTIONSTRING@@', "$env:ORDERDB_CONNECTIONSTRING" `
+        -replace '@@INVENTORYDB_CONNECTIONSTRING@@', "$env:INVENTORYDB_CONNECTIONSTRING" `
+        -replace '@@RABBITMQ_USERNAME@@', "$env:RABBITMQ_USERNAME" `
+        -replace '@@RABBITMQ_PASSWORD@@', "$env:RABBITMQ_PASSWORD" `
+        -replace '@@RABBITMQ_VIRTUALHOST@@', "$env:RABBITMQ_VIRTUALHOST" `
+        | Set-Content deploy/docker-compose.dev.yml
 
-      - name: Pull latest images
-        run: |
-          docker pull majidebadiparsajob/orderservice:latest
-          docker pull majidebadiparsajob/inventoryservice:latest
-          docker pull majidebadiparsajob/orderdb-migrator:latest
-          docker pull majidebadiparsajob/inventorydb-migrator:latest
+    - name: Pull latest images
+      run: |
+        docker pull majidebadiparsajob/orderservice:latest
+        docker pull majidebadiparsajob/inventoryservice:latest
+        docker pull majidebadiparsajob/orderdb-migrator:latest
+        docker pull majidebadiparsajob/inventorydb-migrator:latest
 
-      - name: Clean previous containers
-        run: docker-compose -f deploy/docker-compose.dev.yml down
-        continue-on-error: true
+    - name: Clean previous containers
+      run: docker-compose -f deploy/docker-compose.dev.yml down
+      continue-on-error: true
 
-      - name: Start infrastructure (DB + RabbitMQ)
-        run: docker-compose -f deploy/docker-compose.dev.yml up -d sqlserver rabbitmq
+    - name: Start infrastructure (DB + RabbitMQ)
+      run: docker-compose -f deploy/docker-compose.dev.yml up -d sqlserver rabbitmq
 
-      - name: Wait for SQL Server to be ready
-        run: |
-          echo "Waiting for SQL Server..."
-          for i in {1..30}; do
-            if docker exec $(docker ps -qf "name=sqlserver") /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$env:SQLSERVER_SA_PASSWORD" -Q "SELECT 1" > /dev/null 2>&1; then
-              echo "SQL Server is ready."
-              break
-            fi
-            sleep 2
-          done
+    - name: Wait for SQL Server to be ready
+      run: |
+        echo "Waiting for SQL Server..."
+        for i in {1..30}; do
+          if docker exec $(docker ps -qf "name=sqlserver") /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$env:SQLSERVER_SA_PASSWORD" -Q "SELECT 1" > /dev/null 2>&1; then
+            echo "SQL Server is ready."
+            break
+          fi
+          sleep 2
+        done
 
-      # Run SQL scripts for OrderDb
-      - name: Apply OrderDb migration
-        run: |
-          docker run --rm --network host -v ${GITHUB_WORKSPACE}/deploy/sql:/sql mcr.microsoft.com/mssql-tools \
-          /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$env:SQLSERVER_SA_PASSWORD" -d master -i /sql/OrderDb.sql
+    - name: Apply OrderDb SQL script
+      run: |
+        docker run --rm --network host -v ${GITHUB_WORKSPACE}/deploy/sql:/sql mcr.microsoft.com/mssql-tools \
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$env:SQLSERVER_SA_PASSWORD" -d master -i /sql/OrderDb.sql
 
-      # Run SQL scripts for InventoryDb
-      - name: Apply InventoryDb migration
-        run: |
-          docker run --rm --network host -v ${GITHUB_WORKSPACE}/deploy/sql:/sql mcr.microsoft.com/mssql-tools \
-          /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$env:SQLSERVER_SA_PASSWORD" -d master -i /sql/InventoryDb.sql
+    - name: Apply InventoryDb SQL script
+      run: |
+        docker run --rm --network host -v ${GITHUB_WORKSPACE}/deploy/sql:/sql mcr.microsoft.com/mssql-tools \
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$env:SQLSERVER_SA_PASSWORD" -d master -i /sql/InventoryDb.sql
 
-      - name: Deploy application services
-        run: docker-compose -f deploy/docker-compose.dev.yml up -d orderservice inventoryservice
+    - name: Deploy application services
+      run: docker-compose -f deploy/docker-compose.dev.yml up -d orderservice inventoryservice

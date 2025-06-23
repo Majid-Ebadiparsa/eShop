@@ -7,20 +7,23 @@ on:
       - completed
 
 jobs:
-  build-and-push:
+  docker:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
-    - name: Get short SHA
-      id: vars
-      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+    # Restore cached SQL scripts
+    - name: Restore SQL scripts from cache
+      uses: actions/cache@v4
+      with:
+        path: deploy/sql/
+        key: sql-scripts-${{ github.event.workflow_run.run_id }}
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
     - name: Login to DockerHub
       uses: docker/login-action@v3
@@ -28,26 +31,26 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build and Push OrderService
+    # Build and push OrderService image
+    - name: Build and push OrderService
       run: |
-        docker build -t majidebadiparsajob/orderservice:latest -t majidebadiparsajob/orderservice:${{ env.sha_short }} -f OrderService/OrderService.API/Dockerfile .
+        docker build -t majidebadiparsajob/orderservice:latest -f OrderService/OrderService.API/Dockerfile .
         docker push majidebadiparsajob/orderservice:latest
-        docker push majidebadiparsajob/orderservice:${{ env.sha_short }}
 
-    - name: Build and Push InventoryService
+    # Build and push InventoryService image
+    - name: Build and push InventoryService
       run: |
-        docker build -t majidebadiparsajob/inventoryservice:latest -t majidebadiparsajob/inventoryservice:${{ env.sha_short }} -f InventoryService/InventoryService.API/Dockerfile .
+        docker build -t majidebadiparsajob/inventoryservice:latest -f InventoryService/InventoryService.API/Dockerfile .
         docker push majidebadiparsajob/inventoryservice:latest
-        docker push majidebadiparsajob/inventoryservice:${{ env.sha_short }}
 
-    - name: Build and Push OrderDb Migrator
+    # Build and push OrderDb Migrator image
+    - name: Build and push OrderDb Migrator
       run: |
-        docker build -t majidebadiparsajob/orderdb-migrator:latest -t majidebadiparsajob/orderdb-migrator:${{ env.sha_short }} -f OrderService/OrderService.API/MigrationDockerfile .
+        docker build -t majidebadiparsajob/orderdb-migrator:latest -f OrderService/OrderService.API/MigrationDockerfile .
         docker push majidebadiparsajob/orderdb-migrator:latest
-        docker push majidebadiparsajob/orderdb-migrator:${{ env.sha_short }}
 
-    - name: Build and Push InventoryDb Migrator
+    # Build and push InventoryDb Migrator image
+    - name: Build and push InventoryDb Migrator
       run: |
-        docker build -t majidebadiparsajob/inventorydb-migrator:latest -t majidebadiparsajob/inventorydb-migrator:${{ env.sha_short }} -f InventoryService/InventoryService.API/MigrationDockerfile .
+        docker build -t majidebadiparsajob/inventorydb-migrator:latest -f InventoryService/InventoryService.API/MigrationDockerfile .
         docker push majidebadiparsajob/inventorydb-migrator:latest
-        docker push majidebadiparsajob/inventorydb-migrator:${{ env.sha_short }}

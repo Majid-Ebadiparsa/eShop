@@ -12,13 +12,14 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
 
+    # Install EF Core CLI to generate migration SQL scripts
     - name: Install EF Core CLI
       run: |
         dotnet tool install --global dotnet-ef --version 8.0.5
@@ -33,7 +34,7 @@ jobs:
     - name: Run unit tests
       run: dotnet test --no-restore --verbosity normal
 
-    # Generate SQL script for OrderService
+    # Generate idempotent SQL script for OrderDb
     - name: Generate SQL script for OrderDb
       run: |
         mkdir -p deploy/sql
@@ -43,7 +44,7 @@ jobs:
           --output deploy/sql/OrderDb.sql \
           --idempotent
 
-    # Generate SQL script for InventoryService
+    # Generate idempotent SQL script for InventoryDb
     - name: Generate SQL script for InventoryDb
       run: |
         mkdir -p deploy/sql
@@ -53,9 +54,9 @@ jobs:
           --output deploy/sql/InventoryDb.sql \
           --idempotent
 
-    # Upload SQL scripts as build artifact
-    - name: Upload SQL scripts artifact
-      uses: actions/upload-artifact@v4
+    # Cache generated SQL scripts for next workflows
+    - name: Cache SQL scripts
+      uses: actions/cache@v4
       with:
-        name: sql-scripts
         path: deploy/sql/
+        key: sql-scripts-${{ github.run_id }}

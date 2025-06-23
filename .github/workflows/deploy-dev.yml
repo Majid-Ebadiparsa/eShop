@@ -24,12 +24,6 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Download SQL scripts artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: sql-scripts
-        path: deploy/sql/
-
     - name: Replace secrets in Docker Compose
       shell: powershell
       run: |
@@ -72,17 +66,10 @@ jobs:
           }
         }
 
-    - name: Apply OrderDb SQL script
+    - name: Apply SQL Migrations
       shell: powershell
       run: |
-        docker run --rm --network host -v ${env:GITHUB_WORKSPACE}\deploy\sql:/sql mcr.microsoft.com/mssql-tools `
-        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$env:SQLSERVER_SA_PASSWORD" -d master -i /sql/OrderDb.sql
-
-    - name: Apply InventoryDb SQL script
-      shell: powershell
-      run: |
-        docker run --rm --network host -v ${env:GITHUB_WORKSPACE}\deploy\sql:/sql mcr.microsoft.com/mssql-tools `
-        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$env:SQLSERVER_SA_PASSWORD" -d master -i /sql/InventoryDb.sql
+        . ${env:GITHUB_WORKSPACE}\deploy\run-migrations.ps1
 
     - name: Deploy application services
       run: docker-compose -f deploy/docker-compose.dev.yml up -d orderservice inventoryservice

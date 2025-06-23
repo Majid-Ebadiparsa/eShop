@@ -58,24 +58,31 @@ jobs:
       run: docker-compose -f deploy/docker-compose.dev.yml up -d sqlserver rabbitmq
 
     - name: Wait for SQL Server to be ready
+      shell: powershell
       run: |
-        echo "Waiting for SQL Server..."
-        for i in {1..30}; do
-          if docker exec $(docker ps -qf "name=sqlserver") /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$env:SQLSERVER_SA_PASSWORD" -Q "SELECT 1" > /dev/null 2>&1; then
-            echo "SQL Server is ready."
+        Write-Host "Waiting for SQL Server..."
+        for ($i = 1; $i -le 30; $i++) {
+          try {
+            docker exec sqlserver-db /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$env:SQLSERVER_SA_PASSWORD" -Q "SELECT 1"
+            Write-Host "SQL Server is ready."
             break
-          fi
-          sleep 2
-        done
+          }
+          catch {
+            Write-Host "SQL Server not ready yet. Retrying in 2 seconds..."
+            Start-Sleep -Seconds 2
+          }
+        }
 
     - name: Apply OrderDb SQL script
+      shell: powershell
       run: |
-        docker run --rm --network host -v ${GITHUB_WORKSPACE}/deploy/sql:/sql mcr.microsoft.com/mssql-tools \
+        docker run --rm --network host -v ${env:GITHUB_WORKSPACE}\deploy\sql:/sql mcr.microsoft.com/mssql-tools `
         /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$env:SQLSERVER_SA_PASSWORD" -d master -i /sql/OrderDb.sql
 
     - name: Apply InventoryDb SQL script
+      shell: powershell
       run: |
-        docker run --rm --network host -v ${GITHUB_WORKSPACE}/deploy/sql:/sql mcr.microsoft.com/mssql-tools \
+        docker run --rm --network host -v ${env:GITHUB_WORKSPACE}\deploy\sql:/sql mcr.microsoft.com/mssql-tools `
         /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$env:SQLSERVER_SA_PASSWORD" -d master -i /sql/InventoryDb.sql
 
     - name: Deploy application services

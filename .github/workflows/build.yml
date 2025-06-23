@@ -1,4 +1,4 @@
-name: Build and Test
+name: Build
 
 on:
   push:
@@ -19,11 +19,43 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
+    - name: Install EF Core CLI
+      run: |
+        dotnet tool install --global dotnet-ef --version 8.0.5
+        echo "${HOME}/.dotnet/tools" >> $GITHUB_PATH
+
     - name: Restore dependencies
       run: dotnet restore
 
-    - name: Build Solution
+    - name: Build solution
       run: dotnet build --no-restore --configuration Release
 
-    - name: Run Unit Tests
+    - name: Run unit tests
       run: dotnet test --no-restore --verbosity normal
+
+    # Generate SQL script for OrderService
+    - name: Generate SQL script for OrderDb
+      run: |
+        mkdir -p deploy/sql
+        dotnet ef migrations script \
+          --project OrderService/OrderService.Infrastructure/OrderService.Infrastructure.csproj \
+          --startup-project OrderService/OrderService.API/OrderService.API.csproj \
+          --output deploy/sql/OrderDb.sql \
+          --idempotent
+
+    # Generate SQL script for InventoryService
+    - name: Generate SQL script for InventoryDb
+      run: |
+        mkdir -p deploy/sql
+        dotnet ef migrations script \
+          --project InventoryService/InventoryService.Infrastructure/InventoryService.Infrastructure.csproj \
+          --startup-project InventoryService/InventoryService.API/InventoryService.API.csproj \
+          --output deploy/sql/InventoryDb.sql \
+          --idempotent
+
+    # Upload SQL scripts as build artifact
+    - name: Upload SQL scripts artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: sql-scripts
+        path: deploy/sql/

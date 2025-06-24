@@ -22,6 +22,8 @@ services:
       - sqlserver
     networks:
       - eshop_eshopnetwork
+    volumes:
+      - ./deploy/sql:/sql
 
   rabbitmq:
     container_name: rabbitmq

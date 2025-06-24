@@ -50,6 +50,21 @@ jobs:
     - name: Start infrastructure (DB + RabbitMQ + Migrator)
       run: docker-compose -f deploy/docker-compose.dev.yml up -d sqlserver rabbitmq sql-migrator
 
+    - name: Wait until sql-migrator container exists
+      shell: powershell
+      run: |
+        Write-Host "Waiting for sql-migrator container to start..."
+        for ($i = 1; $i -le 20; $i++) {
+          $containerExists = docker ps -a --format "{{.Names}}" | Select-String "sql-migrator"
+          if ($containerExists) {
+            Write-Host "sql-migrator container detected."
+            break
+          } else {
+            Write-Host "sql-migrator not started yet. Waiting 2 seconds..."
+            Start-Sleep -Seconds 2
+          }
+        }
+
     - name: Wait for SQL Server to become ready
       shell: powershell
       run: |

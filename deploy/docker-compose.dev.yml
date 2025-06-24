@@ -22,6 +22,8 @@ services:
       - sqlserver
     networks:
       - eshop_eshopnetwork
+    links:
+      - sqlserver:sqlserver-db
 
   rabbitmq:
     container_name: rabbitmq

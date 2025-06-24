@@ -15,10 +15,11 @@ services:
     restart: always
 
   sql-migrator:
+    container_name: sql-migrator
     image: mcr.microsoft.com/mssql-tools
+    entrypoint: ["sleep", "infinity"]
     depends_on:
       - sqlserver
-    entrypoint: ["sleep", "infinity"]
     networks:
       - eshop_eshopnetwork
 
@@ -64,6 +65,7 @@ services:
       - RabbitMq__VirtualHost=@@RABBITMQ_VIRTUALHOST@@
       - RabbitMq__Username=@@RABBITMQ_USERNAME@@
       - RabbitMq__Password=@@RABBITMQ_PASSWORD@@
+
 networks:
   eshop_eshopnetwork:
     driver: bridge

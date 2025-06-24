@@ -28,6 +28,8 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    networks:
+      - eshop_eshopnetwork
     environment:
       - RABBITMQ_DEFAULT_USER=@@RABBITMQ_USERNAME@@
       - RABBITMQ_DEFAULT_PASS=@@RABBITMQ_PASSWORD@@
@@ -38,6 +40,8 @@ services:
     image: majidebadiparsajob/orderservice:latest
     ports:
       - "5000:80"
+    networks:
+      - eshop_eshopnetwork
     restart: always
     environment:
       - ConnectionStrings__OrderDb=@@ORDERDB_CONNECTIONSTRING@@
@@ -51,6 +55,8 @@ services:
     image: majidebadiparsajob/inventoryservice:latest
     ports:
       - "5001:80"
+    networks:
+      - eshop_eshopnetwork
     restart: always
     environment:
       - ConnectionStrings__InventoryDb=@@INVENTORYDB_CONNECTIONSTRING@@

@@ -70,6 +70,8 @@ jobs:
       run: |
         Write-Host "Waiting for SQL Server to become ready..."
         $SqlServerContainerIp = docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' sqlserver-db
+        Write-Host "Giving SQL Server container 10 seconds to initialize..."
+        Start-Sleep -Seconds 10
         for ($i = 1; $i -le 30; $i++) {
           try {
             docker exec sql-migrator /opt/mssql-tools/bin/sqlcmd -S "$SqlServerContainerIp" -U sa -P "$env:SQLSERVER_SA_PASSWORD" -Q "SELECT 1"

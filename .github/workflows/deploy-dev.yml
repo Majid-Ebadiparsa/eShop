@@ -47,8 +47,8 @@ jobs:
       run: docker-compose -f deploy/docker-compose.dev.yml down
       continue-on-error: true
 
-    - name: Start infrastructure (DB + RabbitMQ)
-      run: docker-compose -f deploy/docker-compose.dev.yml up -d sqlserver rabbitmq
+    - name: Start infrastructure (DB + RabbitMQ + Migrator)
+      run: docker-compose -f deploy/docker-compose.dev.yml up -d sqlserver rabbitmq sql-migrator
 
     - name: Wait for SQL Server to become ready
       shell: powershell

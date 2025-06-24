@@ -56,17 +56,14 @@ jobs:
     - name: Start infrastructure (DB + RabbitMQ + Migrator)
       run: docker-compose -f deploy/docker-compose.dev.yml up -d sqlserver rabbitmq sql-migrator
 
-    - name: Wait for SQL Server container to initialize
+    - name: Wait for SQL Server to become ready
       shell: powershell
       run: |
-        Write-Host "Waiting for SQL Server container to initialize..."
-        $SqlServerContainerIp = docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' sqlserver-db
-        Write-Host "Resolved SQL Server IP: $SqlServerContainerIp"
-        Write-Host "Waiting 10 seconds for SQL Server process to fully start..."
+        Write-Host "Waiting for SQL Server to become ready on localhost:1433..."
         Start-Sleep -Seconds 10
         for ($i = 1; $i -le 30; $i++) {
           try {
-            sqlcmd -S "$SqlServerContainerIp" -U sa -P "$env:SQLSERVER_SA_PASSWORD" -Q "SELECT 1"
+            sqlcmd -S "localhost,1433" -U sa -P "$env:SQLSERVER_SA_PASSWORD" -Q "SELECT 1"
             Write-Host "SQL Server is ready."
             break
           }
@@ -80,3 +77,6 @@ jobs:
       shell: powershell
       run: |
         & "./deploy/run-migrations.ps1"
+
+    - name: Deploy application services
+      run: docker-compose -f deploy/docker-compose.dev.yml up -d orderservice inventoryservice

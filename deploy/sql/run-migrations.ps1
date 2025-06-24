@@ -1,5 +1,6 @@
-# Resolve SQL Server IP dynamically
-$SqlServerContainerIp = docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' sqlserver-db
+# Use host connection via Docker published port
+$SqlServerHost = "localhost"
+$SqlServerPort = "1433"
 
 # Load migration state file
 $migrationStatePath = "./deploy/migration_state.json"
@@ -14,7 +15,7 @@ $orderDbScripts = Get-ChildItem -Path "./deploy/sql/OrderDb" -Filter *.sql | Sor
 foreach ($script in $orderDbScripts) {
     if ($migrationState.OrderDb -notcontains $script.Name) {
         Write-Host "Executing OrderDb script: $($script.Name)"
-        sqlcmd -S "$SqlServerContainerIp" -U sa -P "$env:SQLSERVER_SA_PASSWORD" -d master -i "./deploy/sql/OrderDb/$($script.Name)"
+        sqlcmd -S "$SqlServerHost,$SqlServerPort" -U sa -P "$env:SQLSERVER_SA_PASSWORD" -d master -i "./deploy/sql/OrderDb/$($script.Name)"
         $migrationState.OrderDb += $script.Name
         $migrationState | ConvertTo-Json | Set-Content $migrationStatePath
     } else {
@@ -27,7 +28,7 @@ $inventoryDbScripts = Get-ChildItem -Path "./deploy/sql/InventoryDb" -Filter *.s
 foreach ($script in $inventoryDbScripts) {
     if ($migrationState.InventoryDb -notcontains $script.Name) {
         Write-Host "Executing InventoryDb script: $($script.Name)"
-        sqlcmd -S "$SqlServerContainerIp" -U sa -P "$env:SQLSERVER_SA_PASSWORD" -d master -i "./deploy/sql/InventoryDb/$($script.Name)"
+        sqlcmd -S "$SqlServerHost,$SqlServerPort" -U sa -P "$env:SQLSERVER_SA_PASSWORD" -d master -i "./deploy/sql/InventoryDb/$($script.Name)"
         $migrationState.InventoryDb += $script.Name
         $migrationState | ConvertTo-Json | Set-Content $migrationStatePath
     } else {

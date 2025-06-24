@@ -24,7 +24,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Move to repository root
+      working-directory: ${{ github.workspace }}/eShop
+      run: echo "Changed to repository root"
+
     - name: Replace secrets in Docker Compose
+      working-directory: ${{ github.workspace }}/eShop
       shell: powershell
       run: |
         (Get-Content deploy/docker-compose.dev.yml) `
@@ -37,6 +42,7 @@ jobs:
         | Set-Content deploy/docker-compose.dev.yml
 
     - name: Pull latest images
+      working-directory: ${{ github.workspace }}/eShop
       run: |
         docker pull majidebadiparsajob/orderservice:latest
         docker pull majidebadiparsajob/inventoryservice:latest
@@ -44,13 +50,16 @@ jobs:
         docker pull majidebadiparsajob/inventorydb-migrator:latest
 
     - name: Clean previous containers
+      working-directory: ${{ github.workspace }}/eShop
       run: docker-compose -f deploy/docker-compose.dev.yml down
       continue-on-error: true
 
     - name: Start infrastructure (DB + RabbitMQ + Migrator)
+      working-directory: ${{ github.workspace }}/eShop
       run: docker-compose -f deploy/docker-compose.dev.yml up -d sqlserver rabbitmq sql-migrator
 
     - name: Wait until sql-migrator container exists
+      working-directory: ${{ github.workspace }}/eShop
       shell: powershell
       run: |
         Write-Host "Waiting for sql-migrator container to start..."
@@ -66,6 +75,7 @@ jobs:
         }
 
     - name: Wait for SQL Server to become ready
+      working-directory: ${{ github.workspace }}/eShop
       shell: powershell
       run: |
         Write-Host "Waiting for SQL Server to become ready..."
@@ -85,9 +95,11 @@ jobs:
         }
 
     - name: Apply SQL Migrations
+      working-directory: ${{ github.workspace }}/eShop
       shell: powershell
-      run: |       
+      run: |
         . "./deploy/run-migrations.ps1"
 
     - name: Deploy application services
+      working-directory: ${{ github.workspace }}/eShop
       run: docker-compose -f deploy/docker-compose.dev.yml up -d orderservice inventoryservice

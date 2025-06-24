@@ -23,12 +23,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        path: eShop
 
-    # 🔧 File-based processing (run inside eShop working-directory)
     - name: Replace secrets in Docker Compose
-      working-directory: ${{ github.workspace }}/eShop
       shell: powershell
       run: |
         (Get-Content deploy/docker-compose.dev.yml) `
@@ -40,7 +36,6 @@ jobs:
         -replace '@@RABBITMQ_VIRTUALHOST@@', "$env:RABBITMQ_VIRTUALHOST" `
         | Set-Content deploy/docker-compose.dev.yml
 
-    # 🔧 Docker operations (always run from repo root!)
     - name: Pull latest images
       run: |
         docker pull majidebadiparsajob/orderservice:latest
@@ -49,33 +44,50 @@ jobs:
         docker pull majidebadiparsajob/inventorydb-migrator:latest
 
     - name: Clean previous containers
-      run: docker-compose -f eShop/deploy/docker-compose.dev.yml down
+      run: docker-compose -f deploy/docker-compose.dev.yml down
       continue-on-error: true
 
     - name: Start infrastructure (DB + RabbitMQ + Migrator)
-      run: docker-compose -f eShop/deploy/docker-compose.dev.yml up -d sqlserver rabbitmq sql-migrator
+      run: docker-compose -f deploy/docker-compose.dev.yml up -d sqlserver rabbitmq sql-migrator
 
-    - name: Wait for SQL Server to become ready inside container
+    - name: Wait until sql-migrator container exists
       shell: powershell
       run: |
-        Write-Host "Waiting for SQL Server to be ready inside container..."
+        Write-Host "Waiting for sql-migrator container to start..."
+        for ($i = 1; $i -le 20; $i++) {
+          $containerExists = docker ps -a --format "{{.Names}}" | Select-String "sql-migrator"
+          if ($containerExists) {
+            Write-Host "sql-migrator container detected."
+            break
+          } else {
+            Write-Host "sql-migrator not started yet. Waiting 2 seconds..."
+            Start-Sleep -Seconds 2
+          }
+        }
+
+    - name: Wait for SQL Server to become ready
+      shell: powershell
+      run: |
+        Write-Host "Waiting for SQL Server to become ready..."
+        $SqlServerContainerIp = docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' sqlserver-db
+        Write-Host "Giving SQL Server container 10 seconds to initialize..."
+        Start-Sleep -Seconds 10
         for ($i = 1; $i -le 30; $i++) {
           try {
-            docker exec sql-migrator /opt/mssql-tools/bin/sqlcmd -S sqlserver-db -U sa -P "$env:SQLSERVER_SA_PASSWORD" -Q "SELECT 1"
-            Write-Host "SQL Server inside Docker is ready."
+            docker exec sql-migrator /opt/mssql-tools/bin/sqlcmd -S "$SqlServerContainerIp" -U sa -P "$env:SQLSERVER_SA_PASSWORD" -Q "SELECT 1"
+            Write-Host "SQL Server is ready."
             break
           }
           catch {
-            Write-Host "SQL Server not ready yet inside container. Retrying in 2 seconds..."
+            Write-Host "SQL Server not ready yet. Retrying in 2 seconds..."
             Start-Sleep -Seconds 2
           }
         }
 
     - name: Apply SQL Migrations
-      working-directory: ${{ github.workspace }}/eShop
       shell: powershell
       run: |
-        & "./deploy/run-migrations.ps1"
+        . "${env:GITHUB_WORKSPACE}/deploy/run-migrations.ps1"
 
     - name: Deploy application services
-      run: docker-compose -f eShop/deploy/docker-compose.dev.yml up -d orderservice inventoryservice
+      run: docker-compose -f deploy/docker-compose.dev.yml up -d orderservice inventoryservice

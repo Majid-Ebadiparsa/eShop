@@ -50,3 +50,6 @@ services:
       - RabbitMq__VirtualHost=@@RABBITMQ_VIRTUALHOST@@
       - RabbitMq__Username=@@RABBITMQ_USERNAME@@
       - RabbitMq__Password=@@RABBITMQ_PASSWORD@@
+networks:
+  eshop_eshopnetwork:
+    driver: bridge

@@ -11,9 +11,7 @@ $orderDbScripts = Get-ChildItem -Path "./deploy/sql/OrderDb" -Filter *.sql | Sor
 foreach ($script in $orderDbScripts) {
     if ($migrationState.OrderDb -notcontains $script.Name) {
         Write-Host "Processing OrderDb script: $($script.Name)"
-        # Copy SQL file into sql-migrator container
         docker cp "./deploy/sql/OrderDb/$($script.Name)" sql-migrator:/tmp/$($script.Name)
-        # Execute inside container
         docker exec sql-migrator /opt/mssql-tools/bin/sqlcmd -S sqlserver-db -U sa -P "$env:SQLSERVER_SA_PASSWORD" -d master -i "/tmp/$($script.Name)"
         $migrationState.OrderDb += $script.Name
         $migrationState | ConvertTo-Json | Set-Content $migrationStatePath

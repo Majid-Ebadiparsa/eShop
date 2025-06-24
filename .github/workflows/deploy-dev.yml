@@ -12,10 +12,6 @@ jobs:
     runs-on: self-hosted
     environment: dev
 
-    defaults:
-      run:
-        working-directory: ${{ github.workspace }}/eShop
-
     env:
       SQLSERVER_SA_PASSWORD: ${{ secrets.SQLSERVER_SA_PASSWORD }}
       ORDERDB_CONNECTIONSTRING: ${{ secrets.ORDERDB_CONNECTIONSTRING }}
@@ -30,7 +26,9 @@ jobs:
       with:
         path: eShop
 
+    # 🔧 File-based processing (run inside eShop working-directory)
     - name: Replace secrets in Docker Compose
+      working-directory: ${{ github.workspace }}/eShop
       shell: powershell
       run: |
         (Get-Content deploy/docker-compose.dev.yml) `
@@ -42,6 +40,7 @@ jobs:
         -replace '@@RABBITMQ_VIRTUALHOST@@', "$env:RABBITMQ_VIRTUALHOST" `
         | Set-Content deploy/docker-compose.dev.yml
 
+    # 🔧 Docker operations (always run from repo root!)
     - name: Pull latest images
       run: |
         docker pull majidebadiparsajob/orderservice:latest
@@ -50,11 +49,11 @@ jobs:
         docker pull majidebadiparsajob/inventorydb-migrator:latest
 
     - name: Clean previous containers
-      run: docker-compose -f deploy/docker-compose.dev.yml down
+      run: docker-compose -f eShop/deploy/docker-compose.dev.yml down
       continue-on-error: true
 
     - name: Start infrastructure (DB + RabbitMQ + Migrator)
-      run: docker-compose -f deploy/docker-compose.dev.yml up -d sqlserver rabbitmq sql-migrator
+      run: docker-compose -f eShop/deploy/docker-compose.dev.yml up -d sqlserver rabbitmq sql-migrator
 
     - name: Wait for SQL Server to become ready inside container
       shell: powershell
@@ -73,9 +72,10 @@ jobs:
         }
 
     - name: Apply SQL Migrations
+      working-directory: ${{ github.workspace }}/eShop
       shell: powershell
       run: |
         & "./deploy/run-migrations.ps1"
 
     - name: Deploy application services
-      run: docker-compose -f deploy/docker-compose.dev.yml up -d orderservice inventoryservice
+      run: docker-compose -f eShop/deploy/docker-compose.dev.yml up -d orderservice inventoryservice

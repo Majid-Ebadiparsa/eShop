@@ -14,6 +14,14 @@ services:
       - SA_PASSWORD=@@SQLSERVER_SA_PASSWORD@@
     restart: always
 
+  sql-migrator:
+    image: mcr.microsoft.com/mssql-tools
+    depends_on:
+      - sqlserver
+    entrypoint: ["sleep", "infinity"]
+    networks:
+      - eshop_eshopnetwork
+
   rabbitmq:
     container_name: rabbitmq
     image: rabbitmq:3-management

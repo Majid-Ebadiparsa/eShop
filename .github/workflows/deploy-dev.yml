@@ -34,16 +34,16 @@ jobs:
         sed -i "s|@@RABBITMQ_VIRTUALHOST@@|${RABBITMQ_VIRTUALHOST}|g" deploy/docker-compose.dev.yml
 
     - name: Pull latest images
-      run: docker-compose -f deploy/docker-compose.dev.yml pull
+      run: docker compose -f deploy/docker-compose.dev.yml pull
 
     - name: Clean previous containers
-      run: docker-compose -f deploy/docker-compose.dev.yml down || true
+      run: docker compose -f deploy/docker-compose.dev.yml down || true
 
     - name: Start infrastructure
-      run: docker-compose -f deploy/docker-compose.dev.yml up -d
+      run: docker compose -f deploy/docker-compose.dev.yml up -d
 
     - name: Apply SQL Migrations
       run: bash deploy/run-migrations.sh
 
     - name: Deploy application services
-      run: docker-compose -f deploy/docker-compose.dev.yml up -d orderservice inventoryservice
+      run: docker compose -f deploy/docker-compose.dev.yml up -d orderservice inventoryservice

@@ -89,7 +89,7 @@ jobs:
     - name: Apply SQL Migrations
       shell: powershell
       run: |
-        . "eShop/deploy/run-migrations.ps1"
+        & "eShop/deploy/run-migrations.ps1"
 
     - name: Deploy application services
       run: docker-compose -f eShop/deploy/docker-compose.dev.yml up -d orderservice inventoryservice

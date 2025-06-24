@@ -42,6 +42,9 @@ jobs:
     - name: Start infrastructure
       run: docker compose -f deploy/docker-compose.dev.yml up -d
 
+    - name: Make migration script executable
+      run: chmod +x deploy/run-migrations.sh
+
     - name: Apply SQL Migrations
       run: bash deploy/run-migrations.sh
 

@@ -1,15 +1,14 @@
-name: Deploy to Staging
+name: Deploy to Staging - Self Hosted
 
 on:
   workflow_run:
     workflows: ["Docker Build and Push"]
     types:
       - completed
-
 jobs:
-  deploy-staging:
+  deploy-staging-selfhosted:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     environment: staging
 
     env:
@@ -24,15 +23,18 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Replace placeholders
+    - name: Replace placeholders (PowerShell native)
+      shell: powershell
       run: |
-        cp deploy/docker-compose.staging-template.yml deploy/docker-compose.staging.yml
-        sed -i "s|@@SQLSERVER_SA_PASSWORD@@|${SQLSERVER_SA_PASSWORD}|g" deploy/docker-compose.staging.yml
-        sed -i "s|@@ORDERDB_CONNECTIONSTRING@@|${ORDERDB_CONNECTIONSTRING}|g" deploy/docker-compose.staging.yml
-        sed -i "s|@@INVENTORYDB_CONNECTIONSTRING@@|${INVENTORYDB_CONNECTIONSTRING}|g" deploy/docker-compose.staging.yml
-        sed -i "s|@@RABBITMQ_USERNAME@@|${RABBITMQ_USERNAME}|g" deploy/docker-compose.staging.yml
-        sed -i "s|@@RABBITMQ_PASSWORD@@|${RABBITMQ_PASSWORD}|g" deploy/docker-compose.staging.yml
-        sed -i "s|@@RABBITMQ_VIRTUALHOST@@|${RABBITMQ_VIRTUALHOST}|g" deploy/docker-compose.staging.yml
+        Copy-Item "deploy/docker-compose.staging-template.yml" "deploy/docker-compose.staging.yml"
+        (Get-Content "deploy/docker-compose.staging.yml") `
+          -replace '@@SQLSERVER_SA_PASSWORD@@', "$env:SQLSERVER_SA_PASSWORD" `
+          -replace '@@ORDERDB_CONNECTIONSTRING@@', "$env:ORDERDB_CONNECTIONSTRING" `
+          -replace '@@INVENTORYDB_CONNECTIONSTRING@@', "$env:INVENTORYDB_CONNECTIONSTRING" `
+          -replace '@@RABBITMQ_USERNAME@@', "$env:RABBITMQ_USERNAME" `
+          -replace '@@RABBITMQ_PASSWORD@@', "$env:RABBITMQ_PASSWORD" `
+          -replace '@@RABBITMQ_VIRTUALHOST@@', "$env:RABBITMQ_VIRTUALHOST" `
+          | Set-Content "deploy/docker-compose.staging.yml"
 
     - name: Pull latest images
       run: docker compose -f deploy/docker-compose.staging.yml pull
@@ -43,11 +45,10 @@ jobs:
     - name: Start infrastructure
       run: docker compose -f deploy/docker-compose.staging.yml up -d
 
-    - name: Make migration script executable
-      run: chmod +x deploy/run-migrations.sh
-
-    - name: Apply SQL Migrations
-      run: ./deploy/run-migrations.sh
+    - name: Apply SQL Migrations (PowerShell call)
+      shell: powershell
+      run: |
+        ./deploy/run-migrations.ps1
 
     - name: Deploy application services
       run: docker compose -f deploy/docker-compose.staging.yml up -d orderservice inventoryservice

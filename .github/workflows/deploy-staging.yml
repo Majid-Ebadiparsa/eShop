@@ -9,7 +9,7 @@ on:
 jobs:
   deploy-staging:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: ubuntu-latest
+    runs-on: self-hosted #ubuntu-latest
     environment: staging
 
     env:
@@ -24,7 +24,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Replace secrets in Docker Compose
+    - name: Replace placeholders
       run: |
         cp deploy/docker-compose.staging-template.yml deploy/docker-compose.staging.yml
         sed -i "s|@@SQLSERVER_SA_PASSWORD@@|${SQLSERVER_SA_PASSWORD}|g" deploy/docker-compose.staging.yml

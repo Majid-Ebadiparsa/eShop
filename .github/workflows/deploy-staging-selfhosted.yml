@@ -5,6 +5,7 @@ on:
     workflows: ["Docker Build and Push"]
     types:
       - completed
+
 jobs:
   deploy-staging-selfhosted:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
@@ -37,13 +38,23 @@ jobs:
           | Set-Content "deploy/docker-compose.staging.yml"
 
     - name: Pull latest images
-      run: docker compose -f deploy/docker-compose.staging.yml pull
+      shell: powershell
+      run: |
+        docker compose -f deploy/docker-compose.staging.yml pull
 
-    - name: Clean previous containers
-      run: docker compose -f deploy/docker-compose.staging.yml down || true
+    - name: Clean previous containers (PowerShell safe)
+      shell: powershell
+      run: |
+        try {
+          docker compose -f deploy/docker-compose.staging.yml down
+        } catch {
+          Write-Host "Docker compose down failed (probably no previous containers). Continuing..."
+        }
 
     - name: Start infrastructure
-      run: docker compose -f deploy/docker-compose.staging.yml up -d
+      shell: powershell
+      run: |
+        docker compose -f deploy/docker-compose.staging.yml up -d
 
     - name: Apply SQL Migrations (PowerShell call)
       shell: powershell
@@ -51,4 +62,6 @@ jobs:
         ./deploy/run-migrations.ps1
 
     - name: Deploy application services
-      run: docker compose -f deploy/docker-compose.staging.yml up -d orderservice inventoryservice
+      shell: powershell
+      run: |
+        docker compose -f deploy/docker-compose.staging.yml up -d orderservice inventoryservice

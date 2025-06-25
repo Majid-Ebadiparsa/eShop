@@ -26,6 +26,7 @@ jobs:
 
     - name: Replace secrets in Docker Compose
       run: |
+        cp deploy/docker-compose.staging-template.yml deploy/docker-compose.staging.yml
         sed -i "s|@@SQLSERVER_SA_PASSWORD@@|${SQLSERVER_SA_PASSWORD}|g" deploy/docker-compose.staging.yml
         sed -i "s|@@ORDERDB_CONNECTIONSTRING@@|${ORDERDB_CONNECTIONSTRING}|g" deploy/docker-compose.staging.yml
         sed -i "s|@@INVENTORYDB_CONNECTIONSTRING@@|${INVENTORYDB_CONNECTIONSTRING}|g" deploy/docker-compose.staging.yml

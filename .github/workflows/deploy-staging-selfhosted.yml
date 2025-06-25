@@ -20,6 +20,7 @@ jobs:
       RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
       RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
       RABBITMQ_VIRTUALHOST: ${{ secrets.RABBITMQ_VIRTUALHOST }}
+      RABBITMQ_RECEIVEENDPOINT: ${{ secrets.RABBITMQ_RECEIVEENDPOINT }}      
 
     steps:
     - name: Checkout repository
@@ -35,6 +36,7 @@ jobs:
           -replace '@@RABBITMQ_USERNAME@@', "$env:RABBITMQ_USERNAME" `
           -replace '@@RABBITMQ_PASSWORD@@', "$env:RABBITMQ_PASSWORD" `
           -replace '@@RABBITMQ_VIRTUALHOST@@', "$env:RABBITMQ_VIRTUALHOST" `
+          -replace '@@RABBITMQ_RECEIVEENDPOINT@@', "$env:RABBITMQ_RECEIVEENDPOINT" `          
           | Set-Content "deploy/docker-compose.staging.yml"
 
     - name: Pull latest images

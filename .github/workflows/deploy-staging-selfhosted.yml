@@ -27,7 +27,6 @@ jobs:
     - name: Replace placeholders (PowerShell native)
       shell: powershell
       run: |
-        Copy-Item "deploy/docker-compose.staging-template.yml" "deploy/docker-compose.staging.yml"
         (Get-Content "deploy/docker-compose.staging.yml") `
           -replace '@@SQLSERVER_SA_PASSWORD@@', "$env:SQLSERVER_SA_PASSWORD" `
           -replace '@@ORDERDB_CONNECTIONSTRING@@', "$env:ORDERDB_CONNECTIONSTRING" `

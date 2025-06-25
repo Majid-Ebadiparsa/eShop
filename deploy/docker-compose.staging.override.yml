@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+
+  sqlserver:
+    environment:
+      - SA_PASSWORD=eSh@pDem@1
+
+  rabbitmq:
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+
+  orderservice:
+    environment:
+      - ConnectionStrings__OrderDb=Server=sqlserver-db;Database=OrderDb;User Id=sa;Password=eSh@pDem@1;TrustServerCertificate=True;
+
+  inventoryservice:
+    environment:
+      - ConnectionStrings__InventoryDb=Server=sqlserver-db;Database=InventoryDb;User Id=sa;Password=eSh@pDem@1;TrustServerCertificate=True;

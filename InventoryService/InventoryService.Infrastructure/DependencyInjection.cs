@@ -31,6 +31,8 @@ namespace InventoryService.Infrastructure
 			var rabbitMqSettings = new RabbitMqSettings();
 			configuration.GetSection("RabbitMq").Bind(rabbitMqSettings);
 
+			Console.WriteLine($"ReceiveEndpoint = [{rabbitMqSettings.ReceiveEndpoint}]");
+
 			services.AddMassTransit(x =>
 			{
 				x.AddConsumer<OrderCreatedEventConsumer>();
@@ -42,6 +44,9 @@ namespace InventoryService.Infrastructure
 						h.Username(rabbitMqSettings.Username);
 						h.Password(rabbitMqSettings.Password);
 					});
+
+					if (string.IsNullOrWhiteSpace(rabbitMqSettings.ReceiveEndpoint))
+						throw new Exception("RabbitMQ.ReceiveEndpoint is not configured properly!");
 
 					cfg.ReceiveEndpoint(rabbitMqSettings.ReceiveEndpoint, e =>
 					{

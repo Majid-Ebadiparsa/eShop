@@ -31,8 +31,6 @@ namespace InventoryService.Infrastructure
 			var rabbitMqSettings = new RabbitMqSettings();
 			configuration.GetSection("RabbitMq").Bind(rabbitMqSettings);
 
-			Console.WriteLine($"ReceiveEndpoint = [{rabbitMqSettings.ReceiveEndpoint}]");
-
 			services.AddMassTransit(x =>
 			{
 				x.AddConsumer<OrderCreatedEventConsumer>();

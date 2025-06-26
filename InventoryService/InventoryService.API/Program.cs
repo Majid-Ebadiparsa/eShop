@@ -16,8 +16,6 @@ builder.Services
 	.AddMediatR()
 	.AddInfrastructure(builder.Configuration);
 
-Console.WriteLine("ReceiveEndpoint from config = " + builder.Configuration["RabbitMq:ReceiveEndpoint"]);
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

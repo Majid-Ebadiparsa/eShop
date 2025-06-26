@@ -41,5 +41,8 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s CMD curl --fail http:
 # Copy published output from the build stage
 COPY --from=build /out .
 
+ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_ENVIRONMENT=Staging
+
 # Start the application
 ENTRYPOINT ["dotnet", "InventoryService.API.dll"]

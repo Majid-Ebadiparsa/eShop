@@ -32,7 +32,6 @@ app.MapControllers();
 app.Use(async (context, next) =>
 {
 	var endpoint = context.GetEndpoint();
-	Console.WriteLine($"🔍 Endpoint: {endpoint?.DisplayName}");
 	await next();
 });
 

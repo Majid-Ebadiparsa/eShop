@@ -12,6 +12,8 @@ services:
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=@@SQLSERVER_SA_PASSWORD@@
+    volumes:
+      - sqlserver-data:/var/opt/mssql
     restart: always
 
   sql-migrator:
@@ -50,9 +52,9 @@ services:
       - ConnectionStrings__OrderDb=@@ORDERDB_CONNECTIONSTRING@@
       - RabbitMq__Host=rabbitmq
       - RabbitMq__VirtualHost=@@RABBITMQ_VIRTUALHOST@@
-      - RabbitMq__ReceiveEndpoint=@@RABBITMQ_RECEIVEENDPOINT@@
       - RabbitMq__Username=@@RABBITMQ_USERNAME@@
       - RabbitMq__Password=@@RABBITMQ_PASSWORD@@
+      - RabbitMq__ReceiveEndpoint=@@RABBITMQ_RECEIVEENDPOINT@@
 
   inventoryservice:
     container_name: inventoryservice
@@ -73,3 +75,6 @@ services:
 networks:
   eshop_eshopnetwork:
     driver: bridge
+
+volumes:
+  sqlserver-data:

@@ -1,4 +1,7 @@
-﻿IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+﻿USE [OrderDb]
+GO
+
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
 BEGIN
     CREATE TABLE [__EFMigrationsHistory] (
         [MigrationId] nvarchar(150) NOT NULL,

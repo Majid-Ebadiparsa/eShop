@@ -1,3 +1,5 @@
+USE [Master]
+GO
 -- Create OrderDb if not exists
 IF DB_ID('OrderDb') IS NULL
 BEGIN

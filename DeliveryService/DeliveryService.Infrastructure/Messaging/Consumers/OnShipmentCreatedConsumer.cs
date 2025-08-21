@@ -1,5 +1,5 @@
-﻿using DeliveryService.Application.Abstractions;
-using DeliveryService.Application.Repositories;
+﻿using DeliveryService.Application.Abstractions.Messaging;
+using DeliveryService.Application.Abstractions.Persistence;
 using MassTransit;
 using SharedService.Contracts.Events;
 

@@ -1,11 +1,13 @@
-﻿using DeliveryService.Application.Abstractions;
-using DeliveryService.Application.Repositories;
+﻿using DeliveryService.Application.Abstractions.Messaging;
+using DeliveryService.Application.Abstractions.Persistence;
+using DeliveryService.Application.Abstractions.Services;
 using DeliveryService.Infrastructure.Configuration;
 using DeliveryService.Infrastructure.Messaging;
 using DeliveryService.Infrastructure.Messaging.Consumers;
 using DeliveryService.Infrastructure.Messaging.Consumers.Definitions;
 using DeliveryService.Infrastructure.Persistence;
 using DeliveryService.Infrastructure.Persistence.Repositories;
+using DeliveryService.Infrastructure.Services;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -21,7 +23,8 @@ namespace DeliveryService.Infrastructure
 				.RegisterDbContext(cfg)
 				.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<DeliveryDbContext>())
 				.AddScoped<IShipmentRepository, ShipmentRepository>()
-				.AddScoped<IEventPublisher, EventPublisher>()
+				.AddScoped<IEventPublisher, EfOutboxEventPublisher>()
+				.AddScoped<IShipmentService, ShipmentService>()
 				.RegisterMassTransit(cfg);
 
 			return services;

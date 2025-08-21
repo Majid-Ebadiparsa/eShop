@@ -1,4 +1,4 @@
-﻿using DeliveryService.Application.Repositories;
+﻿using DeliveryService.Application.Abstractions.Persistence;
 using DeliveryService.Domain.AggregatesModel;
 using Microsoft.EntityFrameworkCore;
 

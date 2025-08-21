@@ -1,4 +1,4 @@
-﻿using DeliveryService.Application.Abstractions;
+﻿using DeliveryService.Application.Abstractions.Persistence;
 using DeliveryService.Domain.AggregatesModel;
 using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration;

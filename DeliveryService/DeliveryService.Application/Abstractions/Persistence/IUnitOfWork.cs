@@ -1,4 +1,4 @@
-﻿namespace DeliveryService.Application.Abstractions
+﻿namespace DeliveryService.Application.Abstractions.Persistence
 {
 	public interface IUnitOfWork
 	{

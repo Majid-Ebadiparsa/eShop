@@ -1,5 +1,5 @@
-﻿using DeliveryService.Application.Abstractions;
-using DeliveryService.Application.Repositories;
+﻿using DeliveryService.Application.Abstractions.Messaging;
+using DeliveryService.Application.Abstractions.Persistence;
 using DeliveryService.Domain.AggregatesModel;
 using MediatR;
 using SharedService.Contracts.Events;

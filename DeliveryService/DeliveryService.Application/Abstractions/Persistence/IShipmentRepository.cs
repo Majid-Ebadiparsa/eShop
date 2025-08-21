@@ -1,6 +1,6 @@
 ﻿using DeliveryService.Domain.AggregatesModel;
 
-namespace DeliveryService.Application.Repositories
+namespace DeliveryService.Application.Abstractions.Persistence
 {
 	public interface IShipmentRepository
 	{

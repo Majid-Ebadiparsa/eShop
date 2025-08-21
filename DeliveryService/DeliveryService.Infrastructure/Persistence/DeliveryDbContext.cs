@@ -11,7 +11,6 @@ namespace DeliveryService.Infrastructure.Persistence
 		const string SCHEMA = "bus";
 
 		public DbSet<Shipment> Shipments => Set<Shipment>();
-		public DbSet<ShipmentItem> ShipmentItems => Set<ShipmentItem>();
 	
 		public DeliveryDbContext(DbContextOptions<DeliveryDbContext> options) : base(options) { }
 
@@ -21,6 +20,33 @@ namespace DeliveryService.Infrastructure.Persistence
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			base.OnModelCreating(modelBuilder);
+
+			// Shipment Aggregate
+			var s = modelBuilder.Entity<Shipment>();
+			s.ToTable("Shipments");
+			s.HasKey(x => x.Id);
+			s.Property<int>("Version").IsConcurrencyToken(); // Optimistic concurrency
+
+			// Address (Owned)
+			s.OwnsOne(x => x.Address, a =>
+			{
+				a.Property(p => p.Street).HasMaxLength(200).IsRequired();
+				a.Property(p => p.City).HasMaxLength(100).IsRequired();
+				a.Property(p => p.Zip).HasMaxLength(20).IsRequired();
+				a.Property(p => p.Country).HasMaxLength(2).IsRequired();
+			});
+
+			// Items (Owned Collection)
+			s.OwnsMany(typeof(ShipmentItem), "_items", i =>
+			{
+				i.ToTable("ShipmentItems");
+				i.WithOwner().HasForeignKey("ShipmentId");
+				i.Property<Guid>("Id"); // Shadows key for items
+				i.HasKey("Id");
+				i.Property<Guid>("ProductId").IsRequired();
+				i.Property<int>("Quantity").IsRequired();
+				i.HasIndex("ShipmentId");
+			});
 
 			// ——— MassTransit EF Outbox/Inbox ———
 			// Outbox: For storing messages before sending to the broker

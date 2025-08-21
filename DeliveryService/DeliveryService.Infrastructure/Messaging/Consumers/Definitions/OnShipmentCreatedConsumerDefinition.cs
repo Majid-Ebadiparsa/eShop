@@ -18,11 +18,14 @@ namespace DeliveryService.Infrastructure.Messaging.Consumers.Definitions
 		protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
 				IConsumerConfigurator<OnShipmentCreatedConsumer> consumerConfigurator, IRegistrationContext registration)
 		{
-			// Extra configuration can be added here
-			// consumerConfigurator.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5))); // For example: retry policy
-			// consumerConfigurator.UseInMemoryOutbox(); // For example: in-memory outbox
-			// endpointConfigurator.PrefetchCount = 16; // Optional: set prefetch count
-			// consumerConfigurator.ConcurrentMessageLimit = 8; // Optional: set concurrency limit
+			consumerConfigurator.UseMessageRetry(r => r.Exponential(3, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(5))); // retry policy
+			consumerConfigurator.UseCircuitBreaker(cb => {
+				cb.TripThreshold = 2;
+				cb.ActiveThreshold = 10;
+				cb.ResetInterval = TimeSpan.FromMinutes(1);
+			});
+			endpointConfigurator.PrefetchCount = 16; // set prefetch count
+			consumerConfigurator.ConcurrentMessageLimit = 8; // set concurrency limit
 			endpointConfigurator.UseEntityFrameworkOutbox<DeliveryDbContext>(_registration);
 		}
 	}

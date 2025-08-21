@@ -14,7 +14,6 @@ namespace DeliveryService.Infrastructure.Persistence.Repositories
 
 		public Task<Shipment?> GetByIdAsync(Guid id, CancellationToken ct = default)
 				=> _db.Shipments
-							.Include("_items")   // By Fluent API for items
 							.FirstOrDefaultAsync(s => s.Id == id, ct);
 
 		public Task UpdateAsync(Shipment shipment, CancellationToken ct = default)

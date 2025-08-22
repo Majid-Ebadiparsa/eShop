@@ -66,4 +66,4 @@ jobs:
     - name: Deploy application services
       shell: powershell
       run: |
-        docker compose -f deploy/docker-compose.staging.yml up -d orderservice inventoryservice
+        docker compose -f deploy/docker-compose.staging.yml up -d orderservice inventoryservice deliveryservice

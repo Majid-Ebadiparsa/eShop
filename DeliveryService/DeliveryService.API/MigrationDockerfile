@@ -19,7 +19,8 @@ COPY DeliveryService/DeliveryService.Infrastructure/ DeliveryService/DeliverySer
 COPY DeliveryService/DeliveryService.Domain/ DeliveryService/DeliveryService.Domain/
 COPY SharedService/SharedService.Contracts/ SharedService/SharedService.Contracts/
 
-ENTRYPOINT ["dotnet","ef","database","update",
-  "-p","DeliveryService/DeliveryService.Infrastructure/DeliveryService.Infrastructure.csproj",
-  "-s","DeliveryService/DeliveryService.API/DeliveryService.API.csproj",
-  "-c","DeliveryService.Infrastructure.Repositories.EF.DeliveryDbContext"]
+
+COPY DeliveryService/DeliveryService.API/migration-runner.sh /migration/migration-runner.sh
+RUN chmod +x /migration/migration-runner.sh
+
+CMD ["/migration/migration-runner.sh"]

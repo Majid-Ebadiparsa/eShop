@@ -37,7 +37,9 @@ jobs:
           -replace '@@RABBITMQ_USERNAME@@', "$env:RABBITMQ_USERNAME" `
           -replace '@@RABBITMQ_PASSWORD@@', "$env:RABBITMQ_PASSWORD" `
           -replace '@@RABBITMQ_VIRTUALHOST@@', "$env:RABBITMQ_VIRTUALHOST" `
-          -replace '@@RABBITMQ_RECEIVEENDPOINT@@', "$env:RABBITMQ_RECEIVEENDPOINT" `
+          -replace '@@RABBITMQ_INVENTORYRECEIVEENDPOINT@@', "$env:RABBITMQ_INVENTORYRECEIVEENDPOINT" `
+          -replace '@@RABBITMQ_ORDERRECEIVEENDPOINT@@', "$env:RABBITMQ_ORDERRECEIVEENDPOINT" `
+          -replace '@@RABBITMQ_DELIVERYRECEIVEENDPOINT@@', "$env:RABBITMQ_DELIVERYRECEIVEENDPOINT" `
           | Set-Content "deploy/docker-compose.staging.yml"
 
     - name: Pull latest images

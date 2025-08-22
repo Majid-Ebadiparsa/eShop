@@ -7,11 +7,9 @@ namespace DeliveryService.Infrastructure.Messaging.Consumers.Definitions
 			: ConsumerDefinition<OnShipmentCreatedConsumer>
 	{
 		const string ENDPOINT_NAME = "delivery-on-shipment-created";
-		private readonly IRegistrationContext _registration;
 
-		public OnShipmentCreatedConsumerDefinition(IRegistrationContext registration)
+		public OnShipmentCreatedConsumerDefinition()
 		{
-			_registration = registration;
 			EndpointName = ENDPOINT_NAME;
 		}
 
@@ -26,7 +24,7 @@ namespace DeliveryService.Infrastructure.Messaging.Consumers.Definitions
 			});
 			endpointConfigurator.PrefetchCount = 16; // set prefetch count
 			consumerConfigurator.ConcurrentMessageLimit = 8; // set concurrency limit
-			endpointConfigurator.UseEntityFrameworkOutbox<DeliveryDbContext>(_registration);
+			endpointConfigurator.UseEntityFrameworkOutbox<DeliveryDbContext>(registration);
 		}
 	}
 }

@@ -7,22 +7,24 @@ namespace DeliveryService.Infrastructure.Messaging.Consumers.Definitions
 			: ConsumerDefinition<OrderReadyToShipConsumer>
 	{
 		const string ENDPOINT_NAME = "delivery-order-ready-to-ship";
-		private readonly IRegistrationContext _registration;
 
-		public OrderReadyToShipConsumerDefinition(IRegistrationContext registration)
+		public OrderReadyToShipConsumerDefinition()
 		{
-			_registration = registration;
 			EndpointName = ENDPOINT_NAME;
 		}
+
 		protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
 				IConsumerConfigurator<OrderReadyToShipConsumer> consumerConfigurator, IRegistrationContext registration)
 		{
-			// Extra configuration can be added here
-			// consumerConfigurator.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5))); // For example: retry policy
-			// consumerConfigurator.UseInMemoryOutbox(); // For example: in-memory outbox
-			// endpointConfigurator.PrefetchCount = 16; // Optional: set prefetch count
-			// consumerConfigurator.ConcurrentMessageLimit = 8; // Optional: set concurrency limit
-			endpointConfigurator.UseEntityFrameworkOutbox<DeliveryDbContext>(_registration);
+			consumerConfigurator.UseMessageRetry(r => r.Exponential(3, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(5))); // retry policy
+			consumerConfigurator.UseCircuitBreaker(cb => {
+				cb.TripThreshold = 2;
+				cb.ActiveThreshold = 10;
+				cb.ResetInterval = TimeSpan.FromMinutes(1);
+			});
+			endpointConfigurator.PrefetchCount = 16; // set prefetch count
+			consumerConfigurator.ConcurrentMessageLimit = 8; // set concurrency limit
+			endpointConfigurator.UseEntityFrameworkOutbox<DeliveryDbContext>(registration);
 		}
 	}
 }

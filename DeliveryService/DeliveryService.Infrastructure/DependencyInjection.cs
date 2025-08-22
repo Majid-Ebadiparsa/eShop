@@ -25,6 +25,7 @@ namespace DeliveryService.Infrastructure
 				.AddScoped<IShipmentRepository, ShipmentRepository>()
 				.AddScoped<IEventPublisher, EfOutboxEventPublisher>()
 				.AddScoped<IShipmentService, ShipmentService>()
+				.AddScoped<ICarrierClient, MockCarrierClient>()				
 				.RegisterMassTransit(cfg);
 
 			return services;
@@ -53,7 +54,9 @@ namespace DeliveryService.Infrastructure
 
 			services.AddMassTransit(x =>
 			{
-				// Consumers…
+				x.SetKebabCaseEndpointNameFormatter();
+
+				// Consumers
 				x.AddConsumer<OrderReadyToShipConsumer, OrderReadyToShipConsumerDefinition>();
 				x.AddConsumer<OnShipmentCreatedConsumer, OnShipmentCreatedConsumerDefinition>();
 

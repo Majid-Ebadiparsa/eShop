@@ -20,7 +20,7 @@ COPY DeliveryService/DeliveryService.Infrastructure/ DeliveryService/DeliverySer
 COPY DeliveryService/DeliveryService.Domain/ DeliveryService/DeliveryService.Domain/
 COPY SharedService/SharedService.Contracts/ SharedService/SharedService.Contracts/
 
-RUN dotnet publish "DeliveryService/DeliveryService.API/DeliveryService.API.csproj" -c $CONFIGURATION Release -o /out
+RUN dotnet publish "DeliveryService/DeliveryService.API/DeliveryService.API.csproj" -c $CONFIGURATION -o /out
 
 # run
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime

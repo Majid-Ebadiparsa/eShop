@@ -33,6 +33,7 @@ jobs:
           -replace '@@SQLSERVER_SA_PASSWORD@@', "$env:SQLSERVER_SA_PASSWORD" `
           -replace '@@ORDERDB_CONNECTIONSTRING@@', "$env:ORDERDB_CONNECTIONSTRING" `
           -replace '@@INVENTORYDB_CONNECTIONSTRING@@', "$env:INVENTORYDB_CONNECTIONSTRING" `
+          -replace '@@DELIVERYDB_CONNECTIONSTRING@@', "$env:DELIVERYDB_CONNECTIONSTRING" `
           -replace '@@RABBITMQ_USERNAME@@', "$env:RABBITMQ_USERNAME" `
           -replace '@@RABBITMQ_PASSWORD@@', "$env:RABBITMQ_PASSWORD" `
           -replace '@@RABBITMQ_VIRTUALHOST@@', "$env:RABBITMQ_VIRTUALHOST" `

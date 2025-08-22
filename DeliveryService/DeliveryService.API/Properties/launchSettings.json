@@ -12,7 +12,8 @@
         "RabbitMq__Host": "localhost",
         "RabbitMq__VirtualHost": "/",
         "RabbitMq__Username": "guest",
-        "RabbitMq__Password": "guest"
+        "RabbitMq__Password": "guest",
+        "RabbitMq__ReceiveEndpoint": "delivery-created-event-queue"
       }
     },
     "IIS Express": {
@@ -24,7 +25,8 @@
         "RabbitMq__Host": "localhost",
         "RabbitMq__VirtualHost": "/",
         "RabbitMq__Username": "guest",
-        "RabbitMq__Password": "guest"
+        "RabbitMq__Password": "guest",
+        "RabbitMq__ReceiveEndpoint": "delivery-created-event-queue"
       }
     }
   },

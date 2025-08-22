@@ -86,7 +86,7 @@ services:
       - RabbitMq__VirtualHost=@@RABBITMQ_VIRTUALHOST@@
       - RabbitMq__Username=@@RABBITMQ_USERNAME@@
       - RabbitMq__Password=@@RABBITMQ_PASSWORD@@
-      - RabbitMq__ReceiveEndpoint=@@RABBITMQ_RECEIVEENDPOINT@@
+      - RabbitMq__ReceiveEndpoint=@@RABBITMQ_DELIVERYRECEIVEENDPOINT@@
     depends_on:
       - sqlserver
       - rabbitmq

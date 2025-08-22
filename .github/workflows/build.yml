@@ -20,11 +20,22 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Restore dependencies
-      run: dotnet restore
+    # eShop.sln
+    - name: Restore eShop dependencies
+      run: dotnet restore eShop.sln
 
-    - name: Build solution
-      run: dotnet build --no-restore --configuration Release
+    - name: Build eShop solution
+      run: dotnet build eShop.sln --no-restore --configuration Release
 
-    - name: Run unit tests
-      run: dotnet test --no-restore --verbosity normal
+    - name: Run eShop unit tests
+      run: dotnet test eShop.sln --no-restore --verbosity normal
+
+    # Delivery.sln
+    - name: Restore Delivery dependencies
+      run: dotnet restore Delivery.sln
+
+    - name: Build Delivery solution
+      run: dotnet build Delivery.sln --no-restore --configuration Release
+
+    - name: Run Delivery unit tests
+      run: dotnet test Delivery.sln --no-restore --verbosity normal

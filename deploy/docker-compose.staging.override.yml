@@ -20,3 +20,8 @@ services:
   inventoryservice:
     environment:
       - ConnectionStrings__InventoryDb=Server=sqlserver-db;Database=InventoryDb;User Id=sa;Password=eSh@pDem@1;TrustServerCertificate=True;
+ 
+  deliveryservice:
+    environment:
+      - ConnectionStrings__DeliveryDb=Server=sqlserver-db;Database=DeliveryDb;User Id=sa;Password=eSh@pDem@1;TrustServerCertificate=True;
+

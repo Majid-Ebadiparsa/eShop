@@ -1,0 +1,40 @@
+﻿{
+  "profiles": {
+    "DeliveryService.API": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "http://localhost:5027",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DeliveryDb": "Server=localhost;Database=DeliveryDb;User Id=sa;Password=eSh@pDem@1;TrustServerCertificate=True;",
+        "RabbitMq__Host": "localhost",
+        "RabbitMq__VirtualHost": "/",
+        "RabbitMq__Username": "guest",
+        "RabbitMq__Password": "guest"
+      }
+    },
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DeliveryDb": "Server=localhost;Database=DeliveryDb;User Id=sa;Password=eSh@pDem@1;TrustServerCertificate=True;",
+        "RabbitMq__Host": "localhost",
+        "RabbitMq__VirtualHost": "/",
+        "RabbitMq__Username": "guest",
+        "RabbitMq__Password": "guest"
+      }
+    }
+  },
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:64605/",
+      "sslPort": 44397
+    }
+  }
+}

@@ -1,4 +1,6 @@
-﻿namespace DeliveryService.Domain.AggregatesModel
+﻿using DeliveryService.Domain.SeedWork;
+
+namespace DeliveryService.Domain.AggregatesModel
 {
 	public sealed class ShipmentItem
 	{

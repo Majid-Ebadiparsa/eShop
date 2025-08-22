@@ -25,6 +25,7 @@ namespace DeliveryService.Infrastructure.Persistence
 			var s = modelBuilder.Entity<Shipment>();
 			s.ToTable("Shipments");
 			s.HasKey(x => x.Id);
+			s.Property(x => x.Status).HasConversion<int>();
 			s.Property<int>("Version").IsConcurrencyToken(); // Optimistic concurrency
 
 			// Address (Owned)
@@ -37,16 +38,22 @@ namespace DeliveryService.Infrastructure.Persistence
 			});
 
 			// Items (Owned Collection)
-			s.OwnsMany(typeof(ShipmentItem), "_items", i =>
+			s.OwnsMany(x => x.Items, i =>
 			{
 				i.ToTable("ShipmentItems");
 				i.WithOwner().HasForeignKey("ShipmentId");
-				i.Property<Guid>("Id"); // Shadows key for items
+				i.Property<Guid>("Id");
 				i.HasKey("Id");
-				i.Property<Guid>("ProductId").IsRequired();
-				i.Property<int>("Quantity").IsRequired();
+
+				i.Property(x => x.ProductId).IsRequired();
+				i.Property(x => x.Quantity).IsRequired();
 				i.HasIndex("ShipmentId");
 			});
+			// Important: Tell EF to use the field, not the getter
+			var nav = s.Metadata.FindNavigation(nameof(Shipment.Items));
+			nav!.SetField("_items");
+			nav.SetPropertyAccessMode(PropertyAccessMode.Field);
+
 
 			// ——— MassTransit EF Outbox/Inbox ———
 			// Outbox: For storing messages before sending to the broker

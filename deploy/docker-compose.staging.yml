@@ -72,6 +72,25 @@ services:
       - RabbitMq__Password=@@RABBITMQ_PASSWORD@@
       - RabbitMq__ReceiveEndpoint=@@RABBITMQ_RECEIVEENDPOINT@@
 
+  deliveryservice:
+    container_name: deliveryservice
+    image: majidebadiparsajob/deliveryservice:latest
+    ports:
+      - "5002:8080"
+    networks:
+      - eshop_eshopnetwork
+    restart: always      
+    environment:
+      - ConnectionStrings__DeliveryDb=@@DELIVERYDB_CONNECTIONSTRING@@
+      - RabbitMq__Host=rabbitmq
+      - RabbitMq__VirtualHost=@@RABBITMQ_VIRTUALHOST@@
+      - RabbitMq__Username=@@RABBITMQ_USERNAME@@
+      - RabbitMq__Password=@@RABBITMQ_PASSWORD@@
+      - RabbitMq__ReceiveEndpoint=@@RABBITMQ_RECEIVEENDPOINT@@
+    depends_on:
+      - sqlserver
+      - rabbitmq
+
 networks:
   eshop_eshopnetwork:
     driver: bridge

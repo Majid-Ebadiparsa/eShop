@@ -2,12 +2,11 @@
 
 namespace DeliveryService.Domain.AggregatesModel
 {
-	public class Shipment
-	{
-		public Guid Id { get; private set; }
+	public class Shipment : BaseEntity, IAggregateRoot
+	{		
 		public Guid OrderId { get; private set; }
 		public Address Address { get; private set; }
-		public IReadOnlyList<ShipmentItem> Items => _items.AsReadOnly();
+		public IReadOnlyList<ShipmentItem> Items => _items;
 		private readonly List<ShipmentItem> _items = new();
 		public ShipmentStatus Status { get; private set; }
 		public string? Carrier { get; private set; }

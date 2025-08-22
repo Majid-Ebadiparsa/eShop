@@ -35,6 +35,11 @@ jobs:
         docker build -t majidebadiparsajob/inventoryservice:latest -f InventoryService/InventoryService.API/Dockerfile .
         docker push majidebadiparsajob/inventoryservice:latest
 
+    - name: Build and push DeliveryService
+      run: |
+        docker build -t majidebadiparsajob/deliveryservice:latest -f DeliveryService/DeliveryService.API/Dockerfile .
+        docker push majidebadiparsajob/deliveryservice:latest
+
     - name: Build and push OrderDb Migrator
       run: |
         docker build -t majidebadiparsajob/orderdb-migrator:latest -f OrderService/OrderService.API/MigrationDockerfile .
@@ -44,3 +49,8 @@ jobs:
       run: |
         docker build -t majidebadiparsajob/inventorydb-migrator:latest -f InventoryService/InventoryService.API/MigrationDockerfile .
         docker push majidebadiparsajob/inventorydb-migrator:latest
+
+    - name: Build and push DeliveryDb Migrator
+      run: |
+        docker build -t majidebadiparsajob/deliverydb-migrator:latest -f DeliveryService/DeliveryService.API/MigrationDockerfile .
+        docker push majidebadiparsajob/deliverydb-migrator:latest

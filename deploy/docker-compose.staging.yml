@@ -27,6 +27,16 @@ services:
     volumes:
       - ./deploy/sql:/sql
 
+  delivery-migrator:
+    image: majidebadiparsajob/deliverydb-migrator:latest
+    depends_on:
+      - sqlserver
+    environment:
+      - ConnectionStrings__DeliveryDb=@@DELIVERYDB_CONNECTIONSTRING@@
+    networks:
+      - eshop_eshopnetwork
+    restart: "no"
+
   rabbitmq:
     container_name: rabbitmq
     image: rabbitmq:3-management

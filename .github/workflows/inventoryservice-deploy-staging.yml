@@ -13,6 +13,13 @@ jobs:
     environment: staging
 
     steps:
+      - name: Derive commit and short SHA from triggering workflow
+        id: meta
+        run: |
+          COMMIT="${{ github.event.workflow_run.head_sha }}"
+          echo "sha=${COMMIT}" >> $GITHUB_OUTPUT
+          echo "sha_short=${COMMIT::7}" >> $GITHUB_OUTPUT
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -21,6 +28,10 @@ jobs:
         with:
           name: inventoryservice-migrations-bundle
           path: ./artifacts/inventoryservice
+
+      - name: Extract short SHA
+        id: meta
+        run: echo "sha_short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
       - name: Create .env for staging
         run: |
@@ -35,8 +46,8 @@ jobs:
           RABBITMQ_ORDERRECEIVEENDPOINT=${{ secrets.RABBITMQ_ORDERRECEIVEENDPOINT }}
           RABBITMQ_INVENTORYRECEIVEENDPOINT=${{ secrets.RABBITMQ_INVENTORYRECEIVEENDPOINT }}
           RABBITMQ_DELIVERYRECEIVEENDPOINT=${{ secrets.RABBITMQ_DELIVERYRECEIVEENDPOINT }}
-          ORDERSERVICE_IMAGE=majidebadiparsajob/orderservice:sha-${{ github.sha::7 }}
-          INVENTORYSERVICE_IMAGE=majidebadiparsajob/inventoryservice:latest
+          ORDERSERVICE_IMAGE=majidebadiparsajob/orderservice:latest
+          INVENTORYSERVICE_IMAGE=majidebadiparsajob/inventoryservice:sha-${{ steps.meta.outputs.sha_short }}
           DELIVERYSERVICE_IMAGE=majidebadiparsajob/deliveryservice:latest
           EOF
 

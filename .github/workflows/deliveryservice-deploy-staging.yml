@@ -13,6 +13,13 @@ jobs:
     environment: staging
 
     steps:
+      - name: Derive commit and short SHA from triggering workflow
+        id: meta
+        run: |
+          COMMIT="${{ github.event.workflow_run.head_sha }}"
+          echo "sha=${COMMIT}" >> $GITHUB_OUTPUT
+          echo "sha_short=${COMMIT::7}" >> $GITHUB_OUTPUT
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -35,9 +42,9 @@ jobs:
           RABBITMQ_ORDERRECEIVEENDPOINT=${{ secrets.RABBITMQ_ORDERRECEIVEENDPOINT }}
           RABBITMQ_INVENTORYRECEIVEENDPOINT=${{ secrets.RABBITMQ_INVENTORYRECEIVEENDPOINT }}
           RABBITMQ_DELIVERYRECEIVEENDPOINT=${{ secrets.RABBITMQ_DELIVERYRECEIVEENDPOINT }}
-          ORDERSERVICE_IMAGE=majidebadiparsajob/orderservice:sha-${{ github.sha::7 }}
+          ORDERSERVICE_IMAGE=majidebadiparsajob/orderservice:latest
           INVENTORYSERVICE_IMAGE=majidebadiparsajob/inventoryservice:latest
-          DELIVERYSERVICE_IMAGE=majidebadiparsajob/deliveryservice:latest
+          DELIVERYSERVICE_IMAGE=majidebadiparsajob/deliveryservice:sha-${{ steps.meta.outputs.sha_short }}
           EOF
 
       - name: Run EF bundle (Delivery DB)

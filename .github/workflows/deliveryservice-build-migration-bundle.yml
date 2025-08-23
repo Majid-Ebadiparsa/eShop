@@ -25,7 +25,7 @@ jobs:
 
       - name: Build bundle (idempotent)
         run: |
-          dotnet restore eShop.sln
+          dotnet restore Delivery.sln
           dotnet build Delivery.sln -c Release
           dotnet ef migrations bundle \
             --project DeliveryService/DeliveryService.Infrastructure/DeliveryService.Infrastructure.csproj \

@@ -1,48 +1,64 @@
-# Base image for build
+# =================================================
+# InventoryService Dockerfile
+# .NET 8 multi-stage, secure, healthcheck, non-root
+# ==================================================
+
+# ---------- build stage ----------
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG CONFIGURATION=Release
+WORKDIR /src
 
-WORKDIR /app/inventoryservice
+# (1) Copy only csproj first for better layer caching
+COPY InventoryService/InventoryService.API/InventoryService.API.csproj InventoryService/InventoryService.API/
+COPY InventoryService/InventoryService.Application/InventoryService.Application.csproj InventoryService/InventoryService.Application/
+COPY InventoryService/InventoryService.Infrastructure/InventoryService.Infrastructure.csproj InventoryService/InventoryService.Infrastructure/
+COPY InventoryService/InventoryService.Domain/InventoryService.Domain.csproj InventoryService/InventoryService.Domain/
+COPY InventoryService/InventoryService.Shared/InventoryService.Shared.csproj InventoryService/InventoryService.Shared/
+COPY SharedService/SharedService.Contracts/SharedService.Contracts.csproj SharedService/SharedService.Contracts/
 
+# Restore dependencies (cached if csproj not changed)
+RUN dotnet restore InventoryService/InventoryService.API/InventoryService.API.csproj
 
-# Copy only .csproj files to leverage Docker cache
-COPY ["InventoryService/InventoryService.API/InventoryService.API.csproj", "InventoryService/InventoryService.API/"]
-COPY ["InventoryService/InventoryService.Application/InventoryService.Application.csproj", "InventoryService/InventoryService.Application/"]
-COPY ["InventoryService/InventoryService.Infrastructure/InventoryService.Infrastructure.csproj", "InventoryService/InventoryService.Infrastructure/"]
-COPY ["InventoryService/InventoryService.Domain/InventoryService.Domain.csproj", "InventoryService/InventoryService.Domain/"]
-COPY ["InventoryService/InventoryService.Shared/InventoryService.Shared.csproj", "InventoryService/InventoryService.Shared/"]
-COPY ["SharedService/SharedService.Contracts/SharedService.Contracts.csproj", "SharedService/SharedService.Contracts/"]
+# (2) Copy the rest of the source
+COPY InventoryService/ InventoryService/
 
-# Restore dependencies (cached if csproj files don't change)
-RUN dotnet restore "InventoryService/InventoryService.API/InventoryService.API.csproj"
+# (3) Publish trimmed app (no native host)
+RUN dotnet publish InventoryService/InventoryService.API/InventoryService.API.csproj \
+    -c $CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-# Copy the full source code
-COPY InventoryService/InventoryService.API/ InventoryService/InventoryService.API/
-COPY InventoryService/InventoryService.Application/ InventoryService/InventoryService.Application/
-COPY InventoryService/InventoryService.Infrastructure/ InventoryService/InventoryService.Infrastructure/
-COPY InventoryService/InventoryService.Domain/ InventoryService/InventoryService.Domain/
-COPY InventoryService/InventoryService.Shared/ InventoryService/InventoryService.Shared/
-COPY SharedService/SharedService.Contracts/ SharedService/SharedService.Contracts/
+# ---------- runtime stage ----------
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+WORKDIR /app
 
-# Light restore because in the previouse step, NuGet packages were already restored
-RUN dotnet restore "InventoryService/InventoryService.API/InventoryService.API.csproj"
+# Install curl for healthcheck (if your base image doesn't have it)
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Build and Publish the application directly
-RUN dotnet publish "InventoryService/InventoryService.API/InventoryService.API.csproj" -c $CONFIGURATION -o /out --no-restore
-
-# Final runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
-
-WORKDIR /app/inventoryservice
-
-# Healthcheck to monitor service availability
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s CMD curl --fail http://localhost/health || exit 1
-
-# Copy published output from the build stage
-COPY --from=build /out .
-
+# App will listen on 8080 in container
 ENV ASPNETCORE_URLS=http://+:8080
-ENV ASPNETCORE_ENVIRONMENT=Staging
+ENV ASPNETCORE_ENVIRONMENT=Production
 
-# Start the application
+# Optional: Harden GC memory (tune as needed for your node)
+# ENV DOTNET_GCHeapHardLimit=0
+
+# Simple metadata (optional)
+LABEL org.opencontainers.image.title="InventoryService" \
+      org.opencontainers.image.source="https://github.com/Majid-Ebadiparsa/eShop" \
+      org.opencontainers.image.vendor="eShop" \
+      org.opencontainers.image.licenses="MIT"
+
+# Copy published output
+COPY --from=build /app/publish ./
+
+# Create non-root user and run as it
+RUN adduser --disabled-password --gecos "" appuser \
+    && chown -R appuser:appuser /app
+USER appuser
+
+# Health check (change /health if your endpoint differs)
+HEALTHCHECK --interval=20s --timeout=3s --retries=3 \
+  CMD curl -fsS http://localhost:8080/health || exit 1
+
+EXPOSE 8080
 ENTRYPOINT ["dotnet", "InventoryService.API.dll"]

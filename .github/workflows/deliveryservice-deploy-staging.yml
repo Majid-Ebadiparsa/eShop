@@ -1,0 +1,61 @@
+name: DeliveryService - Deploy Staging
+
+on:
+  workflow_run:
+    workflows: ["DeliveryService - Docker Publish", "DeliveryService - Build EF Migration Bundle"]
+    types: [ completed ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted
+    environment: staging
+
+    steps:
+      - name: Derive commit and short SHA from triggering workflow
+        id: meta
+        run: |
+          COMMIT="${{ github.event.workflow_run.head_sha }}"
+          echo "sha=${COMMIT}" >> $GITHUB_OUTPUT
+          echo "sha_short=${COMMIT::7}" >> $GITHUB_OUTPUT
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download EF bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: deliveryservice-migrations-bundle
+          path: ./artifacts/deliveryservice
+
+      - name: Create .env for staging
+        run: |
+          cat > .env <<EOF
+          SQLSERVER_SA_PASSWORD=${{ secrets.SQLSERVER_SA_PASSWORD }}
+          ORDERDB_CONNECTIONSTRING=${{ secrets.ORDERDB_CONNECTIONSTRING }}
+          INVENTORYDB_CONNECTIONSTRING=${{ secrets.INVENTORYDB_CONNECTIONSTRING }}
+          DELIVERYDB_CONNECTIONSTRING=${{ secrets.DELIVERYDB_CONNECTIONSTRING }}
+          RABBITMQ_USERNAME=${{ secrets.RABBITMQ_USERNAME }}
+          RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}
+          RABBITMQ_VIRTUALHOST=${{ secrets.RABBITMQ_VIRTUALHOST }}
+          RABBITMQ_ORDERRECEIVEENDPOINT=${{ secrets.RABBITMQ_ORDERRECEIVEENDPOINT }}
+          RABBITMQ_INVENTORYRECEIVEENDPOINT=${{ secrets.RABBITMQ_INVENTORYRECEIVEENDPOINT }}
+          RABBITMQ_DELIVERYRECEIVEENDPOINT=${{ secrets.RABBITMQ_DELIVERYRECEIVEENDPOINT }}
+          ORDERSERVICE_IMAGE=majidebadiparsajob/orderservice:latest
+          INVENTORYSERVICE_IMAGE=majidebadiparsajob/inventoryservice:latest
+          DELIVERYSERVICE_IMAGE=majidebadiparsajob/deliveryservice:sha-${{ steps.meta.outputs.sha_short }}
+          EOF
+
+      - name: Run EF bundle (Delivery DB)
+        env:
+          ConnectionStrings__DeliveryDb: ${{ secrets.DELIVERYDB_CONNECTIONSTRING }}
+        run: |
+          chmod +x ./artifacts/deliveryservice/deliveryservice-migrations
+          ./artifacts/deliveryservice/deliveryservice-migrations
+
+      - name: Compose Up (staging)
+        run: |
+          docker network inspect eshop_eshopnetwork >/dev/null 2>&1 || docker network create eshop_eshopnetwork
+          docker compose --env-file .env -f deploy/docker-compose.staging.yml pull
+          docker compose --env-file .env -f deploy/docker-compose.staging.yml up -d deliveryservice

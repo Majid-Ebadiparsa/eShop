@@ -1,0 +1,40 @@
+name: InventoryService - Build EF Migration Bundle
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'InventoryService/**Migrations*/**'
+      - '.github/workflows/inventoryservice-build-migration-bundle.yml'
+  workflow_dispatch:
+
+jobs:
+  ef-bundle:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '8.0.x' }
+
+      - name: Install dotnet-ef
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Add tool path
+        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      - name: Build bundle (idempotent)
+        run: |
+          dotnet restore eShop.sln
+          dotnet build eShop.sln -c Release
+          dotnet ef migrations bundle \
+            --project InventoryService/InventoryService.Infrastructure/InventoryService.Infrastructure.csproj \
+            --startup-project InventoryService/InventoryService.API/InventoryService.API.csproj \
+            --idempotent \
+            --output inventoryservice-migrations
+
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: inventoryservice-migrations-bundle
+          path: inventoryservice-migrations

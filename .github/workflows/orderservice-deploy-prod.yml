@@ -1,0 +1,54 @@
+name: OrderService - Deploy Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha_short:
+        description: "Image tag suffix (short SHA, e.g. a1b2c3d)"
+        required: true
+        type: string
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download EF bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: orderservice-migrations-bundle
+          path: ./artifacts/orderservice
+
+      - name: Create .env for prod
+        run: |
+          cat > .env <<EOF
+          SQLSERVER_SA_PASSWORD=${{ secrets.PROD_SQLSERVER_SA_PASSWORD }}
+          ORDERDB_CONNECTIONSTRING=${{ secrets.PROD_ORDERDB_CONNECTIONSTRING }}
+          INVENTORYDB_CONNECTIONSTRING=${{ secrets.PROD_INVENTORYDB_CONNECTIONSTRING }}
+          DELIVERYDB_CONNECTIONSTRING=${{ secrets.PROD_DELIVERYDB_CONNECTIONSTRING }}
+          RABBITMQ_USERNAME=${{ secrets.PROD_RABBITMQ_USERNAME }}
+          RABBITMQ_PASSWORD=${{ secrets.PROD_RABBITMQ_PASSWORD }}
+          RABBITMQ_VIRTUALHOST=${{ secrets.PROD_RABBITMQ_VIRTUALHOST }}
+          RABBITMQ_ORDERRECEIVEENDPOINT=${{ secrets.PROD_RABBITMQ_ORDERRECEIVEENDPOINT }}
+          RABBITMQ_INVENTORYRECEIVEENDPOINT=${{ secrets.PROD_RABBITMQ_INVENTORYRECEIVEENDPOINT }}
+          RABBITMQ_DELIVERYRECEIVEENDPOINT=${{ secrets.PROD_RABBITMQ_DELIVERYRECEIVEENDPOINT }}
+          ORDERSERVICE_IMAGE=majidebadiparsajob/orderservice:sha-${{ inputs.sha_short }}
+          INVENTORYSERVICE_IMAGE=majidebadiparsajob/inventoryservice:sha-<LAST_GOOD_SHA>
+          DELIVERYSERVICE_IMAGE=majidebadiparsajob/deliveryservice:sha-<LAST_GOOD_SHA>
+          EOF
+
+      - name: Run EF bundle (Order DB - prod)
+        env:
+          ConnectionStrings__OrderDb: ${{ secrets.PROD_ORDERDB_CONNECTIONSTRING }}
+        run: |
+          chmod +x ./artifacts/orderservice/orderservice-migrations
+          ./artifacts/orderservice/orderservice-migrations
+
+      - name: Compose Up (prod)
+        run: |
+          docker network inspect eshop_eshopnetwork >/dev/null 2>&1 || docker network create eshop_eshopnetwork
+          docker compose --env-file .env -f deploy/docker-compose.production.yml pull
+          docker compose --env-file .env -f deploy/docker-compose.production.yml up -d orderservice

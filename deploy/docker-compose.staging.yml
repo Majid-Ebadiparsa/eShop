@@ -1,95 +1,92 @@
 version: '3.8'
 
 services:
-
   sqlserver:
-    container_name: sqlserver-db
     image: mcr.microsoft.com/mssql/server:2019-latest
-    ports:
-      - "1433:1433"
-    networks:
-      - eshop_eshopnetwork
+    container_name: sqlserver-db
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=@@SQLSERVER_SA_PASSWORD@@
+      - SA_PASSWORD=${SQLSERVER_SA_PASSWORD}
+    ports: ["1433:1433"]
+    healthcheck:
+      test: ["CMD-SHELL", " /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $$SA_PASSWORD -C -Q 'SELECT 1' || exit 1 "]
+      interval: 20s
+      timeout: 5s
+      retries: 5
     volumes:
       - sqlserver-data:/var/opt/mssql
-    restart: always
-
-  sql-migrator:
-    container_name: sql-migrator
-    image: mcr.microsoft.com/mssql-tools
-    entrypoint: ["sleep", "infinity"]
-    depends_on:
-      - sqlserver
-    networks:
-      - eshop_eshopnetwork
-    volumes:
-      - ./deploy/sql:/sql
+    networks: [ eshop_eshopnetwork ]
 
   rabbitmq:
-    container_name: rabbitmq
     image: rabbitmq:3-management
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    networks:
-      - eshop_eshopnetwork
+    container_name: rabbitmq
     environment:
-      - RABBITMQ_DEFAULT_USER=@@RABBITMQ_USERNAME@@
-      - RABBITMQ_DEFAULT_PASS=@@RABBITMQ_PASSWORD@@
-    restart: always
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USERNAME}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    ports: ["5672:5672","15672:15672"]
+    networks: [ eshop_eshopnetwork ]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
 
   orderservice:
+    image: ${ORDERSERVICE_IMAGE}
     container_name: orderservice
-    image: majidebadiparsajob/orderservice:latest
-    ports:
-      - "5000:8080"
-    networks:
-      - eshop_eshopnetwork
-    restart: always
     environment:
-      - ConnectionStrings__OrderDb=@@ORDERDB_CONNECTIONSTRING@@
+      - ConnectionStrings__OrderDb=${ORDERDB_CONNECTIONSTRING}
       - RabbitMq__Host=rabbitmq
-      - RabbitMq__VirtualHost=@@RABBITMQ_VIRTUALHOST@@
-      - RabbitMq__Username=@@RABBITMQ_USERNAME@@
-      - RabbitMq__Password=@@RABBITMQ_PASSWORD@@
-      - RabbitMq__ReceiveEndpoint=@@RABBITMQ_RECEIVEENDPOINT@@
+      - RabbitMq__VirtualHost=${RABBITMQ_VIRTUALHOST}
+      - RabbitMq__Username=${RABBITMQ_USERNAME}
+      - RabbitMq__Password=${RABBITMQ_PASSWORD}
+      - RabbitMq__ReceiveEndpoint=${RABBITMQ_ORDERRECEIVEENDPOINT}
+    ports: ["5000:8080"]
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      sqlserver:
+        condition: service_healthy
+    networks: [ eshop_eshopnetwork ]
+    restart: always
 
   inventoryservice:
+    image: ${INVENTORYSERVICE_IMAGE}
     container_name: inventoryservice
-    image: majidebadiparsajob/inventoryservice:latest
-    ports:
-      - "5001:8080"
-    networks:
-      - eshop_eshopnetwork
-    restart: always
     environment:
-      - ConnectionStrings__InventoryDb=@@INVENTORYDB_CONNECTIONSTRING@@
+      - ConnectionStrings__InventoryDb=${INVENTORYDB_CONNECTIONSTRING}
       - RabbitMq__Host=rabbitmq
-      - RabbitMq__VirtualHost=@@RABBITMQ_VIRTUALHOST@@
-      - RabbitMq__Username=@@RABBITMQ_USERNAME@@
-      - RabbitMq__Password=@@RABBITMQ_PASSWORD@@
-      - RabbitMq__ReceiveEndpoint=@@RABBITMQ_RECEIVEENDPOINT@@
+      - RabbitMq__VirtualHost=${RABBITMQ_VIRTUALHOST}
+      - RabbitMq__Username=${RABBITMQ_USERNAME}
+      - RabbitMq__Password=${RABBITMQ_PASSWORD}
+      - RabbitMq__ReceiveEndpoint=${RABBITMQ_INVENTORYRECEIVEENDPOINT}
+    ports: ["5001:8080"]
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      sqlserver:
+        condition: service_healthy
+    networks: [ eshop_eshopnetwork ]
+    restart: always
 
   deliveryservice:
+    image: ${DELIVERYSERVICE_IMAGE}
     container_name: deliveryservice
-    image: majidebadiparsajob/deliveryservice:latest
-    ports:
-      - "5002:8080"
-    networks:
-      - eshop_eshopnetwork
-    restart: always      
     environment:
-      - ConnectionStrings__DeliveryDb=@@DELIVERYDB_CONNECTIONSTRING@@
+      - ConnectionStrings__DeliveryDb=${DELIVERYDB_CONNECTIONSTRING}
       - RabbitMq__Host=rabbitmq
-      - RabbitMq__VirtualHost=@@RABBITMQ_VIRTUALHOST@@
-      - RabbitMq__Username=@@RABBITMQ_USERNAME@@
-      - RabbitMq__Password=@@RABBITMQ_PASSWORD@@
-      - RabbitMq__ReceiveEndpoint=@@RABBITMQ_DELIVERYRECEIVEENDPOINT@@
+      - RabbitMq__VirtualHost=${RABBITMQ_VIRTUALHOST}
+      - RabbitMq__Username=${RABBITMQ_USERNAME}
+      - RabbitMq__Password=${RABBITMQ_PASSWORD}
+      - RabbitMq__ReceiveEndpoint=${RABBITMQ_DELIVERYRECEIVEENDPOINT}
+    ports: ["5002:8080"]
     depends_on:
-      - sqlserver
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+      sqlserver:
+        condition: service_healthy
+    networks: [ eshop_eshopnetwork ]
+    restart: always
 
 networks:
   eshop_eshopnetwork:

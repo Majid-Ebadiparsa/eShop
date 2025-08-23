@@ -1,0 +1,39 @@
+name: DeliveryService - Build & Test
+
+on:
+  pull_request:
+    paths:
+      - 'DeliveryService/**'
+      - '.github/workflows/deliveryservice-*.yml'
+  push:
+    branches: [ "develop", "feature/**" ]
+    paths:
+      - 'DeliveryService/**'
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore Delivery.sln
+
+      - name: Build
+        run: dotnet build Delivery.sln --no-restore -c Release
+
+      - name: Test
+        run: dotnet test Delivery.sln --no-build -c Release --logger "trx;LogFileName=deliveryservice-tests.trx"
+
+      - name: Publish test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deliveryservice-test-results
+          path: '**/*.trx'

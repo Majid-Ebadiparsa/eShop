@@ -1,0 +1,54 @@
+name: InventoryService - Deploy Staging
+
+on:
+  workflow_run:
+    workflows: ["InventoryService - Docker Publish", "InventoryService - Build EF Migration Bundle"]
+    types: [ completed ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted
+    environment: staging
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download EF bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: inventoryservice-migrations-bundle
+          path: ./artifacts/inventoryservice
+
+      - name: Create .env for staging
+        run: |
+          cat > .env <<EOF
+          SQLSERVER_SA_PASSWORD=${{ secrets.SQLSERVER_SA_PASSWORD }}
+          ORDERDB_CONNECTIONSTRING=${{ secrets.ORDERDB_CONNECTIONSTRING }}
+          INVENTORYDB_CONNECTIONSTRING=${{ secrets.INVENTORYDB_CONNECTIONSTRING }}
+          DELIVERYDB_CONNECTIONSTRING=${{ secrets.DELIVERYDB_CONNECTIONSTRING }}
+          RABBITMQ_USERNAME=${{ secrets.RABBITMQ_USERNAME }}
+          RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}
+          RABBITMQ_VIRTUALHOST=${{ secrets.RABBITMQ_VIRTUALHOST }}
+          RABBITMQ_ORDERRECEIVEENDPOINT=${{ secrets.RABBITMQ_ORDERRECEIVEENDPOINT }}
+          RABBITMQ_INVENTORYRECEIVEENDPOINT=${{ secrets.RABBITMQ_INVENTORYRECEIVEENDPOINT }}
+          RABBITMQ_DELIVERYRECEIVEENDPOINT=${{ secrets.RABBITMQ_DELIVERYRECEIVEENDPOINT }}
+          ORDERSERVICE_IMAGE=majidebadiparsajob/orderservice:sha-${{ github.sha::7 }}
+          INVENTORYSERVICE_IMAGE=majidebadiparsajob/inventoryservice:latest
+          DELIVERYSERVICE_IMAGE=majidebadiparsajob/deliveryservice:latest
+          EOF
+
+      - name: Run EF bundle (Inventory DB)
+        env:
+          ConnectionStrings__OrderDb: ${{ secrets.INVENTORYDB_CONNECTIONSTRING }}
+        run: |
+          chmod +x ./artifacts/inventoryservice/inventoryservice-migrations
+          ./artifacts/inventoryservice/inventoryservice-migrations
+
+      - name: Compose Up (staging)
+        run: |
+          docker network inspect eshop_eshopnetwork >/dev/null 2>&1 || docker network create eshop_eshopnetwork
+          docker compose --env-file .env -f deploy/docker-compose.staging.yml pull
+          docker compose --env-file .env -f deploy/docker-compose.staging.yml up -d inventoryservice

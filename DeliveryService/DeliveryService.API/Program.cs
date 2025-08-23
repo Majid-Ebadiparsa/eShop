@@ -8,6 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers().AddJsonOptions(x =>
 	 x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
+// HealthChecks
+builder.Services.AddHealthChecks();
+
 builder.Services
 	.AddCustomEnvironmentSettings(builder.Configuration)
 	.AddCustomSwagger()
@@ -17,6 +20,9 @@ builder.Services
 // Add services to the container.
 
 var app = builder.Build();
+
+// Map health endpoint
+app.MapHealthChecks("/health");
 
 // Configure the HTTP request pipeline.
 app.UseCustomExceptionHandler();

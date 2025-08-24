@@ -1,3 +1,4 @@
+# To ensure PRs to main come only from develop, release/*, or hotfix/* branches
 name: Guard PR source to main
 
 on:

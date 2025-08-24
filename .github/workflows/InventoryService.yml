@@ -33,7 +33,7 @@ permissions:
 
 env:
   SERVICE_NAME: inventoryservice
-  SLN: Inventory.sln
+  SLN: eShop.sln
   DOCKER_IMAGE: majidebadiparsajob/inventoryservice
 
 jobs:

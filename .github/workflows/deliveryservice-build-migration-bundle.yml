@@ -25,11 +25,11 @@ jobs:
 
       - name: Build bundle (idempotent)
         run: |
-          dotnet restore eShop/Delivery.sln
-          dotnet build eShop/Delivery.sln -c Release
+          dotnet restore Delivery.sln
+          dotnet build Delivery.sln -c Release
           dotnet ef migrations bundle \
-            --project eShop/DeliveryService/DeliveryService.Infrastructure/DeliveryService.Infrastructure.csproj \
-            --startup-project eShop/DeliveryService/DeliveryService.API/DeliveryService.API.csproj \
+            --project DeliveryService/DeliveryService.Infrastructure/DeliveryService.Infrastructure.csproj \
+            --startup-project DeliveryService/DeliveryService.API/DeliveryService.API.csproj \
             --idempotent \
             --output deliveryservice-migrations
 

@@ -17,20 +17,20 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with: { dotnet-version: '8.0.x' }
 
-      - name: Install dotnet-ef
-        run: dotnet tool install --global dotnet-ef
+      - name: Restore local tools
+        run: dotnet tool restore
 
-      - name: Add tool path
-        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+      - name: Restore solution
+        run: dotnet restore eShop.sln
+
+      - name: Build solution (Release)
+        run: dotnet build eShop.sln -c Release --no-restore
 
       - name: Build bundle (idempotent)
         run: |
-          dotnet restore eShop.sln
-          dotnet build eShop.sln -c Release
           dotnet ef migrations bundle \
             --project InventoryService/InventoryService.Infrastructure/InventoryService.Infrastructure.csproj \
             --startup-project InventoryService/InventoryService.API/InventoryService.API.csproj \
-            --idempotent \
             --output inventoryservice-migrations
 
       - name: Upload bundle artifact

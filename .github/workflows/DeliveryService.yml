@@ -1,4 +1,4 @@
-name: DeliveryService - Pipeline (One file)
+name: DeliveryService - Pipeline
 
 on:
   pull_request:

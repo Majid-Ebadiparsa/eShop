@@ -1,0 +1,28 @@
+name: Guard PR source to main
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check allowed source branches
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          echo "Base: $BASE_REF | Head: $HEAD_REF"
+          # Allow PRs to main only from develop, release/*, or hotfix/*
+          if [ "$BASE_REF" = "main" ]; then
+            case "$HEAD_REF" in
+              develop|release/*|hotfix/*) 
+                echo "OK: allowed source branch." 
+                ;;
+              *)
+                echo "ERROR: Pull requests to main are only allowed from 'develop', 'release/*', or 'hotfix/*'."
+                exit 1
+                ;;
+            esac
+          fi

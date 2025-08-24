@@ -31,7 +31,6 @@ jobs:
           dotnet ef migrations bundle \
             --project DeliveryService/DeliveryService.Infrastructure/DeliveryService.Infrastructure.csproj \
             --startup-project DeliveryService/DeliveryService.API/DeliveryService.API.csproj \
-            --idempotent \
             --output deliveryservice-migrations
 
       - name: Upload bundle artifact

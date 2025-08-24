@@ -29,9 +29,7 @@ jobs:
           dotnet ef --version || true
           find ~/.dotnet -name "dotnet-ef*" || true
       - name: Show current working dir
-        run: |
-          tree.
-          pwd && ls -la          
+        run: pwd && ls -la          
           
 
       - name: Build bundle (idempotent)

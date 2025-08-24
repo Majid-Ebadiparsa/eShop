@@ -17,16 +17,17 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with: { dotnet-version: '8.0.x' }
 
-      - name: Install dotnet-ef
-        run: dotnet tool install --global dotnet-ef
+      - name: Restore local tools
+        run: dotnet tool restore
 
-      - name: Add tool path
-        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+      - name: Restore solution
+        run: dotnet restore Delivery.sln
+
+      - name: Build solution (Release)
+        run: dotnet build Delivery.sln -c Release --no-restore
 
       - name: Build bundle (idempotent)
         run: |
-          dotnet restore Delivery.sln
-          dotnet build Delivery.sln -c Release
           dotnet ef migrations bundle \
             --project DeliveryService/DeliveryService.Infrastructure/DeliveryService.Infrastructure.csproj \
             --startup-project DeliveryService/DeliveryService.API/DeliveryService.API.csproj \

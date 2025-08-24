@@ -22,6 +22,17 @@ jobs:
 
       - name: Add tool path
         run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+        
+      - name: Locate dotnet-ef
+        run: |
+          which dotnet-ef || true
+          dotnet ef --version || true
+          find ~/.dotnet -name "dotnet-ef*" || true
+      - name: Show current working dir
+        run: |
+          tree.
+          pwd && ls -la          
+          
 
       - name: Build bundle (idempotent)
         run: |

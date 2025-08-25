@@ -126,6 +126,15 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+
+      - name: Debug tree
+        run: |
+          pwd
+          ls -la
+          test -d SharedService.Contracts && echo "✅ SharedService.Contracts exists" || (echo "❌ SharedService.Contracts missing"; exit 1)
+          ls -la SharedService.Contracts || true
+
+
       - name: Build & Push
         uses: docker/build-push-action@v6
         with:

@@ -37,7 +37,7 @@ env:
   DOCKER_IMAGE: majidebadiparsajob/deliveryservice
 
 jobs:
-
+# ---------- Build & Test on PR and Push (all target branches) ----------
   build_test:
     name: Build & Test
     runs-on: ubuntu-latest
@@ -72,13 +72,14 @@ jobs:
           name: ${{ env.SERVICE_NAME }}-test-results
           path: '**/*.trx'
 
+# ---------- Build EF Migration Bundle only on develop/main pushes ----------
   ef_bundle:
     name: Build EF Migration Bundle
     runs-on: ubuntu-latest
     needs: [ build_test ]
     if: |
-      github.event_name == 'push' &&
-      startsWith(github.ref, 'refs/heads/main')
+          github.event_name == 'push' &&
+          (startsWith(github.ref, 'refs/heads/develop') || startsWith(github.ref, 'refs/heads/main'))
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -106,13 +107,12 @@ jobs:
           name: ${{ env.SERVICE_NAME }}-migrations-bundle
           path: ${{ env.SERVICE_NAME }}-migrations
 
+# ---------- Docker Build & Publish on every push (feature/develop/main) ----------
   docker_publish:
     name: Docker Build & Publish
     runs-on: ubuntu-latest
     needs: [ build_test ]
-    if: |
-      github.event_name == 'push' &&
-      startsWith(github.ref, 'refs/heads/main')
+    if: github.event_name == 'push'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -126,26 +126,59 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Derive short SHA
+        id: meta
+        run: echo "sha_short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Compute tags (per-branch policy)
+        id: vars
+        shell: bash
+        run: |
+          SHA="${{ steps.meta.outputs.sha_short }}"
+          # Full branch name with slashes (e.g., feature/add-xyz)
+          BRANCH="${GITHUB_REF_NAME}"
+
+          # sanitize branch for tag usage (replace slashes/spaces with dashes)
+          SLUG=$(echo "$BRANCH" | tr '/ .' '---')
+
+          if [[ "$BRANCH" == "main" ]]; then
+            TAGS="${{ env.DOCKER_IMAGE }}:main,${{ env.DOCKER_IMAGE }}:latest,${{ env.DOCKER_IMAGE }}:sha-$SHA"
+          elif [[ "$BRANCH" == "develop" ]]; then
+            TAGS="${{ env.DOCKER_IMAGE }}:develop,${{ env.DOCKER_IMAGE }}:sha-$SHA"
+          elif [[ "$BRANCH" == feature/* ]]; then
+            # If this push belongs to a PR you can also add pr-<number>, else fall back to branch-<slug>
+            if [[ -n "${{ github.event.pull_request.number }}" ]]; then
+              TAGS="${{ env.DOCKER_IMAGE }}:pr-${{ github.event.pull_request.number }},${{ env.DOCKER_IMAGE }}:sha-$SHA"
+            else
+              TAGS="${{ env.DOCKER_IMAGE }}:branch-$SLUG,${{ env.DOCKER_IMAGE }}:sha-$SHA"
+            fi
+          else
+            TAGS="${{ env.DOCKER_IMAGE }}:sha-$SHA"
+          fi
+
+          echo "TAGS=$TAGS"
+          echo "TAGS=$TAGS" >> $GITHUB_ENV
+
+
       - name: Build & Push
         uses: docker/build-push-action@v6
         with:
           context: .
           file: DeliveryService/DeliveryService.API/Dockerfile
           push: true
-          tags: |
-            ${{ env.DOCKER_IMAGE }}:sha-${{ needs.build_test.outputs.sha_short }}
-            ${{ env.DOCKER_IMAGE }}:latest
+          # build-push-action accepts comma-separated tags list
+          tags: ${{ env.TAGS }}
           cache-from: type=registry,ref=${{ env.DOCKER_IMAGE }}:latest
           cache-to: type=inline
 
+
+  # ---------- Deploy to Staging only when pushing develop ----------
   deploy_staging:
     name: Deploy to Staging
     runs-on: self-hosted
     environment: staging
     needs: [ docker_publish, ef_bundle ]
-    if: |
-      github.event_name == 'push' &&
-      startsWith(github.ref, 'refs/heads/main')
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -169,9 +202,9 @@ jobs:
           RABBITMQ_ORDERRECEIVEENDPOINT=${{ secrets.RABBITMQ_ORDERRECEIVEENDPOINT }}
           RABBITMQ_INVENTORYRECEIVEENDPOINT=${{ secrets.RABBITMQ_INVENTORYRECEIVEENDPOINT }}
           RABBITMQ_DELIVERYRECEIVEENDPOINT=${{ secrets.RABBITMQ_DELIVERYRECEIVEENDPOINT }}
-          ORDERSERVICE_IMAGE=majidebadiparsajob/orderservice:latest
-          INVENTORYSERVICE_IMAGE=majidebadiparsajob/inventoryservice:latest
-          DELIVERYSERVICE_IMAGE=${{ env.DOCKER_IMAGE }}:sha-${{ needs.build_test.outputs.sha_short }}
+          ORDERSERVICE_IMAGE=majidebadiparsajob/orderservice:develop
+          INVENTORYSERVICE_IMAGE=majidebadiparsajob/inventoryservice:develop
+          DELIVERYSERVICE_IMAGE=${{ env.DOCKER_IMAGE }}:develop
           EOF
 
       - name: Run EF bundle (Delivery DB)
@@ -187,16 +220,14 @@ jobs:
           docker compose --env-file .env -f deploy/docker-compose.staging.yml pull
           docker compose --env-file .env -f deploy/docker-compose.staging.yml up -d deliveryservice
 
+# ---------- Manual Production deploy (from main images) ----------
   deploy_production:
     name: Deploy to Production (manual)
     runs-on: ubuntu-latest
     environment:
       name: production
-
     needs: [ docker_publish, ef_bundle ]
-    if: |
-      github.event_name == 'workflow_dispatch' &&
-      inputs.deploy_prod == 'true'
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy_prod == 'true'
     steps:
       - uses: actions/checkout@v4
 

@@ -8,9 +8,6 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG CONFIGURATION=Release
 WORKDIR /src
 
-# If Solution-wide files like Directory.Build.props/targets exist, copy them first to leverage caching in dotnet restore
-COPY Directory.Build.props* Directory.Build.targets* ./ 2>/dev/null || true
-
 # Only copy csproj files to leverage Docker cache
 COPY DeliveryService/DeliveryService.API/DeliveryService.API.csproj DeliveryService/DeliveryService.API/
 COPY DeliveryService/DeliveryService.Application/DeliveryService.Application.csproj DeliveryService/DeliveryService.Application/

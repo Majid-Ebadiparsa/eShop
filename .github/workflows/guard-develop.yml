@@ -1,0 +1,40 @@
+name: Guard develop PR source
+
+on:
+  pull_request:
+    branches: [ "develop" ]
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR source for develop
+        run: |
+          echo "Base: ${{ github.base_ref }}"
+          echo "Head: ${{ github.head_ref }}"
+          head="${{ github.head_ref }}"
+
+          # Only feature/* and bugfix /* merge into develop.
+          if [[ "$head" =~ ^feature\/ ]]; then
+            echo "Allowed: from feature/*"
+            exit 0
+          fi
+
+          if [[ "$head" =~ ^bugfix\/ ]]; then
+            echo "Allowed: from bugfix/*"
+            exit 0
+          fi
+
+          # Optionally hotfix/* and release/* merge into develop.
+          if [[ "$head" =~ ^hotfix\/ ]]; then
+            echo "Allowed: from hotfix/* (merge-back after prod fix)"
+            exit 0
+          fi
+
+          if [[ "$head" =~ ^release\/ ]]; then
+            echo "Allowed: from release/* (merge-back after release)"
+            exit 0
+          fi
+
+          echo "Only feature/* and bugfix/* (and optionally release/*, hotfix/*) may merge into develop."
+          exit 1

@@ -13,14 +13,14 @@ COPY DeliveryService/DeliveryService.API/DeliveryService.API.csproj DeliveryServ
 COPY DeliveryService/DeliveryService.Application/DeliveryService.Application.csproj DeliveryService/DeliveryService.Application/
 COPY DeliveryService/DeliveryService.Infrastructure/DeliveryService.Infrastructure.csproj DeliveryService/DeliveryService.Infrastructure/
 COPY DeliveryService/DeliveryService.Domain/DeliveryService.Domain.csproj DeliveryService/DeliveryService.Domain/
-COPY SharedService/SharedService.Contracts/SharedService.Contracts.csproj SharedService.Contracts/
+COPY SharedService/SharedService.Contracts/SharedService.Contracts.csproj SharedService/SharedService.Contracts/
 
 # Using the API csproj as the entry point for restore (Without copying full source)
 RUN dotnet restore DeliveryService/DeliveryService.API/DeliveryService.API.csproj
 
 # Copy the rest of the source code (Delivery + Shared)
 COPY DeliveryService/ DeliveryService/
-COPY SharedService/SharedService.Contracts/ SharedService.Contracts/
+COPY SharedService/SharedService.Contracts/ SharedService/SharedService.Contracts/
 
 # Publish (Without apphost for smaller image)
 RUN dotnet publish DeliveryService/DeliveryService.API/DeliveryService.API.csproj \

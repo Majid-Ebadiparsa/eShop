@@ -189,9 +189,38 @@ jobs:
           name: ${{ env.SERVICE_NAME }}-migrations-bundle
           path: ./artifacts/${{ env.SERVICE_NAME }}
 
-      - name: Create .env (staging)
+      - name: Validate required secrets (staging)
+        shell: pwsh
         run: |
-          cat > .env <<EOF
+          $required = @{
+            SQLSERVER_SA_PASSWORD        = '${{ secrets.SQLSERVER_SA_PASSWORD }}'
+            ORDERDB_CONNECTIONSTRING     = '${{ secrets.ORDERDB_CONNECTIONSTRING }}'
+            INVENTORYDB_CONNECTIONSTRING = '${{ secrets.INVENTORYDB_CONNECTIONSTRING }}'
+            DELIVERYDB_CONNECTIONSTRING  = '${{ secrets.DELIVERYDB_CONNECTIONSTRING }}'
+            RABBITMQ_USERNAME            = '${{ secrets.RABBITMQ_USERNAME }}'
+            RABBITMQ_PASSWORD            = '${{ secrets.RABBITMQ_PASSWORD }}'
+            RABBITMQ_VIRTUALHOST         = '${{ secrets.RABBITMQ_VIRTUALHOST }}'
+            RABBITMQ_ORDERRECEIVEENDPOINT    = '${{ secrets.RABBITMQ_ORDERRECEIVEENDPOINT }}'
+            RABBITMQ_INVENTORYRECEIVEENDPOINT = '${{ secrets.RABBITMQ_INVENTORYRECEIVEENDPOINT }}'
+            RABBITMQ_DELIVERYRECEIVEENDPOINT  = '${{ secrets.RABBITMQ_DELIVERYRECEIVEENDPOINT }}'
+          }
+
+          $missing = @()
+          foreach ($k in $required.Keys) {
+            if ([string]::IsNullOrWhiteSpace($required[$k])) { $missing += $k }
+          }
+
+          if ($missing.Count -gt 0) {
+            Write-Error ("Missing or empty secrets: " + ($missing -join ', '))
+            exit 1
+          } else {
+            Write-Host "All required secrets are present."
+          }
+
+      - name: Create .env (staging)
+        shell: pwsh
+        run: |
+          $envContent = @"
           SQLSERVER_SA_PASSWORD=${{ secrets.SQLSERVER_SA_PASSWORD }}
           ORDERDB_CONNECTIONSTRING=${{ secrets.ORDERDB_CONNECTIONSTRING }}
           INVENTORYDB_CONNECTIONSTRING=${{ secrets.INVENTORYDB_CONNECTIONSTRING }}
@@ -205,7 +234,8 @@ jobs:
           ORDERSERVICE_IMAGE=majidebadiparsajob/orderservice:develop
           INVENTORYSERVICE_IMAGE=majidebadiparsajob/inventoryservice:develop
           DELIVERYSERVICE_IMAGE=${{ env.DOCKER_IMAGE }}:develop
-          EOF
+          "@
+              $envContent | Set-Content -Path .env -Encoding ascii
 
       - name: Run EF bundle (Delivery DB)
         env:

@@ -1,0 +1,70 @@
+{
+	"info": {
+		"name": "Invoice Processing Service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth – Get Token",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/token",
+					"host": [ "{{baseUrl}}" ],
+					"path": [ "api", "auth", "token" ]
+				},
+				"body": {
+					"mode": "raw",
+					"raw": "{\n \"username\": \"demo\",\n \"password\": \"Passw0rd!\"\n}"
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Invoices – Submit",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/invoices",
+					"host": [ "{{baseUrl}}" ],
+					"path": [ "api", "invoices" ]
+				},
+				"body": {
+					"mode": "raw",
+					"raw": "{\n \"description\": \"Office supplies\",\n \"dueDate\": \"{{dueDate}}\",\n \"supplier\": \"Amazon Business\",\n \"lines\": [\n { \"description\": \"Notebooks A5\", \"price\": 4.5, \"quantity\": 10 },\n { \"description\": \"Pens\", \"price\": 1.2, \"quantity\": 20 }\n ]\n}"
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000"
+		},
+		{
+			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "dueDate",
+			"value": "2025-09-15T00:00:00Z"
+		}
+	]
+}

@@ -1,0 +1,108 @@
+# -------------------------------
+# .NET / Visual Studio
+# -------------------------------
+bin/
+obj/
+[Bb]uild/
+[Ll]og/
+[Tt]emp/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/
+.history/
+.idea/
+
+# Rider
+*.iml
+.idea/
+*.ipr
+*.iws
+
+# -------------------------------
+# OS generated files
+# -------------------------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# -------------------------------
+# DotNet specific
+# -------------------------------
+# Backup & Publish outputs
+*.bak
+*.pdb
+*.publish.xml
+*.pubxml
+*.pubxml.user
+*.snupkg
+*.symbols.nupkg
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# NuGet
+*.nupkg
+*.nuspec
+.nuget/
+packages/
+# except build/ subfolder
+!**/packages/build/
+
+# Entity Framework Migrations (designer snapshots)
+*Migrations/*.Designer.cs
+
+# -------------------------------
+# Logs & Dumps
+# -------------------------------
+*.log
+*.tlog
+*.vspscc
+*.vsp
+*.scc
+*.vssscc
+*.docstates
+*.svclog
+*.scc
+*.orig
+
+# Crash dumps
+*.stackdump
+*.dmp
+
+# -------------------------------
+# Docker
+# -------------------------------
+**/data/           # SQLite database stored in ./src/InvoiceService/InvoiceService.Infrastructure/data
+docker-compose.override.yml
+.env
+
+# -------------------------------
+# Secrets
+# -------------------------------
+secrets.json
+appsettings.*.local.json
+appsettings.Development.json
+
+# -------------------------------
+# Coverage & Analysis
+# -------------------------------
+coverage/
+coverage.xml
+lcov.info
+*.codecov
+*.coverlet.*
+
+# -------------------------------
+# Others
+# -------------------------------
+node_modules/
+bower_components/
+wwwroot/dist/

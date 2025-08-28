@@ -1,14 +1,17 @@
-﻿using MassTransit;
+﻿using InvoiceSubscriber.Console.Consumers;
+using InvoiceSubscriber.Console.Inbox;
+using MassTransit;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Shared.Contracts.Events;
 
 var builder = Host.CreateDefaultBuilder(args)
 .ConfigureServices((context, services) =>
 {
+	services.AddSingleton<IInboxStore>(_ => new SqliteInboxStore("Data Source=inbox.db"));
+
 	services.AddMassTransit(x =>
 	{
 		x.AddConsumer<InvoiceSubmittedConsumer>();
-
 
 		x.UsingRabbitMq((ctx, cfg) =>
 		{
@@ -16,7 +19,6 @@ var builder = Host.CreateDefaultBuilder(args)
 			var vhost = context.Configuration["RabbitMQ:VirtualHost"] ?? "/";
 			var user = context.Configuration["RabbitMQ:Username"] ?? "guest";
 			var pass = context.Configuration["RabbitMQ:Password"] ?? "guest";
-
 
 			cfg.Host(host, vhost, h =>
 			{
@@ -27,6 +29,9 @@ var builder = Host.CreateDefaultBuilder(args)
 
 			cfg.ReceiveEndpoint("invoice-submitted-console", e =>
 			{
+				e.PrefetchCount = 16; // Consumption optimization
+				e.ConcurrentMessageLimit = 8; // Concurrency control
+				e.UseMessageRetry(r => r.Exponential(5, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(5)));
 				e.ConfigureConsumer<InvoiceSubmittedConsumer>(ctx);
 			});
 		});
@@ -35,17 +40,3 @@ var builder = Host.CreateDefaultBuilder(args)
 
 
 await builder.RunConsoleAsync();
-
-public class InvoiceSubmittedConsumer : IConsumer<InvoiceSubmittedEvent>
-{
-	public Task Consume(ConsumeContext<InvoiceSubmittedEvent> context)
-	{
-		var msg = context.Message;
-		Console.WriteLine($"[InvoiceSubscriber] Received InvoiceSubmitted: {msg.InvoiceId} - {msg.Description} - {msg.Supplier} - Due {msg.DueDate:yyyy-MM-dd}");
-		foreach (var l in msg.Lines)
-		{
-			Console.WriteLine($" Line: {l.Description} | Price={l.Price} | Qty={l.Quantity}");
-		}
-		return Task.CompletedTask;
-	}
-}

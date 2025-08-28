@@ -36,9 +36,9 @@ var builder = Host.CreateDefaultBuilder(args)
 
 await builder.RunConsoleAsync();
 
-public class InvoiceSubmittedConsumer : IConsumer<InvoiceSubmitted>
+public class InvoiceSubmittedConsumer : IConsumer<InvoiceSubmittedEvent>
 {
-	public Task Consume(ConsumeContext<InvoiceSubmitted> context)
+	public Task Consume(ConsumeContext<InvoiceSubmittedEvent> context)
 	{
 		var msg = context.Message;
 		Console.WriteLine($"[InvoiceSubscriber] Received InvoiceSubmitted: {msg.InvoiceId} - {msg.Description} - {msg.Supplier} - Due {msg.DueDate:yyyy-MM-dd}");

@@ -4,7 +4,7 @@ namespace InvoiceService.Domain.Entities
 {
 	public class InvoiceLine : BaseEntity
 	{
-		public string Description { get; private set; }
+		public string Description { get; private set; } = string.Empty;
 		public double Price { get; private set; }
 		public int Quantity { get; private set; }
 

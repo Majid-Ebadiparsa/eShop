@@ -4,6 +4,6 @@ namespace InvoiceService.Application.Abstractions
 {
 	public interface IEventPublisher
 	{
-		Task PublishInvoiceSubmittedAsync(InvoiceSubmitted invoiceSubmitted, CancellationToken ct);
+		Task PublishInvoiceSubmittedAsync(InvoiceSubmittedEvent @event, CancellationToken ct);
 	}
 }

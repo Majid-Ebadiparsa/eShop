@@ -1,6 +1,6 @@
 ﻿namespace Shared.Contracts.Events
 {
-	public record InvoiceSubmitted
+	public record InvoiceSubmittedEvent
 	(
 		Guid InvoiceId,
 		string Description,

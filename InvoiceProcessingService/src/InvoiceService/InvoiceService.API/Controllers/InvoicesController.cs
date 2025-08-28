@@ -9,6 +9,7 @@ namespace InvoiceService.API.Controllers
 	[ApiController]
 	[Route("api/[controller]")]
 	[Authorize]
+	[ApiVersion("1.0")]
 	public class InvoicesController : ControllerBase
 	{
 		private readonly ISender _sender;

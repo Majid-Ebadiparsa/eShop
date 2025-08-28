@@ -7,19 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Messaging\DependencyInjection.Messaging.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Messaging\DependencyInjection.Messaging.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="MassTransit" Version="8.5.2" />
     <PackageReference Include="MassTransit.EntityFrameworkCore" Version="8.5.2" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.8" />
   </ItemGroup>
 
   <ItemGroup>

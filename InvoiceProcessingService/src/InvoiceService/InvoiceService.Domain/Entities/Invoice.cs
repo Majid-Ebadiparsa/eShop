@@ -4,9 +4,9 @@ namespace InvoiceService.Domain.Entities
 {
 	public class Invoice : BaseEntity, IAggregateRoot
 	{
-		public string Description { get; private set; }
+		public string Description { get; private set; } = string.Empty;
 		public DateTime DueDate { get; private set; }
-		public string Supplier { get; private set; }
+		public string Supplier { get; private set; } = string.Empty;
 
 
 		private readonly List<InvoiceLine> _lines = new();

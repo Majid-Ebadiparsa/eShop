@@ -22,14 +22,14 @@ namespace InvoiceSubscriber.ConsumerTests
 			await harness.Start();
 
 			var bus = provider.GetRequiredService<IBus>();
-			await bus.Publish(new InvoiceSubmitted(
+			await bus.Publish(new InvoiceSubmittedEvent(
 					Guid.NewGuid(), "desc", DateTime.UtcNow.AddDays(1), "ACME",
 					new[] { new InvoiceLineItem("A", 1.2, 3) }));
 
-			(await harness.Consumed.Any<InvoiceSubmitted>()).Should().BeTrue();
+			(await harness.Consumed.Any<InvoiceSubmittedEvent>()).Should().BeTrue();
 
 			var consumerHarness = provider.GetRequiredService<IConsumerTestHarness<InvoiceSubmittedConsumer>>();
-			(await consumerHarness.Consumed.Any<InvoiceSubmitted>()).Should().BeTrue();
+			(await consumerHarness.Consumed.Any<InvoiceSubmittedEvent>()).Should().BeTrue();
 		}
 	}
 }

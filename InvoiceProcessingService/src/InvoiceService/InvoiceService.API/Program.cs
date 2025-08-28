@@ -1,40 +1,39 @@
+using InvoiceService.API.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Microsoft.AspNetCore.Mvc;
+using System.Text.Json.Serialization;
+using InvoiceService.Application;
+using InvoiceService.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
-
-// Auth (JWT)
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "change-me";
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "InvoiceProcessingService";
-var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "InvoiceProcessingService.Clients";
+builder.Services.AddControllers().AddJsonOptions(x =>
+	 x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 builder.Services
-.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-.AddJwtBearer(options =>
+.AddCustomSwagger()
+.AddApplication()
+.AddInfrastructure(builder.Configuration)
+.AddAuthorization()
+.RegisterJwtBearer(builder.Configuration)
+.AddEndpointsApiExplorer()
+.AddSwaggerGen();
+
+
+builder.Services.AddApiVersioning(o =>
 {
-	options.TokenValidationParameters = new TokenValidationParameters
-	{
-		ValidateIssuer = true,
-		ValidateAudience = true,
-		ValidateIssuerSigningKey = true,
-		ValidIssuer = jwtIssuer,
-		ValidAudience = jwtAudience,
-		IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
-	};
+	o.DefaultApiVersion = new ApiVersion(1, 0);
+	o.AssumeDefaultVersionWhenUnspecified = true;
+	o.ReportApiVersions = true;
 });
 
-builder.Services.AddAuthorization();
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+app.MapHealthChecks("/health/live");
+app.MapHealthChecks("/health/ready");
 
 app.UseSwagger();
 app.UseSwaggerUI();

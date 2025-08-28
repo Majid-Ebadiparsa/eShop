@@ -1,5 +1,5 @@
-﻿using InvoiceService.Application;
-using InvoiceService.Application.Abstractions;
+﻿using InvoiceService.Application.Abstractions;
+using InvoiceService.Infrastructure.Messaging;
 using InvoiceService.Infrastructure.Persistence;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -12,14 +12,31 @@ namespace InvoiceService.Infrastructure
 	{
 		public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration cfg)
 		{
+			services
+				.AddScoped<IDateTimeProvider, SystemDateTimeProvider>()
+				.RegisterDbContext(cfg)
+				.RegisterMassTransit(cfg);
+
+			return services;
+		}
+
+		private static IServiceCollection RegisterDbContext(this IServiceCollection services, IConfiguration cfg)
+		{
 			services.AddDbContext<ApplicationDbContext>(options =>
 			{
-				options.UseSqlite(cfg.GetConnectionString("Default"));
+				options.UseSqlite(
+					cfg.GetConnectionString("InvoicesDb"),
+					b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
 			});
 
+			return services;
+		}
 
-			services.AddScoped<IDateTimeProvider, SystemDateTimeProvider>();
-
+		private static IServiceCollection RegisterMassTransit(this IServiceCollection services, IConfiguration cfg)
+		{
+			// Bind RabbitMQ settings
+			var rabbitMqSettings = new RabbitMqSettings();
+			cfg.GetSection("RabbitMQ").Bind(rabbitMqSettings);
 
 			services.AddMassTransit(x =>
 			{
@@ -35,24 +52,21 @@ namespace InvoiceService.Infrastructure
 				x.SetKebabCaseEndpointNameFormatter();
 
 
-				x.UsingRabbitMq((context, cfgMq) =>
+				services.AddMassTransit(x =>
 				{
-					var host = cfg["RabbitMQ:Host"] ?? "localhost";
-					var vhost = cfg["RabbitMQ:VirtualHost"] ?? "/";
-					var user = cfg["RabbitMQ:Username"] ?? "guest";
-					var pass = cfg["RabbitMQ:Password"] ?? "guest";
-
-
-					cfgMq.Host(host, vhost, h =>
+					x.UsingRabbitMq((context, cfg) =>
 					{
-						h.Username(user);
-						h.Password(pass);
+						cfg.Host(rabbitMqSettings.Host, rabbitMqSettings.VirtualHost, h =>
+						{
+							h.Username(rabbitMqSettings.Username);
+							h.Password(rabbitMqSettings.Password);
+						});
 					});
 				});
 			});
 
 
-			services.AddApplication();
+
 			return services;
 		}
 	}

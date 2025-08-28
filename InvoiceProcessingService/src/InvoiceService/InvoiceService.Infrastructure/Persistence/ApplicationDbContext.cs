@@ -5,14 +5,14 @@ namespace InvoiceService.Infrastructure.Persistence
 {
 	public class ApplicationDbContext : DbContext
 	{
+		public const string SECTION_NAME = "InvoicesDb";
+
 		public DbSet<Invoice> Invoices => Set<Invoice>();
 		public DbSet<InvoiceLine> InvoiceLines => Set<InvoiceLine>();
-
 
 		public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
 		{
 		}
-
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{

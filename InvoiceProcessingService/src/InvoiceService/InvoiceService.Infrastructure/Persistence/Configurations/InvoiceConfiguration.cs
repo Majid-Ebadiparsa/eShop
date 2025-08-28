@@ -11,19 +11,18 @@ namespace InvoiceService.Infrastructure.Persistence.Configurations
 			b.ToTable("Invoices");
 			b.HasKey(x => x.Id);
 
-
 			b.Property(x => x.Description).HasMaxLength(500).IsRequired();
 			b.Property(x => x.Supplier).HasMaxLength(200).IsRequired();
 			b.Property(x => x.DueDate).IsRequired();
 
+			b.HasMany(i => i.Lines)
+			 .WithOne(l => l.Invoice)
+			 .HasForeignKey(l => l.InvoiceId)
+			 .OnDelete(DeleteBehavior.Cascade);
 
-			b.HasMany<InvoiceLine>("_lines")
-			.WithOne()
-			.HasForeignKey("InvoiceId")
-			.OnDelete(DeleteBehavior.Cascade);
-
-
-			b.Navigation("_lines").UsePropertyAccessMode(PropertyAccessMode.Field);
+			var nav = b.Metadata.FindNavigation(nameof(Invoice.Lines))!;
+			nav.SetField("_lines");
+			nav.SetPropertyAccessMode(PropertyAccessMode.Field);
 		}
 	}
 }

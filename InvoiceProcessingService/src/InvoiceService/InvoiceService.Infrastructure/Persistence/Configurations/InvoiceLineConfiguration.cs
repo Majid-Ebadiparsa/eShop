@@ -10,11 +10,12 @@ namespace InvoiceService.Infrastructure.Persistence.Configurations
 		{
 			b.ToTable("InvoiceLines");
 			b.HasKey(x => x.Id);
+
 			b.Property(x => x.Description).HasMaxLength(500).IsRequired();
-			b.Property(x => x.Price).IsRequired();
+			b.Property(x => x.Price).HasPrecision(18, 2).IsRequired();
 			b.Property(x => x.Quantity).IsRequired();
-			b.Property<Guid>("InvoiceId");
-			b.HasIndex("InvoiceId");
+			b.Property(x => x.InvoiceId).IsRequired();
+			b.HasIndex(x => x.InvoiceId);
 		}
 	}
 }

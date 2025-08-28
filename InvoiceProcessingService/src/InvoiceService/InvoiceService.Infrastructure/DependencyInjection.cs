@@ -1,7 +1,9 @@
 ﻿using InvoiceService.Application.Abstractions;
 using InvoiceService.Infrastructure.Messaging;
 using InvoiceService.Infrastructure.Persistence;
+using InvoiceService.Infrastructure.Persistence.Repositories;
 using MassTransit;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +15,8 @@ namespace InvoiceService.Infrastructure
 		public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration cfg)
 		{
 			services
+				.AddTransient(typeof(IInvoiceRepository), typeof(InvoiceRepository))
+				.AddScoped<IEventPublisher, RabbitMqEventPublisher>()
 				.AddScoped<IDateTimeProvider, SystemDateTimeProvider>()
 				.RegisterDbContext(cfg)
 				.RegisterMassTransit(cfg);
@@ -22,10 +26,13 @@ namespace InvoiceService.Infrastructure
 
 		private static IServiceCollection RegisterDbContext(this IServiceCollection services, IConfiguration cfg)
 		{
+			var cs = cfg.GetConnectionString(ApplicationDbContext.SECTION_NAME);
+			Directory.CreateDirectory(Path.GetDirectoryName(new SqliteConnectionStringBuilder(cs).DataSource)!);
+
 			services.AddDbContext<ApplicationDbContext>(options =>
 			{
 				options.UseSqlite(
-					cfg.GetConnectionString("InvoicesDb"),
+					cfg.GetConnectionString(ApplicationDbContext.SECTION_NAME),
 					b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
 			});
 

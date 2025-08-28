@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using InvoiceSubscriber.Console.Consumers;
 using MassTransit;
 using MassTransit.Testing;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,9 +1,8 @@
 using InvoiceService.API.Configuration;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc;
-using System.Text.Json.Serialization;
 using InvoiceService.Application;
 using InvoiceService.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,10 +18,8 @@ builder.Services
 .AddAuthorization()
 .RegisterJwtBearer(builder.Configuration)
 .AddEndpointsApiExplorer()
-.AddSwaggerGen();
-
-
-builder.Services.AddApiVersioning(o =>
+.AddSwaggerGen()
+.AddApiVersioning(o =>
 {
 	o.DefaultApiVersion = new ApiVersion(1, 0);
 	o.AssumeDefaultVersionWhenUnspecified = true;

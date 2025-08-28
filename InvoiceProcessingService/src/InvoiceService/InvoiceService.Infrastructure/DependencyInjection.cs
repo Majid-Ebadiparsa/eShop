@@ -26,17 +26,35 @@ namespace InvoiceService.Infrastructure
 
 		private static IServiceCollection RegisterDbContext(this IServiceCollection services, IConfiguration cfg)
 		{
-			var cs = cfg.GetConnectionString(ApplicationDbContext.SECTION_NAME);
-			Directory.CreateDirectory(Path.GetDirectoryName(new SqliteConnectionStringBuilder(cs).DataSource)!);
+			string conn = GetConnectionString(cfg);
 
 			services.AddDbContext<ApplicationDbContext>(options =>
 			{
 				options.UseSqlite(
-					cfg.GetConnectionString(ApplicationDbContext.SECTION_NAME),
+					conn,
 					b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
 			});
 
 			return services;
+		}
+
+		private static string GetConnectionString(IConfiguration cfg)
+		{
+			var cs = cfg.GetConnectionString(ApplicationDbContext.SECTION_NAME);
+			var sb = new SqliteConnectionStringBuilder(cs);
+			var dataSource = sb.DataSource;
+
+			if (!Path.IsPathRooted(dataSource))
+			{
+				dataSource = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, dataSource));
+			}
+
+			var dir = Path.GetDirectoryName(dataSource)!;
+			Directory.CreateDirectory(dir);
+
+			sb.DataSource = dataSource;
+			var normalizedCs = sb.ToString();
+			return normalizedCs;
 		}
 
 		private static IServiceCollection RegisterMassTransit(this IServiceCollection services, IConfiguration cfg)
@@ -55,19 +73,14 @@ namespace InvoiceService.Infrastructure
 					o.DuplicateDetectionWindow = TimeSpan.FromMinutes(5);
 				});
 
-
 				x.SetKebabCaseEndpointNameFormatter();
 
-
-				services.AddMassTransit(x =>
+				x.UsingRabbitMq((context, cfg) =>
 				{
-					x.UsingRabbitMq((context, cfg) =>
+					cfg.Host(rabbitMqSettings.Host, rabbitMqSettings.VirtualHost, h =>
 					{
-						cfg.Host(rabbitMqSettings.Host, rabbitMqSettings.VirtualHost, h =>
-						{
-							h.Username(rabbitMqSettings.Username);
-							h.Password(rabbitMqSettings.Password);
-						});
+						h.Username(rabbitMqSettings.Username);
+						h.Password(rabbitMqSettings.Password);
 					});
 				});
 			});

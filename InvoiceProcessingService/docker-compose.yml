@@ -1,16 +1,65 @@
 version: '3.9'
+
 services:
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
     ports:
-      - "5672:5672" # AMQP
-      - "15672:15672" # Management UI
+      - "5672:5672"     # AMQP
+      - "15672:15672"   # Management UI
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     networks: [InvoiceProcessingService]
 
+  api:
+    build:
+      context: .
+      dockerfile: src/InvoiceService/InvoiceService.API/Dockerfile
+    container_name: invoice-api
+    depends_on:
+      - rabbitmq
+    ports:
+      - "5169:8080"
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__InvoicesDb: "Data Source=/app/data/invoices.db"
+
+      # RabbitMQ config
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__VirtualHost: "/"
+      RabbitMQ__Username: "guest"
+      RabbitMQ__Password: "guest"
+
+      # JWT
+      Jwt__Issuer: "Onventis.Sourcing"
+      Jwt__Audience: "Onventis.Sourcing.Clients"
+      Jwt__Key: "super-secret-development-key-please-change"
+      Jwt__ExpiryMinutes: "60"
+    volumes:
+      - invoices-data:/app/data
+    networks: [InvoiceProcessingService]
+
+  subscriber:
+    build:
+      context: .
+      dockerfile: src/Subscriber/InvoiceSubscriber.Console/Dockerfile
+    container_name: invoice-subscriber
+    depends_on:
+      - rabbitmq
+    environment:
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__VirtualHost: "/"
+      RabbitMQ__Username: "guest"
+      RabbitMQ__Password: "guest"
+    volumes:
+      - subscriber-inbox:/app/inbox
+    networks: [InvoiceProcessingService]
+
 networks:
   InvoiceProcessingService:
     driver: bridge
+
+volumes:
+  invoices-data:
+  subscriber-inbox:

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Hosting;
 var builder = Host.CreateDefaultBuilder(args)
 .ConfigureServices((context, services) =>
 {
-	services.AddSingleton<IInboxStore>(_ => new SqliteInboxStore("Data Source=inbox.db"));
+	services.AddSingleton<IInboxStore>(_ => new SqliteInboxStore("Data Source=/app/inbox/inbox.db"));
 
 	services.AddMassTransit(x =>
 	{

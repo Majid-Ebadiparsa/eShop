@@ -1,7 +1,6 @@
 using InvoiceService.API.Configuration;
 using InvoiceService.Application;
 using InvoiceService.Infrastructure;
-using Microsoft.AspNetCore.Mvc;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,37 +11,31 @@ builder.Services.AddControllers().AddJsonOptions(x =>
 	 x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 builder.Services
-.AddCustomSwagger()
-.AddApplication()
-.AddInfrastructure(builder.Configuration)
 .AddAuthorization()
+.AddCustomSwagger()
+.AddSwaggerGen()
+.AddApplication()
+.RegisterHealthChecks(builder.Configuration)
+.AddInfrastructure(builder.Configuration)
 .RegisterJwtBearer(builder.Configuration)
 .AddEndpointsApiExplorer()
-.AddSwaggerGen()
-.AddApiVersioning(o =>
-{
-	o.DefaultApiVersion = new ApiVersion(1, 0);
-	o.AssumeDefaultVersionWhenUnspecified = true;
-	o.ReportApiVersions = true;
-});
+.AddCustomApiVersioning();
 
 
 var app = builder.Build();
 
 app.MapHealthChecks("/health/live");
 app.MapHealthChecks("/health/ready");
-
-app.UseSwagger();
-app.UseSwaggerUI();
-
-app.UseRouting();
-app.UseAuthentication();
-app.UseAuthorization();
+app
+	.UseCustomExceptionHandler()
+	.UseHttpsRedirection()
+	.UseSwagger()
+	.UseCustomSwaggerUiExceptionHandler()
+	.UseRouting()
+	.UseAuthentication()
+	.UseAuthorization();
 app.MapControllers();
 
-app.UseHttpsRedirection();
-app.UseAuthorization();
-app.MapControllers();
 
 app.Run();
 

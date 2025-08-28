@@ -7,9 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace InvoiceService.API.Controllers
 {
 	[ApiController]
-	[Route("api/[controller]")]
 	[Authorize]
 	[ApiVersion("1.0")]
+	[Route("api/v{version:apiVersion}/[controller]")]
 	public class InvoicesController : ControllerBase
 	{
 		private readonly ISender _sender;

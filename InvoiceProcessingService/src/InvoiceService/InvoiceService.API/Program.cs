@@ -1,7 +1,6 @@
 using InvoiceService.API.Configuration;
 using InvoiceService.Application;
 using InvoiceService.Infrastructure;
-using InvoiceService.Infrastructure.Persistence;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,7 +35,8 @@ app
 	.UseRouting()
 	.UseAuthentication()
 	.UseAuthorization();
-app.MapControllers();
+app.MapControllers()
+	 .RequireAuthorization();
 
 
 app.Run();

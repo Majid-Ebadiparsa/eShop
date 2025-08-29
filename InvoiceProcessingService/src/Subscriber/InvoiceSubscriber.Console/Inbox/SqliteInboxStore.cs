@@ -1,11 +1,13 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using System;
 using System.Globalization;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Data.Sqlite;
 
 namespace InvoiceSubscriber.Console.Inbox
 {
 	public sealed class SqliteInboxStore : IInboxStore, IDisposable
 	{
-		private readonly string _connectionString;
 		private readonly SqliteInboxOptions _options;
 
 		public SqliteInboxStore(SqliteInboxOptions options)

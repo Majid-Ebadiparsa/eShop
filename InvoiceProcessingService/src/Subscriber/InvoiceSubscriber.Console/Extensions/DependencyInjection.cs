@@ -1,10 +1,16 @@
-﻿using InvoiceSubscriber.Console.Consumers;
-using InvoiceSubscriber.Console.Inbox;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using GreenPipes;
 using MassTransit;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using InvoiceSubscriber.Console.Consumers;
+using InvoiceSubscriber.Console.Inbox;
+
 
 namespace InvoiceSubscriber.Console.Extensions
 {
@@ -20,15 +26,7 @@ namespace InvoiceSubscriber.Console.Extensions
 		{
 			services.AddSingleton<IInboxStore>(sp =>
 			{
-				var cs = GetConnectionString(configuration, env);
-
-				var options = new SqliteInboxOptions(cs)
-				{
-					BusyTimeout = TimeSpan.FromSeconds(5),
-					JournalMode = "WAL"
-				};
-
-				configure?.Invoke(options);
+				var options = SqliteInboxOptions.FromConfiguration(configuration, env, SECTION_NAME, configure);
 				return new SqliteInboxStore(options);
 			});
 
@@ -45,10 +43,10 @@ namespace InvoiceSubscriber.Console.Extensions
 
 				x.UsingRabbitMq((ctx, cfg) =>
 				{
-					var host = configuration["RabbitMQ:Host"] ?? "localhost";
-					var vhost = configuration["RabbitMQ:VirtualHost"] ?? "/";
-					var user = configuration["RabbitMQ:Username"] ?? "guest";
-					var pass = configuration["RabbitMQ:Password"] ?? "guest";
+					var host = configuration["RabbitMQ:Host"] ?? Environment.GetEnvironmentVariable("CLOUDAMQP_HOST") ?? "localhost";
+					var vhost = configuration["RabbitMQ:VirtualHost"] ?? Environment.GetEnvironmentVariable("CLOUDAMQP_VHOST") ?? "/";
+					var user = configuration["RabbitMQ:Username"] ?? Environment.GetEnvironmentVariable("CLOUDAMQP_USER") ?? "guest";
+					var pass = configuration["RabbitMQ:Password"] ?? Environment.GetEnvironmentVariable("CLOUDAMQP_PASS") ?? "guest"; 
 
 					cfg.Host(host, vhost, h =>
 					{
@@ -68,83 +66,9 @@ namespace InvoiceSubscriber.Console.Extensions
 						e.ConfigureConsumer<InvoiceSubmittedConsumer>(ctx);
 					});
 				});
-			});
+			}).AddMassTransitHostedService(true);
 
 			return services;
-		}
-
-		private static string GetConnectionString(IConfiguration cfg, IHostEnvironment env)
-		{
-			var raw = cfg.GetConnectionString(SECTION_NAME) ?? "Data Source=../data/inbox.db";
-			var csb = new SqliteConnectionStringBuilder(raw);
-			var dataSource = csb.DataSource;
-
-			if (Path.IsPathRooted(dataSource))
-			{
-				EnsureDirectoryFor(dataSource);
-				return csb.ToString();
-			}
-
-			// Detect if running in a container
-			bool inContainer = IsRunningInContainer();
-
-			string rootedPath = GetRootedPath(env, dataSource, inContainer);
-			EnsureDirectoryFor(rootedPath);
-			csb.DataSource = rootedPath;
-
-			if (!csb.ContainsKey("Mode")) csb.Mode = SqliteOpenMode.ReadWriteCreate;
-			if (!csb.ContainsKey("Cache")) csb.Cache = SqliteCacheMode.Shared;
-			if (!csb.ContainsKey("Pooling")) csb.Pooling = true;
-
-			return csb.ToString();
-
-
-
-
-
-			static void EnsureDirectoryFor(string filePath)
-			{
-				var dir = Path.GetDirectoryName(filePath);
-				if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-					Directory.CreateDirectory(dir);
-			}
-
-			static string? FindProjectRoot(string start)
-			{
-				var dir = new DirectoryInfo(start);
-				while (dir != null)
-				{
-					if (dir.EnumerateFiles("*.csproj", SearchOption.TopDirectoryOnly).Any())
-						return dir.FullName;
-
-					dir = dir.Parent;
-				}
-				return null;
-			}
-
-			static string GetRootedPath(IHostEnvironment env, string dataSource, bool inContainer)
-			{
-				string rootedPath;
-				if (inContainer)
-				{
-					rootedPath = Path.GetFullPath(Path.Combine("/app/data", dataSource.TrimStart('.', '/', '\\')));
-				}
-				else
-				{
-					var projectRoot = FindProjectRoot(env.ContentRootPath) ?? env.ContentRootPath;
-					rootedPath = Path.GetFullPath(Path.Combine(projectRoot, dataSource));
-				}
-
-				return rootedPath;
-			}
-
-			static bool IsRunningInContainer()
-			{
-				return string.Equals(
-						Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"),
-						"true",
-						StringComparison.OrdinalIgnoreCase);
-			}
-		}
+		}		
 	}
 }

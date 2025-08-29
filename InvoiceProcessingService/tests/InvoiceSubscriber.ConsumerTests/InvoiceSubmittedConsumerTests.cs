@@ -1,8 +1,12 @@
-﻿using FluentAssertions;
-using InvoiceSubscriber.Console.Consumers;
+﻿using System;
+using System.Threading.Tasks;
+using FluentAssertions;
 using MassTransit;
 using MassTransit.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit;
+using InvoiceSubscriber.Console.Consumers;
+using InvoiceSubscriber.Console.Inbox;
 using Shared.Contracts.Events;
 
 namespace InvoiceSubscriber.ConsumerTests
@@ -10,30 +14,47 @@ namespace InvoiceSubscriber.ConsumerTests
 	public class InvoiceSubmittedConsumerTests
 	{
 		[Fact]
-		public async Task Consumer_Should_Consume_InvoiceSubmitted()
+		public async Task Should_Consume_InvoiceSubmitted_Message()
 		{
 			var services = new ServiceCollection();
-			services.AddMassTransitTestHarness(x =>
+			services.AddSingleton<IInboxStore, InMemoryInboxStore>();
+
+			services.AddMassTransitInMemoryTestHarness(cfg =>
 			{
-				x.AddConsumer<InvoiceSubmittedConsumer>();
+				cfg.AddConsumer<InvoiceSubmittedConsumer>();
+				cfg.AddConsumerTestHarness<InvoiceSubmittedConsumer>();
 			});
 
-			await using var provider = services.BuildServiceProvider(true);
-			var harness = provider.GetRequiredService<ITestHarness>();
-			await harness.Start();
+			using var provider = services.BuildServiceProvider(validateScopes: true);
 
-			var bus = provider.GetRequiredService<IBus>();
-			await bus.Publish(new InvoiceSubmittedEvent{ 
-				InvoiceId =Guid.NewGuid(), 
-				Description = "desc", 
-				DueDate = DateTime.UtcNow.AddDays(1), 
-				Supplier = "ACME",
-				Lines =	new[] { new InvoiceLineItem {Description = "A", Price = 1.2, Quantity = 3 } }});
-
-			(await harness.Consumed.Any<InvoiceSubmittedEvent>()).Should().BeTrue();
-
+			var harness = provider.GetRequiredService<InMemoryTestHarness>();
 			var consumerHarness = provider.GetRequiredService<IConsumerTestHarness<InvoiceSubmittedConsumer>>();
-			(await consumerHarness.Consumed.Any<InvoiceSubmittedEvent>()).Should().BeTrue();
+
+			await harness.Start();
+			try
+			{
+				var msg = new InvoiceSubmittedEvent
+				{
+					InvoiceId = Guid.NewGuid(),
+					Description = "Office supplies",
+					DueDate = DateTime.UtcNow.AddDays(3),
+					Supplier = "ACME GmbH",
+					Lines = new[]
+						{
+								new InvoiceLineItem{Description = "Pens", Price = 1.2, Quantity = 10 },
+								new InvoiceLineItem{Description = "Notebooks", Price = 4.5, Quantity = 5 }
+						}
+				};
+
+				await harness.InputQueueSendEndpoint.Send(msg);
+
+				(await harness.Consumed.Any<InvoiceSubmittedEvent>()).Should().BeTrue();
+				(await consumerHarness.Consumed.Any<InvoiceSubmittedEvent>()).Should().BeTrue();
+			}
+			finally
+			{
+				await harness.Stop();
+			}
 		}
 	}
 }

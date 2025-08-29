@@ -1,4 +1,7 @@
-﻿namespace InvoiceSubscriber.Console.Inbox
+﻿using System.Threading;
+using System.Threading.Tasks;
+
+namespace InvoiceSubscriber.Console.Inbox
 {
 	public interface IInboxStore
 	{

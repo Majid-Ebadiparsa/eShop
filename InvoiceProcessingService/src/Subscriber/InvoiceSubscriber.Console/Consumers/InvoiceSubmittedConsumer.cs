@@ -1,4 +1,6 @@
-﻿using MassTransit;
+﻿using System;
+using System.Threading.Tasks;
+using MassTransit;
 using Microsoft.Extensions.Logging;
 using Shared.Contracts.Events;
 using InvoiceSubscriber.Console.Inbox;

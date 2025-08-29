@@ -18,7 +18,7 @@ namespace InvoiceService.Application.UnitTests
 					.Returns(Task.CompletedTask);
 
 			var publisher = new Mock<IEventPublisher>();
-			publisher.Setup(p => p.PublishInvoiceSubmittedAsync(It.IsAny<InvoiceSubmittedEvent>(), It.IsAny<CancellationToken>()))
+			publisher.Setup(p => p.PublishInvoiceSubmittedAsync(It.IsAny<InvoiceSubmitted>(), It.IsAny<CancellationToken>()))
 							 .Returns(Task.CompletedTask);
 
 			var handler = new SubmitInvoiceCommandHandler(repo.Object, publisher.Object);
@@ -33,7 +33,7 @@ namespace InvoiceService.Application.UnitTests
 			// Assert
 			id.Should().NotBe(Guid.Empty);
 			repo.Verify(r => r.AddAsync(It.IsAny<Invoice>(), It.IsAny<CancellationToken>()), Times.Once);
-			publisher.Verify(p => p.PublishInvoiceSubmittedAsync(It.IsAny<InvoiceSubmittedEvent>(), It.IsAny<CancellationToken>()), Times.Once);
+			publisher.Verify(p => p.PublishInvoiceSubmittedAsync(It.IsAny<InvoiceSubmitted>(), It.IsAny<CancellationToken>()), Times.Once);
 		}
 	}
 }

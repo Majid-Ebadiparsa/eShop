@@ -25,7 +25,7 @@ namespace InvoiceService.Application.Invoices.Commands
 			await _invoiceRepository.AddAsync(invoice, ct); // Transactional with Outbox (configured in Infrastructure)
 
 			// Publish domain integration event (goes to Outbox first, then RabbitMQ)
-			var evt = new InvoiceSubmittedEvent
+			var evt = new InvoiceSubmitted
 			{
 				InvoiceId = invoice.Id,
 				Description = invoice.Description,

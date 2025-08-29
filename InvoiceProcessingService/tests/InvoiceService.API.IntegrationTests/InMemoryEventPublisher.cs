@@ -5,9 +5,9 @@ namespace InvoiceService.API.IntegrationTests
 {
 	public class InMemoryEventPublisher : IEventPublisher
 	{
-		public List<InvoiceSubmittedEvent> Published { get; } = new();
+		public List<InvoiceSubmitted> Published { get; } = new();
 
-		public Task PublishInvoiceSubmittedAsync(InvoiceSubmittedEvent evt, CancellationToken ct)
+		public Task PublishInvoiceSubmittedAsync(InvoiceSubmitted evt, CancellationToken ct)
 		{
 			Published.Add(evt);
 			return Task.CompletedTask;

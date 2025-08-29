@@ -1,6 +1,9 @@
 using InvoiceService.API.Configuration;
 using InvoiceService.Application;
-using InvoiceService.Infrastructure;
+using InvoiceService.Infrastructure.Configuration;
+using InvoiceService.Infrastructure.Persistence;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,7 +27,6 @@ builder.Services
 
 var app = builder.Build();
 
-app.UseInfrastructure();
 app.MapHealthChecks("/health/live");
 app.MapHealthChecks("/health/ready");
 app
@@ -35,8 +37,7 @@ app
 	.UseRouting()
 	.UseAuthentication()
 	.UseAuthorization();
-app.MapControllers()
-	 .RequireAuthorization();
+app.MapControllers();
 
 
 app.Run();

@@ -5,9 +5,9 @@ using MassTransit;
 using MassTransit.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using InvoiceSubscriber.Console.Consumers;
-using InvoiceSubscriber.Console.Inbox;
 using Shared.Contracts.Events;
+using InvoiceSubscriber.Console.Abstractions;
+using InvoiceSubscriber.Console.Messaging.Consumers;
 
 namespace InvoiceSubscriber.ConsumerTests
 {
@@ -33,7 +33,7 @@ namespace InvoiceSubscriber.ConsumerTests
 			await harness.Start();
 			try
 			{
-				var msg = new InvoiceSubmittedEvent
+				var msg = new InvoiceSubmitted
 				{
 					InvoiceId = Guid.NewGuid(),
 					Description = "Office supplies",
@@ -48,8 +48,8 @@ namespace InvoiceSubscriber.ConsumerTests
 
 				await harness.InputQueueSendEndpoint.Send(msg);
 
-				(await harness.Consumed.Any<InvoiceSubmittedEvent>()).Should().BeTrue();
-				(await consumerHarness.Consumed.Any<InvoiceSubmittedEvent>()).Should().BeTrue();
+				(await harness.Consumed.Any<InvoiceSubmitted>()).Should().BeTrue();
+				(await consumerHarness.Consumed.Any<InvoiceSubmitted>()).Should().BeTrue();
 			}
 			finally
 			{

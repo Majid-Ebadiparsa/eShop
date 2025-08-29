@@ -1,5 +1,7 @@
 ﻿using InvoiceService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using MassTransit;
+using MassTransit.EntityFrameworkCoreIntegration;
 
 namespace InvoiceService.Infrastructure.Persistence
 {
@@ -17,6 +19,12 @@ namespace InvoiceService.Infrastructure.Persistence
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
+			modelBuilder.AddInboxStateEntity();
+			modelBuilder.AddOutboxMessageEntity();
+			modelBuilder.AddOutboxStateEntity();
+
+			base.OnModelCreating(modelBuilder);
 		}
 	}
 }

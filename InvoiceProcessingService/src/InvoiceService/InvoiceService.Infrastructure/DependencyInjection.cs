@@ -2,6 +2,7 @@
 using InvoiceService.Infrastructure.Messaging;
 using InvoiceService.Infrastructure.Persistence;
 using InvoiceService.Infrastructure.Persistence.Repositories;
+using InvoiceService.Infrastructure.Startup;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Data.Sqlite;
@@ -10,7 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace InvoiceService.Infrastructure
+namespace InvoiceService.Infrastructure.Configuration
 {
 	public static class DependencyInjection
 	{
@@ -21,21 +22,10 @@ namespace InvoiceService.Infrastructure
 				.AddScoped<IEventPublisher, RabbitMqEventPublisher>()
 				.AddScoped<IDateTimeProvider, SystemDateTimeProvider>()
 				.RegisterDbContext(cfg, env)
-				.RegisterMassTransit(cfg);
+				.RegisterMassTransit(cfg)
+				.AddHostedService<ApplyMigrationsHostedService>();
 
 			return services;
-		}
-
-		public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app)
-		{
-			// Auto-migrate on startup
-			using (var scope = app.ApplicationServices.CreateScope())
-			{
-				var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-				db.Database.Migrate(); // creates / upgrades SQLite schema
-			}
-
-			return app;
 		}
 
 		private static IServiceCollection RegisterDbContext(this IServiceCollection services, IConfiguration cfg, IHostEnvironment env)

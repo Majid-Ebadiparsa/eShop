@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using InvoiceSubscriber.Console.Inbox;
+using InvoiceSubscriber.Console.Abstractions;
 
 public class InMemoryInboxStore : IInboxStore
 {

@@ -13,7 +13,7 @@ namespace InvoiceService.Infrastructure.Messaging
 			_publishEndpoint = publishEndpoint;
 		}
 
-		public async Task PublishInvoiceSubmittedAsync(InvoiceSubmittedEvent @event, CancellationToken ct)
+		public async Task PublishInvoiceSubmittedAsync(InvoiceSubmitted @event, CancellationToken ct)
 		{
 			await _publishEndpoint.Publish(@event, ct);
 		}

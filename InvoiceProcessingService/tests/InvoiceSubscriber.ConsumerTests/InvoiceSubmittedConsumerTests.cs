@@ -23,9 +23,12 @@ namespace InvoiceSubscriber.ConsumerTests
 			await harness.Start();
 
 			var bus = provider.GetRequiredService<IBus>();
-			await bus.Publish(new InvoiceSubmittedEvent(
-					Guid.NewGuid(), "desc", DateTime.UtcNow.AddDays(1), "ACME",
-					new[] { new InvoiceLineItem("A", 1.2, 3) }));
+			await bus.Publish(new InvoiceSubmittedEvent{ 
+				InvoiceId =Guid.NewGuid(), 
+				Description = "desc", 
+				DueDate = DateTime.UtcNow.AddDays(1), 
+				Supplier = "ACME",
+				Lines =	new[] { new InvoiceLineItem {Description = "A", Price = 1.2, Quantity = 3 } }});
 
 			(await harness.Consumed.Any<InvoiceSubmittedEvent>()).Should().BeTrue();
 

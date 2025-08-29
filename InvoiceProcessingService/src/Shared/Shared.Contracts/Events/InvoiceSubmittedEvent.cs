@@ -1,11 +1,16 @@
-﻿namespace Shared.Contracts.Events
+﻿using System;
+using System.Collections.Generic;
+
+namespace Shared.Contracts.Events
 {
-	public record InvoiceSubmittedEvent
-	(
-		Guid InvoiceId,
-		string Description,
-		DateTime DueDate,
-		string Supplier,
-		IReadOnlyList<InvoiceLineItem> Lines
-	);
+	public sealed class InvoiceSubmittedEvent
+	{
+		public Guid InvoiceId { get; set; }
+		public string Description { get; set; } = default!;
+		public DateTime DueDate { get; set; }
+		public string Supplier { get; set; } = default!;
+		public IReadOnlyList<InvoiceLineItem> Lines { get; set; } = new List<InvoiceLineItem>();
+
+		public InvoiceSubmittedEvent() { }
+	};
 }

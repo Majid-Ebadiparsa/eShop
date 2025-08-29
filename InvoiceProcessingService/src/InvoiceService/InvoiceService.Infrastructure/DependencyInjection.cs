@@ -3,30 +3,44 @@ using InvoiceService.Infrastructure.Messaging;
 using InvoiceService.Infrastructure.Persistence;
 using InvoiceService.Infrastructure.Persistence.Repositories;
 using MassTransit;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace InvoiceService.Infrastructure
 {
 	public static class DependencyInjection
 	{
-		public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration cfg)
+		public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration cfg, IHostEnvironment env)
 		{
 			services
 				.AddTransient(typeof(IInvoiceRepository), typeof(InvoiceRepository))
 				.AddScoped<IEventPublisher, RabbitMqEventPublisher>()
 				.AddScoped<IDateTimeProvider, SystemDateTimeProvider>()
-				.RegisterDbContext(cfg)
+				.RegisterDbContext(cfg, env)
 				.RegisterMassTransit(cfg);
 
 			return services;
 		}
 
-		private static IServiceCollection RegisterDbContext(this IServiceCollection services, IConfiguration cfg)
+		public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app)
 		{
-			string conn = GetConnectionString(cfg);
+			// Auto-migrate on startup
+			using (var scope = app.ApplicationServices.CreateScope())
+			{
+				var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+				db.Database.Migrate(); // creates / upgrades SQLite schema
+			}
+
+			return app;
+		}
+
+		private static IServiceCollection RegisterDbContext(this IServiceCollection services, IConfiguration cfg, IHostEnvironment env)
+		{
+			string conn = GetConnectionString(cfg, env);
 
 			services.AddDbContext<ApplicationDbContext>(options =>
 			{
@@ -38,22 +52,27 @@ namespace InvoiceService.Infrastructure
 			return services;
 		}
 
-		private static string GetConnectionString(IConfiguration cfg)
+		private static string GetConnectionString(IConfiguration cfg, IHostEnvironment env)
 		{
-			var cs = cfg.GetConnectionString(ApplicationDbContext.SECTION_NAME);
-			var sb = new SqliteConnectionStringBuilder(cs);
-			var dataSource = sb.DataSource;
+			var cs = cfg.GetConnectionString(ApplicationDbContext.SECTION_NAME) ?? "Data Source=../data/invoices.db";
+			var csb = new SqliteConnectionStringBuilder(cs);
+			var dataSource = csb.DataSource;
 
 			if (!Path.IsPathRooted(dataSource))
 			{
-				dataSource = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, dataSource));
+				var baseDir = env.ContentRootPath;
+				var dataDir = Path.Combine(baseDir, "data");
+				Directory.CreateDirectory(dataDir);
+
+				var fileName = Path.GetFileName(csb.DataSource);
+				dataSource = Path.Combine(dataDir, fileName);
 			}
 
 			var dir = Path.GetDirectoryName(dataSource)!;
 			Directory.CreateDirectory(dir);
 
-			sb.DataSource = dataSource;
-			var normalizedCs = sb.ToString();
+			csb.DataSource = dataSource;
+			var normalizedCs = csb.ToString();
 			return normalizedCs;
 		}
 

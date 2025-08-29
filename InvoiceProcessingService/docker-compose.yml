@@ -48,12 +48,13 @@ services:
     depends_on:
       - rabbitmq
     environment:
+      ConnectionStrings__InboxDb: "Data Source=/app/data/inbox.db"
       RabbitMQ__Host: "rabbitmq"
       RabbitMQ__VirtualHost: "/"
       RabbitMQ__Username: "guest"
       RabbitMQ__Password: "guest"
     volumes:
-      - subscriber-inbox:/app/inbox
+      - subscriber-inbox:/app/data
     networks: [InvoiceProcessingService]
 
 networks:

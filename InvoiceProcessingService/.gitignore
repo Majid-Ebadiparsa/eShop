@@ -106,3 +106,6 @@ lcov.info
 node_modules/
 bower_components/
 wwwroot/dist/
+/src/InvoiceService/InvoiceService.API/data/
+/src/Subscriber/InvoiceSubscriber.Console/inbox/
+*.db

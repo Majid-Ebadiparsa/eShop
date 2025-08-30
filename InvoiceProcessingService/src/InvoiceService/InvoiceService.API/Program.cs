@@ -15,13 +15,12 @@ builder.Services.AddControllers().AddJsonOptions(x =>
 
 builder.Services
 .AddAuthorization()
+.AddEndpointsApiExplorer()
 .AddCustomSwagger()
-.AddSwaggerGen()
 .AddApplication()
 .RegisterHealthChecks(builder.Configuration)
 .AddInfrastructure(builder.Configuration, builder.Environment)
 .RegisterJwtBearer(builder.Configuration)
-.AddEndpointsApiExplorer()
 .AddCustomApiVersioning();
 
 
@@ -32,7 +31,6 @@ app.MapHealthChecks("/health/ready");
 app
 	.UseCustomExceptionHandler()
 	.UseHttpsRedirection()
-	.UseSwagger()
 	.UseCustomSwaggerUiExceptionHandler()
 	.UseRouting()
 	.UseAuthentication()

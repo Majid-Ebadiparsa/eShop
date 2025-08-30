@@ -29,6 +29,7 @@ services:
       RabbitMQ__VirtualHost: "/"
       RabbitMQ__Username: "guest"
       RabbitMQ__Password: "guest"
+      Swagger__Enabled: "true"
 
       # JWT
       Jwt__Issuer: "InvoiceProcessingService"

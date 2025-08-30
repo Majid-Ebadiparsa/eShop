@@ -22,19 +22,18 @@ services:
     ports:
       - "5169:8080"
     environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__InvoicesDb: "Data Source=/app/data/invoices.db;Cache=Shared"
-
-      # RabbitMQ config
       RabbitMQ__Host: "rabbitmq"
       RabbitMQ__VirtualHost: "/"
       RabbitMQ__Username: "guest"
       RabbitMQ__Password: "guest"
 
       # JWT
-      Jwt__Issuer: "Onventis.Sourcing"
-      Jwt__Audience: "Onventis.Sourcing.Clients"
-      Jwt__Key: "super-secret-development-key-please-change"
+      Jwt__Issuer: "InvoiceProcessingService"
+      Jwt__Audience: "InvoiceProcessingService.Clients"
+      Jwt__Key: "super-secret-jwt-key-only-for-demo-and-created-by-majid"
       Jwt__ExpiryMinutes: "60"
     volumes:
       - invoices-data:/app/data
@@ -48,6 +47,7 @@ services:
     depends_on:
       - rabbitmq
     environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
       ConnectionStrings__InboxDb: "Data Source=/app/data/inbox.db;Cache=Shared"
       RabbitMQ__Host: "rabbitmq"
       RabbitMQ__VirtualHost: "/"

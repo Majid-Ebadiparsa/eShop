@@ -1,30 +1,27 @@
-# See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
-# This stage is used when running from VS in fast mode (Default for Debug configuration)
-FROM mcr.microsoft.com/dotnet/runtime:9.0 AS base
-USER $APP_UID
+FROM mcr.microsoft.com/dotnet/runtime:5.0 AS base
 WORKDIR /app
 
-
-# This stage is used to build the service project
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
+
 COPY ["src/Subscriber/InvoiceSubscriber.Console/InvoiceSubscriber.Console.csproj", "src/Subscriber/InvoiceSubscriber.Console/"]
 COPY ["src/Shared/Shared.Contracts/Shared.Contracts.csproj", "src/Shared/Shared.Contracts/"]
-RUN dotnet restore "./src/Subscriber/InvoiceSubscriber.Console/InvoiceSubscriber.Console.csproj"
+RUN dotnet restore "src/Subscriber/InvoiceSubscriber.Console/InvoiceSubscriber.Console.csproj"
+
 COPY . .
 WORKDIR "/src/src/Subscriber/InvoiceSubscriber.Console"
-RUN dotnet build "./InvoiceSubscriber.Console.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "InvoiceSubscriber.Console.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./InvoiceSubscriber.Console.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "InvoiceSubscriber.Console.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-# This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
-RUN mkdir -p /app/inbox
+
+RUN mkdir -p /app/data
+
 COPY --from=publish /app/publish .
+
 ENTRYPOINT ["dotnet", "InvoiceSubscriber.Console.dll"]

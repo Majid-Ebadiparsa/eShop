@@ -33,10 +33,12 @@
       "launchBrowser": true,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
       "environmentVariables": {
-        "ASPNETCORE_URLS": "http://+:8080"
+        "ASPNETCORE_HTTP_PORTS": "8080",
+        "RabbitMQ__Host": "host.docker.internal"
       },
       "publishAllPorts": true,
-      "useSSL": true
+      "useSSL": false,
+      "DockerfileRunArguments": "-p 5169:8080"
     }
   },
   "$schema": "http://json.schemastore.org/launchsettings.json",

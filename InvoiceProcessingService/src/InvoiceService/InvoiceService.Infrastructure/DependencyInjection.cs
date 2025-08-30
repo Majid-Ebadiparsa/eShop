@@ -77,7 +77,7 @@ namespace InvoiceService.Infrastructure.Configuration
 				// EF Outbox ensures atomicity between DB and message broker
 				x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>
 				{
-					o.QueryDelay = TimeSpan.FromSeconds(1);
+					o.QueryDelay = TimeSpan.FromSeconds(15);
 					o.UseSqlite();
 					o.DuplicateDetectionWindow = TimeSpan.FromMinutes(5);
 				});

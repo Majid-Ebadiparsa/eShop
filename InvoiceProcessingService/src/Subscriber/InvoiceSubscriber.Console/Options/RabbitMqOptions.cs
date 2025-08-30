@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace InvoiceSubscriber.Console.Options
+﻿namespace InvoiceSubscriber.Console.Options
 {
 	public class RabbitMqOptions
 	{

@@ -9,7 +9,7 @@ namespace InvoiceService.API.Configuration
 		public static IServiceCollection RegisterJwtBearer(this IServiceCollection services, IConfiguration cfg)
 		{
 			// Auth (JWT)
-			var jwtKey = cfg["Jwt:Key"] ?? "change-me";
+			var jwtKey = cfg["Jwt:Key"] ?? "super-secret-jwt-key-only-for-demo-and-created-by-majid";
 			var jwtIssuer = cfg["Jwt:Issuer"] ?? "InvoiceProcessingService";
 			var jwtAudience = cfg["Jwt:Audience"] ?? "InvoiceProcessingService.Clients";
 

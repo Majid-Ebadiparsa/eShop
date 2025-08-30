@@ -84,17 +84,11 @@ namespace InvoiceService.Infrastructure.Configuration
 
 				x.SetKebabCaseEndpointNameFormatter();
 
-				x.UsingRabbitMq((context, cfg) =>
+				x.UsingRabbitMq((context, busCfg) =>
 				{
-					cfg.Host(rabbitMqSettings.Host, rabbitMqSettings.VirtualHost, h =>
-					{
-						h.Username(rabbitMqSettings.Username);
-						h.Password(rabbitMqSettings.Password);
-					});
+					busCfg.ConfigureRabbitMqHost(cfg, rabbitMqSettings);
 				});
 			});
-
-
 
 			return services;
 		}

@@ -4,6 +4,7 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using InvoiceSubscriber.Console.Abstractions;
 using Shared.Contracts.Events;
+using SysConsole = System.Console;
 
 namespace InvoiceSubscriber.Console.Messaging.Consumers
 {
@@ -20,10 +21,12 @@ namespace InvoiceSubscriber.Console.Messaging.Consumers
 
 		public async Task Consume(ConsumeContext<InvoiceSubmitted> context)
 		{
+			var msg = context.Message;
+
 			var key =
 					context.MessageId?.ToString("D")
 					?? context.CorrelationId?.ToString("D")
-					?? $"InvoiceSubmitted::{context.Message.InvoiceId}";
+					?? $"InvoiceSubmitted::{msg.InvoiceId}";
 
 			if (await _inbox.ExistsAsync(key, context.CancellationToken))
 			{
@@ -31,18 +34,24 @@ namespace InvoiceSubscriber.Console.Messaging.Consumers
 				return;
 			}
 
-			var msg = context.Message;
-			_logger.LogInformation("Processing Invoice {Id}, Supplier={Supplier}, Due={Due}",
-					msg.InvoiceId, msg.Supplier, msg.DueDate);
+			var linesCount = msg.Lines?.Count ?? 0;
+			_logger.LogInformation("Processing Invoice {Id}, Supplier={Supplier}, Due={Due}, Lines={Count}",
+					msg.InvoiceId, msg.Supplier, msg.DueDate, linesCount);
 
-			foreach (var l in msg.Lines)
-				_logger.LogInformation(" Line: {Desc} | Price={Price} | Qty={Qty}",
-						l.Description, l.Price, l.Quantity);
-
+			if (msg.Lines is not null && msg.Lines.Count > 0)
+			{
+				foreach (var l in msg.Lines)
+				{
+					if (l is null) continue;
+					_logger.LogInformation(" Line: {Desc} | Price={Price} | Qty={Qty}",
+								l.Description, l.Price, l.Quantity);
+				}
+			}
 			// TODO: Projection to Read-DB (Mongo/Elastic) in future
 
 			await _inbox.MarkProcessedAsync(key, context.CancellationToken);
 			_logger.LogInformation("Marked processed: {Key}", key);
+			SysConsole.WriteLine($"Marked processed for key: {key} => [Subscriber] Invoice: {msg.Description}, Supplier: {msg.Supplier}, Due={msg.DueDate}, Lines: {linesCount}");
 		}
 	}
 }

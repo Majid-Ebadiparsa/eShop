@@ -2,6 +2,7 @@
 {
 	public class RabbitMqOptions
 	{
+		public string? CloudAmqpUrl { get; set; } = string.Empty;
 		public string Host { get; set; } = "localhost";
 		public string VirtualHost { get; set; } = "/";
 		public string Username { get; set; } = "guest";

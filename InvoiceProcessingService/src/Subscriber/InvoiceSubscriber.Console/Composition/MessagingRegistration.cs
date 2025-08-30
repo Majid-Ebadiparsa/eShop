@@ -36,17 +36,13 @@ namespace InvoiceSubscriber.Console.Composition
 			{
 				x.AddConsumer<InvoiceSubmittedConsumer, InvoiceSubmittedConsumerDefinition>();
 
-				x.UsingRabbitMq((ctx, bus) =>
+				x.UsingRabbitMq((ctx, busCfg) =>
 				{
-					var opt = ctx.GetRequiredService<IOptions<RabbitMqOptions>>().Value;
+					var rabbitMqOptions = ctx.GetRequiredService<IOptions<RabbitMqOptions>>().Value;
 
-					bus.Host(opt.Host, opt.VirtualHost, h =>
-					{
-						h.Username(opt.Username);
-						h.Password(opt.Password);
-					});
+					busCfg.ConfigureRabbitMqHost(cfg, rabbitMqOptions);
 
-					bus.ConfigureEndpoints(ctx);
+					busCfg.ConfigureEndpoints(ctx);
 				});
 			});
 

@@ -1,9 +1,6 @@
 using InvoiceService.API.Configuration;
 using InvoiceService.Application;
 using InvoiceService.Infrastructure.Configuration;
-using InvoiceService.Infrastructure.Persistence;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);

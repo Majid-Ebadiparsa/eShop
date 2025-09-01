@@ -1,5 +1,4 @@
-﻿using InvoiceSubscriber.Console;
-using InvoiceSubscriber.Console.Composition;
+﻿using InvoiceSubscriber.Console.Composition;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

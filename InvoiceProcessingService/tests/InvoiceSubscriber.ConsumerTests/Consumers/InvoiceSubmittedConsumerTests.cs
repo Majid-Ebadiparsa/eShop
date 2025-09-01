@@ -5,10 +5,7 @@ using MassTransit;
 using Moq;
 using Shared.Contracts.Events;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -18,8 +15,7 @@ namespace InvoiceSubscriber.ConsumerTests.Consumers
 {
 	public class InvoiceSubmittedConsumerTests
 	{
-		private static (InvoiceSubmittedConsumer sut, FakeInboxStore inbox, TestLogger<InvoiceSubmittedConsumer> logger)
-				CreateSut()
+		private static (InvoiceSubmittedConsumer sut, FakeInboxStore inbox, TestLogger<InvoiceSubmittedConsumer> logger) CreateSut()
 		{
 			var inbox = new FakeInboxStore();
 			var logger = new TestLogger<InvoiceSubmittedConsumer>();

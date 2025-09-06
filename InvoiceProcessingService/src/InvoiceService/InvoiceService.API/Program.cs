@@ -12,7 +12,6 @@ builder.Services.AddControllers().AddJsonOptions(x =>
 
 builder.Services
 .AddAuthorization()
-.AddEndpointsApiExplorer()
 .AddCustomSwagger()
 .AddApplication()
 .RegisterHealthChecks(builder.Configuration)

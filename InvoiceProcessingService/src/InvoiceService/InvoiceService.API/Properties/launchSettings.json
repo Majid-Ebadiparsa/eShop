@@ -3,7 +3,7 @@
     "http": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "swagger",
+      "launchUrl": "",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "CLOUDAMQP_URL": "amqps://euggfkun:bPh0deIyYtRE_zPyARtoNAzKaz-CKAsX@cow.rmq2.cloudamqp.com/euggfkun"
@@ -14,7 +14,7 @@
     "https": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "swagger",
+      "launchUrl": "",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "CLOUDAMQP_URL": "amqps://euggfkun:bPh0deIyYtRE_zPyARtoNAzKaz-CKAsX@cow.rmq2.cloudamqp.com/euggfkun"

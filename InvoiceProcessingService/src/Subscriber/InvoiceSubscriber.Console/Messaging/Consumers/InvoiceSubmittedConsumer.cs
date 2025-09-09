@@ -1,9 +1,9 @@
-﻿using InvoiceSubscriber.Console.Abstractions;
+﻿using InvoiceService.Application.Abstractions.Read;
+using InvoiceService.Application.Invoices.Queries.Models;
+using InvoiceSubscriber.Console.Abstractions;
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Shared.Contracts.Abstraction.Read;
 using Shared.Contracts.Events;
-using Shared.Contracts.Invoices.Queries.Models;
 using System;
 using System.Linq;
 using System.Threading.Tasks;

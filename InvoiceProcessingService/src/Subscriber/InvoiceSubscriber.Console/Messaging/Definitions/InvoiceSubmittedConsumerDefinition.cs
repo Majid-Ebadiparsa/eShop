@@ -1,9 +1,6 @@
-﻿using GreenPipes;
-using InvoiceSubscriber.Console.Messaging.Consumers;
+﻿using InvoiceSubscriber.Console.Messaging.Consumers;
 using InvoiceSubscriber.Console.Options;
 using MassTransit;
-using MassTransit.ConsumeConfigurators;
-using MassTransit.Definition;
 using Microsoft.Extensions.Options;
 
 namespace InvoiceSubscriber.Console.Messaging.Definitions
@@ -21,7 +18,7 @@ namespace InvoiceSubscriber.Console.Messaging.Definitions
 		protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
 				IConsumerConfigurator<InvoiceSubmittedConsumer> consumerConfigurator)
 		{
-			endpointConfigurator.PrefetchCount = _opt.PrefetchCount < _opt.ConcurrentMessageLimit 
+			endpointConfigurator.PrefetchCount = _opt.PrefetchCount < _opt.ConcurrentMessageLimit
 				? _opt.ConcurrentMessageLimit * 2 // Best practice
 				: _opt.PrefetchCount;
 			endpointConfigurator.UseConcurrencyLimit(_opt.ConcurrentMessageLimit);

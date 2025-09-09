@@ -46,7 +46,7 @@ namespace InvoiceSubscriber.Console.Composition
 				});
 			});
 
-			services.AddMassTransitHostedService(true);
+			//services.AddMassTransitHostedService(true);
 			return services;
 		}
 

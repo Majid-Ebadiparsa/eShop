@@ -7,7 +7,9 @@ namespace InvoiceService.API.Configuration
 		public static IServiceCollection AddCustomSwagger(this IServiceCollection services)
 		{
 			// Register the Swagger generator
-			services.AddSwaggerGen(c =>
+			services
+				.AddEndpointsApiExplorer()
+				.AddSwaggerGen(c =>
 			{
 				c.SwaggerDoc("v1", new OpenApiInfo
 				{

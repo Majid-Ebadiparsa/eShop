@@ -1,5 +1,7 @@
 using InvoiceService.API.DTOs;
 using InvoiceService.Application.Invoices.Commands;
+using InvoiceService.Application.Invoices.Queries.GetAllInvoices;
+using MassTransit.Mediator;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -36,5 +38,14 @@ namespace InvoiceService.API.Controllers
 		// Simple for Demo – for testing retrieval
 		[HttpGet("{id:guid}")]
 		public IActionResult GetById(Guid id) => Ok(new { id });
+
+
+		[HttpGet("read/all")]
+		public async Task<IActionResult> GetAllInvoices()
+		{
+			var result = await _sender.Send(new GetAllInvoicesQuery());
+			return Ok(result);
+		}
+
 	}
 }

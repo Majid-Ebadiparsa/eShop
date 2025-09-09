@@ -51,8 +51,8 @@ namespace InvoiceService.Infrastructure.UnitTests.Model
 			linesNav.ForeignKey.DeleteBehavior.Should().Be(DeleteBehavior.Cascade);
 
 			linesNav.GetPropertyAccessMode().Should().Be(PropertyAccessMode.Field);
-			linesNav.FieldInfo.Should().NotBeNull();                               
-			linesNav.FieldInfo!.Name.Should().Be("_lines");                        
+			linesNav.FieldInfo.Should().NotBeNull();
+			linesNav.FieldInfo!.Name.Should().Be("_lines");
 
 			linesNav.PropertyInfo.Should().NotBeNull();
 		}

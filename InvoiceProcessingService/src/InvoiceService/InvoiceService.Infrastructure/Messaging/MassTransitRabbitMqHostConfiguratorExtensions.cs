@@ -1,7 +1,6 @@
-﻿using System;
-using System.Security.Authentication;
-using MassTransit;
+﻿using MassTransit;
 using Microsoft.Extensions.Configuration;
+using System.Security.Authentication;
 
 namespace InvoiceService.Infrastructure.Messaging
 {

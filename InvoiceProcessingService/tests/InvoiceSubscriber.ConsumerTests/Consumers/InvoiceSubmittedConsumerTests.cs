@@ -7,8 +7,6 @@ using Shared.Contracts.Events;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -18,12 +16,12 @@ namespace InvoiceSubscriber.ConsumerTests.Consumers
 {
 	public class InvoiceSubmittedConsumerTests
 	{
-		private static (InvoiceSubmittedConsumer sut, FakeInboxStore inbox, TestLogger<InvoiceSubmittedConsumer> logger)
-				CreateSut()
+		private static (InvoiceSubmittedConsumer sut, FakeInboxStore inbox, TestLogger<InvoiceSubmittedConsumer> logger) CreateSut()
 		{
 			var inbox = new FakeInboxStore();
 			var logger = new TestLogger<InvoiceSubmittedConsumer>();
-			var sut = new InvoiceSubmittedConsumer(inbox, logger);
+			var repo = new FakeInvoiceReadRepository();
+			var sut = new InvoiceSubmittedConsumer(inbox, logger, repo);
 			return (sut, inbox, logger);
 		}
 
@@ -168,6 +166,44 @@ namespace InvoiceSubscriber.ConsumerTests.Consumers
 
 			// Expect processed with correct key
 			inbox.LastProcessedKey.Should().NotBeNullOrWhiteSpace();
+		}
+
+
+		[Fact]
+		public async Task Should_Store_Invoice_In_Mongo()
+		{
+			// Arrange
+			var inbox = new FakeInboxStore();
+			var logger = new TestLogger<InvoiceSubmittedConsumer>();
+			var fakeRepo = new FakeInvoiceReadRepository();
+
+			var sut = new InvoiceSubmittedConsumer(inbox, logger, fakeRepo);
+
+			var message = new InvoiceSubmitted
+			{
+				InvoiceId = Guid.NewGuid(),
+				Supplier = "Test Supplier",
+				DueDate = DateTime.UtcNow,
+				Lines = new List<InvoiceLineItem>
+				{
+						new() { Description = "Item 1", Price = 100, Quantity = 2 },
+						new() { Description = "Item 2", Price = 50, Quantity = 1 }
+				}
+			};
+
+			var context = new FakeConsumeContext<InvoiceSubmitted>(message)
+			{
+				MessageId = Guid.NewGuid()
+			};
+
+			// Act
+			await sut.Consume(context);
+
+			// Assert
+			Assert.True(fakeRepo.AddCalled);
+			Assert.NotNull(fakeRepo.LastAddedInvoice);
+			Assert.Equal("Test Supplier", fakeRepo.LastAddedInvoice!.CustomerName);
+			Assert.Equal(250, fakeRepo.LastAddedInvoice.TotalAmount); // 100*2 + 50*1
 		}
 	}
 }

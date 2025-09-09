@@ -4,7 +4,6 @@ using InvoiceService.Infrastructure.Persistence;
 using InvoiceService.Infrastructure.Persistence.Repositories;
 using InvoiceService.Infrastructure.Startup;
 using MassTransit;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

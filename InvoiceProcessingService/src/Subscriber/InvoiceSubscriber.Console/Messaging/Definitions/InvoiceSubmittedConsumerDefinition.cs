@@ -5,11 +5,6 @@ using MassTransit;
 using MassTransit.ConsumeConfigurators;
 using MassTransit.Definition;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace InvoiceSubscriber.Console.Messaging.Definitions
 {
@@ -26,7 +21,9 @@ namespace InvoiceSubscriber.Console.Messaging.Definitions
 		protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
 				IConsumerConfigurator<InvoiceSubmittedConsumer> consumerConfigurator)
 		{
-			endpointConfigurator.PrefetchCount = _opt.PrefetchCount;
+			endpointConfigurator.PrefetchCount = _opt.PrefetchCount < _opt.ConcurrentMessageLimit 
+				? _opt.ConcurrentMessageLimit * 2 // Best practice
+				: _opt.PrefetchCount;
 			endpointConfigurator.UseConcurrencyLimit(_opt.ConcurrentMessageLimit);
 
 			endpointConfigurator.UseMessageRetry(r =>

@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\InvoiceService\InvoiceService.Infrastructure.Mongo\InvoiceService.Infrastructure.Mongo.csproj" />
     <ProjectReference Include="..\..\Shared\Shared.Contracts\Shared.Contracts.csproj" />
   </ItemGroup>
 

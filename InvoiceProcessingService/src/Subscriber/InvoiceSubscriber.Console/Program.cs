@@ -27,6 +27,7 @@ namespace InvoiceSubscriber.ConsoleApp
 											services
 											.AddLogging(o => o.AddConsole())
 											.AddInboxStore(ctx.Configuration, ctx.HostingEnvironment)
+											.AddMongoDb(ctx.Configuration)
 											.AddMessaging(ctx.Configuration);
 										});
 	}

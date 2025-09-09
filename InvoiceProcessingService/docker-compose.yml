@@ -22,9 +22,11 @@ services:
     ports:
       - "5169:8080"
     environment:
-      ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_ENVIRONMENT: "Docker"
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__InvoicesDb: "Data Source=/app/data/invoices.db;Cache=Shared"
+      MongoDb__ConnectionString: "mongodb://root:example@mongodb:27017"
+      MongoDb__DatabaseName: "InvoiceReadDb"
       CLOUDAMQP_URL: ${CLOUDAMQP_URL:-}
       RabbitMQ__Host: "rabbitmq"
       RabbitMQ__VirtualHost: "/"
@@ -49,8 +51,10 @@ services:
     depends_on:
       - rabbitmq
     environment:
-      ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_ENVIRONMENT: "Docker"
       ConnectionStrings__InboxDb: "Data Source=/app/data/inbox.db;Cache=Shared"
+      MongoDb__ConnectionString: "mongodb://root:example@mongodb:27017"
+      MongoDb__DatabaseName: "InvoiceReadDb"
       CLOUDAMQP_URL: ${CLOUDAMQP_URL:-}
       RabbitMQ__Host: "rabbitmq"
       RabbitMQ__VirtualHost: "/"
@@ -60,6 +64,18 @@ services:
       - subscriber-inbox:/app/data
     networks: [InvoiceProcessingService]
 
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    networks: [InvoiceProcessingService]
+
 networks:
   InvoiceProcessingService:
     driver: bridge
@@ -67,3 +83,4 @@ networks:
 volumes:
   invoices-data:
   subscriber-inbox:
+  mongo-data:

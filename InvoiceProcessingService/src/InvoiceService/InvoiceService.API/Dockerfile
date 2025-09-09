@@ -12,6 +12,7 @@ COPY ["src/InvoiceService/InvoiceService.Application/InvoiceService.Application.
 COPY ["src/Shared/Shared.Contracts/Shared.Contracts.csproj", "src/Shared/Shared.Contracts/"]
 COPY ["src/InvoiceService/InvoiceService.Domain/InvoiceService.Domain.csproj", "src/InvoiceService/InvoiceService.Domain/"]
 COPY ["src/InvoiceService/InvoiceService.Infrastructure/InvoiceService.Infrastructure.csproj", "src/InvoiceService/InvoiceService.Infrastructure/"]
+COPY ["src/InvoiceService/InvoiceService.Infrastructure.Mongo/InvoiceService.Infrastructure.Mongo.csproj", "src/InvoiceService/InvoiceService.Infrastructure.Mongo/"]
 RUN dotnet restore "src/InvoiceService/InvoiceService.API/InvoiceService.API.csproj"
 COPY . .
 WORKDIR "/src/src/InvoiceService/InvoiceService.API"
@@ -19,6 +20,6 @@ RUN dotnet publish "InvoiceService.API.csproj" -c $BUILD_CONFIGURATION -o /app/p
 
 FROM base AS final
 WORKDIR /app
-RUN mkdir -p /app/data
+RUN mkdir -p /app/datado
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "InvoiceService.API.dll"]

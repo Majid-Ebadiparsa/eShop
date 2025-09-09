@@ -1,7 +1,6 @@
 ﻿using InvoiceService.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 using MassTransit;
-using MassTransit.EntityFrameworkCoreIntegration;
+using Microsoft.EntityFrameworkCore;
 
 namespace InvoiceService.Infrastructure.Persistence
 {

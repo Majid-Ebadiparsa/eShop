@@ -3,7 +3,7 @@
     "http": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "swagger",
+      "launchUrl": "",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "CLOUDAMQP_URL": "amqps://euggfkun:bPh0deIyYtRE_zPyARtoNAzKaz-CKAsX@cow.rmq2.cloudamqp.com/euggfkun"
@@ -14,7 +14,7 @@
     "https": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "swagger",
+      "launchUrl": "",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "CLOUDAMQP_URL": "amqps://euggfkun:bPh0deIyYtRE_zPyARtoNAzKaz-CKAsX@cow.rmq2.cloudamqp.com/euggfkun"
@@ -25,9 +25,12 @@
     "Container (Dockerfile)": {
       "commandName": "Docker",
       "launchBrowser": true,
-      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/",
       "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Docker",
         "ASPNETCORE_HTTP_PORTS": "8080",
+        "MongoDb__ConnectionString": "mongodb://root:example@mongodb:27017",
+        "MongoDb__DatabaseName": "InvoiceReadDb",
         "RabbitMQ__Host": "host.docker.internal",
         "CLOUDAMQP_URL": "amqps://euggfkun:bPh0deIyYtRE_zPyARtoNAzKaz-CKAsX@cow.rmq2.cloudamqp.com/euggfkun"
       },

@@ -1,8 +1,8 @@
-﻿using InvoiceService.Infrastructure.Mongo.Context;
+﻿using InvoiceService.Application.Abstractions.Read;
+using InvoiceService.Application.Invoices.Queries.Models;
+using InvoiceService.Infrastructure.Mongo.Context;
 using InvoiceService.Infrastructure.Mongo.Models;
 using MongoDB.Driver;
-using Shared.Contracts.Abstraction.Read;
-using Shared.Contracts.Invoices.Queries.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,7 +30,7 @@ namespace InvoiceService.Infrastructure.Mongo.Repositories
 			}).ToList();
 		}
 
-		public async Task<InvoiceDto?> GetByIdAsync(string id)
+		public async ValueTask<InvoiceDto?> GetByIdAsync(string id)
 		{
 			var item = await _context.Invoices.Find(x => x.Id == id).FirstOrDefaultAsync();
 			return item is null ? null : new InvoiceDto

@@ -1,4 +1,4 @@
-﻿using GreenPipes;
+﻿//using GreenPipes;
 using MassTransit;
 using System;
 using System.Collections.Generic;
@@ -18,7 +18,6 @@ namespace InvoiceSubscriber.ConsumerTests.Fakes
 			Message = message;
 		}
 
-		// فقط ویژگی‌هایی که نیاز داری را پیاده کن، بقیه throw کن
 		public T MessageObject => Message;
 
 		public CancellationToken CancellationToken => CancellationToken.None;
@@ -157,6 +156,8 @@ namespace InvoiceSubscriber.ConsumerTests.Fakes
 
 		public ReceiveContext ReceiveContext => throw new NotImplementedException();
 		public Task ConsumeCompleted => Task.CompletedTask;
+
+		public SerializerContext SerializerContext => throw new NotImplementedException();
 		#endregion
 	}
 }

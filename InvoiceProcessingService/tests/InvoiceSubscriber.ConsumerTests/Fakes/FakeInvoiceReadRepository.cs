@@ -1,5 +1,5 @@
-﻿using Shared.Contracts.Abstraction.Read;
-using Shared.Contracts.Invoices.Queries.Models;
+﻿using InvoiceService.Application.Abstractions.Read;
+using InvoiceService.Application.Invoices.Queries.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -17,10 +17,12 @@ namespace InvoiceSubscriber.ConsumerTests.Fakes
 			return Task.CompletedTask;
 		}
 
-		public Task<List<InvoiceDto>> GetAllAsync() =>
-				Task.FromResult(new List<InvoiceDto>());
+		public async Task<List<InvoiceDto>> GetAllAsync() =>
+				await Task.FromResult(new List<InvoiceDto>());
 
-		public Task<InvoiceDto?> GetByIdAsync(string id) =>
-				Task.FromResult<InvoiceDto?>(null);
+		public async ValueTask<InvoiceDto> GetByIdAsync(string id)
+		{
+			return await ValueTask.FromResult<InvoiceDto>(null!);
+		}
 	}
 }

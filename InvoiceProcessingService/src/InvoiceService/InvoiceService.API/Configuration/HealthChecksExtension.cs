@@ -6,7 +6,7 @@ namespace InvoiceService.API.Configuration
 	{
 		public static IServiceCollection RegisterHealthChecks(this IServiceCollection services, IConfiguration cfg)
 		{
-			var rabbitMqConn = cfg.GetConnectionString("RabbitMQ") ?? "amqp://localhost";
+			var rabbitMqConn = BuildRabbitConnectionString(cfg);
 			var sqliteConn = cfg.GetConnectionString("InvoicesDb");
 			ArgumentNullException.ThrowIfNullOrEmpty(sqliteConn);
 
@@ -24,5 +24,18 @@ namespace InvoiceService.API.Configuration
 
 			return services;
 		}
+
+		private static string BuildRabbitConnectionString(IConfiguration cfg)
+		{
+			var cloud = cfg["CLOUDAMQP_URL"];
+			if (!string.IsNullOrWhiteSpace(cloud)) return cloud;
+
+			var host = cfg["RabbitMq:Host"] ?? "localhost";
+			var vhost = cfg["RabbitMq:VirtualHost"] ?? "/";
+			var user = cfg["RabbitMq:Username"] ?? "guest";
+			var pass = cfg["RabbitMq:Password"] ?? "guest";
+			return $"amqp://{user}:{pass}@{host}:5672/{vhost}";
+		}
+
 	}
 }

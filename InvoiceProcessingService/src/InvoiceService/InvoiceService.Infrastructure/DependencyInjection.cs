@@ -69,7 +69,7 @@ namespace InvoiceService.Infrastructure.Configuration
 		{
 			// Bind RabbitMQ settings
 			var rabbitMqSettings = new RabbitMqSettings();
-			cfg.GetSection("RabbitMQ").Bind(rabbitMqSettings);
+			cfg.GetSection("RabbitMq").Bind(rabbitMqSettings);
 
 			services.AddMassTransit(x =>
 			{

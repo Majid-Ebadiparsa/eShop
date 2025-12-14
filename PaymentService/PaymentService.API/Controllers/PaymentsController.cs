@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaymentService.API.DTOs;
 using PaymentService.Application.Payments.Commands;
@@ -6,7 +7,10 @@ using PaymentService.Application.Payments.Commands;
 namespace PaymentService.API.Controllers
 {
 	[ApiController]
-	[Route("api/v1/[controller]")]
+	[Authorize]
+	[ApiVersion("1.0")]
+	[Route("api/v{version:apiVersion}/[controller]")]
+
 	public class PaymentsController : ControllerBase
 	{
 		private readonly IMediator _mediator;

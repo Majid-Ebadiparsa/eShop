@@ -31,6 +31,7 @@ namespace PaymentService.Infrastructure
 				.AddHealthChecks(configuration)
 
 				.AddScoped<IPaymentRepository, PaymentRepository>()
+				.AddScoped<IPaymentReadRepository, PaymentReadRepository>()
 				.AddScoped<IIntegrationEventPublisher, MassTransitIntegrationEventPublisher>()
 				.AddSingleton<IMongoClient>(_ => new MongoClient(configuration[MONGO_CONNECTION]))
 				.AddScoped<IPaymentProjectionWriter, MongoPaymentProjectionWriter>();

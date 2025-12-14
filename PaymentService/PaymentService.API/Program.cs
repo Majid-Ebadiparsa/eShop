@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using PaymentService.API.Configuration;
 using PaymentService.Application;
 using PaymentService.Infrastructure;
+using SharedService.Consul;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,16 +15,19 @@ builder.Services
 	.AddPaymentApplication()
 	.AddPaymentInfrastructure(cfg)
 	.RegisterJwtBearer(builder.Configuration)
-	.AddCustomApiVersioning();
+	.AddCustomApiVersioning()
+	.AddConsul(builder.Configuration);
 
 builder.Services.AddControllers();
-
 
 // Configure the HTTP request pipeline.
 var app = builder.Build();
 
 app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = _ => true });
 app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
+
+app.UseConsul(builder.Configuration, app.Lifetime);
+
 app.UseCustomExceptionHandler()
 	 .UseCustomSwaggerUiExceptionHandler()
 	 .UseHttpsRedirection()
@@ -31,6 +35,5 @@ app.UseCustomExceptionHandler()
 	 .UseAuthorization();
 
 app.MapControllers();
-
 
 app.Run();

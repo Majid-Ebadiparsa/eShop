@@ -1,4 +1,6 @@
 ﻿using Microsoft.OpenApi.Models;
+using PaymentService.API.DTOs;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace PaymentService.API.Configuration
 {
@@ -9,6 +11,7 @@ namespace PaymentService.API.Configuration
 			// Register the Swagger generator
 			services
 				.AddEndpointsApiExplorer()
+				.AddSwaggerExamplesFromAssemblyOf<LoginRequestExample>()
 				.AddSwaggerGen(c =>
 				{
 					c.SwaggerDoc("v1", new OpenApiInfo
@@ -42,6 +45,8 @@ namespace PaymentService.API.Configuration
 							Array.Empty<string>()
 						}
 					});
+
+					c.ExampleFilters();
 				});
 
 			return services;

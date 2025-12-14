@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryService.Shared", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedService.Contracts", "SharedService\SharedService.Contracts\SharedService.Contracts.csproj", "{0114C002-DCFB-49C3-8C6B-C85180E51A7D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedService.Consul", "SharedService\SharedService.Consul\SharedService.Consul.csproj", "{A9BF5405-3E7C-D70F-0703-3B64C5A6A390}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +83,10 @@ Global
 		{0114C002-DCFB-49C3-8C6B-C85180E51A7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0114C002-DCFB-49C3-8C6B-C85180E51A7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0114C002-DCFB-49C3-8C6B-C85180E51A7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9BF5405-3E7C-D70F-0703-3B64C5A6A390}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9BF5405-3E7C-D70F-0703-3B64C5A6A390}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9BF5405-3E7C-D70F-0703-3B64C5A6A390}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9BF5405-3E7C-D70F-0703-3B64C5A6A390}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

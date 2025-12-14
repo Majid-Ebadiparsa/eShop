@@ -10,9 +10,52 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
-    networks: [InvoiceProcessingService]
+    networks: [eshopnetwork]
 
-  api:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "eSh@pDem@1"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks: [eshopnetwork]
+
+  paymentservice.api:
+    build:
+      context: .
+      dockerfile: src/PaymentService/PaymentService.API/Dockerfile
+    depends_on:
+      - sqlserver
+      - rabbitmq
+    ports:
+      - "5100:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Docker"
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__PaymentDb: "Server=sqlserver,1433;Database=PaymentDb;User Id=sa;Password=eSh@pDem@1;TrustServerCertificate=True"
+      MongoDb__ConnectionString: "mongodb://root:example@mongodb:27017"
+      MongoDb__DatabaseName: "PaymentReadDb"
+      CLOUDAMQP_URL: ${CLOUDAMQP_URL:-}
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__VirtualHost: "/"
+      RabbitMQ__Username: "guest"
+      RabbitMQ__Password: "guest"
+      Swagger__Enabled: "true"
+
+      # JWT
+      Jwt__Issuer: "PaymentService"
+      Jwt__Audience: "PaymentService.Clients"
+      Jwt__Key: "super-secret-jwt-key-only-for-demo-and-created-by-majid"
+      Jwt__ExpiryMinutes: "60"
+    volumes:
+      - payments-data:/app/data
+    networks: [eshopnetwork]
+
+  invoiceservice.api:
     build:
       context: .
       dockerfile: src/InvoiceService/InvoiceService.API/Dockerfile
@@ -41,7 +84,7 @@ services:
       Jwt__ExpiryMinutes: "60"
     volumes:
       - invoices-data:/app/data
-    networks: [InvoiceProcessingService]
+    networks: [eshopnetwork]
 
   subscriber:
     build:
@@ -62,7 +105,7 @@ services:
       RabbitMQ__Password: "guest"
     volumes:
       - subscriber-inbox:/app/data
-    networks: [InvoiceProcessingService]
+    networks: [eshopnetwork]
 
   mongodb:
     image: mongo:6.0
@@ -74,13 +117,15 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
-    networks: [InvoiceProcessingService]
+    networks: [eshopnetwork]
 
 networks:
-  InvoiceProcessingService:
+  eshopnetwork:
     driver: bridge
 
 volumes:
   invoices-data:
   subscriber-inbox:
   mongo-data:
+  sqlserver-data:
+  payments-data:

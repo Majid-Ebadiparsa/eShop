@@ -1,22 +1,20 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using PaymentService.API.DTOs;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using InvoiceService.API.DTOs;
 
-namespace InvoiceService.API.Controllers
+namespace PaymentService.API.Controllers
 {
 	[ApiController]
 	[ApiVersion("1.0")]
 	[Route("api/v{version:apiVersion}/[controller]")]
-	public partial class AuthController : ControllerBase
+	public class AuthController : ControllerBase
 	{
 		private readonly IConfiguration _cfg;
 
-
 		public AuthController(IConfiguration cfg) => _cfg = cfg;
-
 
 		[HttpPost("token")]
 		public IActionResult Token([FromBody] LoginRequest req)

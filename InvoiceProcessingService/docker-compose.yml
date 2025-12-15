@@ -1,0 +1,131 @@
+version: '3.9'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"     # AMQP
+      - "15672:15672"   # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks: [eshopnetwork]
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "eSh@pDem@1"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks: [eshopnetwork]
+
+  paymentservice.api:
+    build:
+      context: .
+      dockerfile: src/PaymentService/PaymentService.API/Dockerfile
+    depends_on:
+      - sqlserver
+      - rabbitmq
+    ports:
+      - "5100:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Docker"
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__PaymentDb: "Server=sqlserver,1433;Database=PaymentDb;User Id=sa;Password=eSh@pDem@1;TrustServerCertificate=True"
+      MongoDb__ConnectionString: "mongodb://root:example@mongodb:27017"
+      MongoDb__DatabaseName: "PaymentReadDb"
+      CLOUDAMQP_URL: ${CLOUDAMQP_URL:-}
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__VirtualHost: "/"
+      RabbitMQ__Username: "guest"
+      RabbitMQ__Password: "guest"
+      Swagger__Enabled: "true"
+
+      # JWT
+      Jwt__Issuer: "PaymentService"
+      Jwt__Audience: "PaymentService.Clients"
+      Jwt__Key: "super-secret-jwt-key-only-for-demo-and-created-by-majid"
+      Jwt__ExpiryMinutes: "60"
+    volumes:
+      - payments-data:/app/data
+    networks: [eshopnetwork]
+
+  invoiceservice.api:
+    build:
+      context: .
+      dockerfile: src/InvoiceService/InvoiceService.API/Dockerfile
+    container_name: invoice-api
+    depends_on:
+      - rabbitmq
+    ports:
+      - "5169:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Docker"
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__InvoicesDb: "Data Source=/app/data/invoices.db;Cache=Shared"
+      MongoDb__ConnectionString: "mongodb://root:example@mongodb:27017"
+      MongoDb__DatabaseName: "InvoiceReadDb"
+      CLOUDAMQP_URL: ${CLOUDAMQP_URL:-}
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__VirtualHost: "/"
+      RabbitMQ__Username: "guest"
+      RabbitMQ__Password: "guest"
+      Swagger__Enabled: "true"
+
+      # JWT
+      Jwt__Issuer: "InvoiceProcessingService"
+      Jwt__Audience: "InvoiceProcessingService.Clients"
+      Jwt__Key: "super-secret-jwt-key-only-for-demo-and-created-by-majid"
+      Jwt__ExpiryMinutes: "60"
+    volumes:
+      - invoices-data:/app/data
+    networks: [eshopnetwork]
+
+  subscriber:
+    build:
+      context: .
+      dockerfile: src/Subscriber/InvoiceSubscriber.Console/Dockerfile
+    container_name: invoice-subscriber
+    depends_on:
+      - rabbitmq
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Docker"
+      ConnectionStrings__InboxDb: "Data Source=/app/data/inbox.db;Cache=Shared"
+      MongoDb__ConnectionString: "mongodb://root:example@mongodb:27017"
+      MongoDb__DatabaseName: "InvoiceReadDb"
+      CLOUDAMQP_URL: ${CLOUDAMQP_URL:-}
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__VirtualHost: "/"
+      RabbitMQ__Username: "guest"
+      RabbitMQ__Password: "guest"
+    volumes:
+      - subscriber-inbox:/app/data
+    networks: [eshopnetwork]
+
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    networks: [eshopnetwork]
+
+networks:
+  eshopnetwork:
+    driver: bridge
+
+volumes:
+  invoices-data:
+  subscriber-inbox:
+  mongo-data:
+  sqlserver-data:
+  payments-data:

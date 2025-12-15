@@ -1,0 +1,51 @@
+{
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "CLOUDAMQP_URL": "amqps://euggfkun:bPh0deIyYtRE_zPyARtoNAzKaz-CKAsX@cow.rmq2.cloudamqp.com/euggfkun"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5169"
+    },
+    "https": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "CLOUDAMQP_URL": "amqps://euggfkun:bPh0deIyYtRE_zPyARtoNAzKaz-CKAsX@cow.rmq2.cloudamqp.com/euggfkun"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7075;http://localhost:5169"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Docker",
+        "ASPNETCORE_HTTP_PORTS": "8080",
+        "MongoDb__ConnectionString": "mongodb://root:example@mongodb:27017",
+        "MongoDb__DatabaseName": "InvoiceReadDb",
+        "RabbitMQ__Host": "host.docker.internal",
+        "CLOUDAMQP_URL": "amqps://euggfkun:bPh0deIyYtRE_zPyARtoNAzKaz-CKAsX@cow.rmq2.cloudamqp.com/euggfkun"
+      },
+      "publishAllPorts": true,
+      "useSSL": false,
+      "DockerfileRunArguments": "-p 5169:8080"
+    }
+  },
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:52605",
+      "sslPort": 44360
+    }
+  }
+}

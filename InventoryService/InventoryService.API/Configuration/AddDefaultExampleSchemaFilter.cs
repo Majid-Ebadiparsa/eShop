@@ -1,5 +1,5 @@
 ﻿using InventoryService.Shared;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace InventoryService.API.Configuration
@@ -17,7 +17,7 @@ namespace InventoryService.API.Configuration
 				if (parameter != null)
 				{
 					parameter.Description = "Test ID to check the inventory of the product in the warehouse";
-					parameter.Example = new Microsoft.OpenApi.Any.OpenApiString(InventoryDefaults.DefaultProductId.ToString());
+					// parameter.Example = new Microsoft.OpenApi.Any.OpenApiString(InventoryDefaults.DefaultProductId.ToString()); // TODO: Uncomment when upgrading to Swashbuckle.AspNetCore v6
 				}
 			}
 		}

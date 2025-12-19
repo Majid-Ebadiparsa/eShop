@@ -8,6 +8,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using RabbitMQ.Client;
 
 namespace InventoryService.Infrastructure
 {
@@ -18,10 +19,11 @@ namespace InventoryService.Infrastructure
 			services
 				.AddTransient(typeof(IInventoryRepository), typeof(InventoryRepository))
 				.RegisterDbContext(configuration)
-				.RegisterMassTransit(configuration);
+				.RegisterMassTransit(configuration)
+				.AddHealthChecks(configuration);
 
 			services.AddScoped<IOrderEventConsumer, OrderEventConsumerHandler>();
-
+			services.AddScoped<IEventPublisher, Messaging.RabbitMqEventPublisher>();
 
 			return services;
 		}
@@ -34,6 +36,7 @@ namespace InventoryService.Infrastructure
 			services.AddMassTransit(x =>
 			{
 				x.AddConsumer<OrderCreatedEventConsumer>();
+				x.AddConsumer<InventoryReleaseRequestedConsumer>();
 
 				x.UsingRabbitMq((context, cfg) =>
 				{
@@ -49,6 +52,7 @@ namespace InventoryService.Infrastructure
 					cfg.ReceiveEndpoint(rabbitMqSettings.ReceiveEndpoint, e =>
 					{
 						e.ConfigureConsumer<OrderCreatedEventConsumer>(context);
+						e.ConfigureConsumer<InventoryReleaseRequestedConsumer>(context);
 					});
 				});
 			});
@@ -67,6 +71,29 @@ namespace InventoryService.Infrastructure
 			//EF: InMemory
 			//services.AddDbContext<InventoryDbContext>(options =>
 			//	 options.UseInMemoryDatabase(databaseName: "InventoryDb"), ServiceLifetime.Scoped, ServiceLifetime.Scoped);
+
+			return services;
+		}
+
+		private static IServiceCollection AddHealthChecks(this IServiceCollection services, IConfiguration configuration)
+		{
+			var rabbitMqSettings = new RabbitMqSettings();
+			configuration.GetSection("RabbitMq").Bind(rabbitMqSettings);
+
+			var rabbitMqConn = $"amqp://{rabbitMqSettings.Username}:{rabbitMqSettings.Password}@{rabbitMqSettings.Host}:5672{rabbitMqSettings.VirtualHost}";
+
+			services
+				.AddHealthChecks()
+				.AddDbContextCheck<InventoryDbContext>(name: "sqlserver")
+				.AddRabbitMQ(sp =>
+				{
+					var factory = new ConnectionFactory
+					{
+						Uri = new Uri(rabbitMqConn),
+						AutomaticRecoveryEnabled = true
+					};
+					return factory.CreateConnectionAsync("healthcheck");
+				}, name: "rabbitmq", tags: new[] { "ready" });
 
 			return services;
 		}

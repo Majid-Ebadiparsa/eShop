@@ -4,7 +4,7 @@
 # ==================================================
 
 # ---------- build stage ----------
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG CONFIGURATION=Release
 WORKDIR /src
 
@@ -15,19 +15,22 @@ COPY InventoryService/InventoryService.Infrastructure/InventoryService.Infrastru
 COPY InventoryService/InventoryService.Domain/InventoryService.Domain.csproj InventoryService/InventoryService.Domain/
 COPY InventoryService/InventoryService.Shared/InventoryService.Shared.csproj InventoryService/InventoryService.Shared/
 COPY SharedService/SharedService.Contracts/SharedService.Contracts.csproj SharedService/SharedService.Contracts/
+COPY SharedService/SharedService.Consul/SharedService.Consul.csproj SharedService/SharedService.Consul/
 
 # Restore dependencies (cached if csproj not changed)
 RUN dotnet restore InventoryService/InventoryService.API/InventoryService.API.csproj
 
 # (2) Copy the rest of the source
 COPY InventoryService/ InventoryService/
+COPY SharedService/SharedService.Contracts/ SharedService/SharedService.Contracts/
+COPY SharedService/SharedService.Consul/ SharedService/SharedService.Consul/
 
 # (3) Publish trimmed app (no native host)
 RUN dotnet publish InventoryService/InventoryService.API/InventoryService.API.csproj \
     -c $CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # ---------- runtime stage ----------
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 
 # Install curl for healthcheck (if your base image doesn't have it)

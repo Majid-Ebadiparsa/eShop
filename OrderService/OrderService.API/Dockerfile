@@ -1,5 +1,5 @@
 # Base image for build
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG CONFIGURATION=Release
 
 WORKDIR /app/orderservice
@@ -11,7 +11,8 @@ COPY ["OrderService/OrderService.Application/OrderService.Application.csproj", "
 COPY ["OrderService/OrderService.Infrastructure/OrderService.Infrastructure.csproj", "OrderService/OrderService.Infrastructure/"]
 COPY ["OrderService/OrderService.Domain/OrderService.Domain.csproj", "OrderService/OrderService.Domain/"]
 COPY ["OrderService/OrderService.Shared/OrderService.Shared.csproj", "OrderService/OrderService.Shared/"]
-COPY ["SharedService/SharedService.Contracts/SharedService.Contracts.csproj", "../SharedService/SharedService.Contracts/"]
+COPY ["SharedService/SharedService.Contracts/SharedService.Contracts.csproj", "SharedService/SharedService.Contracts/"]
+COPY ["SharedService/SharedService.Consul/SharedService.Consul.csproj", "SharedService/SharedService.Consul/"]
 
 # Restore dependencies (cached if csproj files don't change)
 RUN dotnet restore "OrderService/OrderService.API/OrderService.API.csproj"
@@ -23,6 +24,7 @@ COPY OrderService/OrderService.Infrastructure/ OrderService/OrderService.Infrast
 COPY OrderService/OrderService.Domain/ OrderService/OrderService.Domain/
 COPY OrderService/OrderService.Shared/ OrderService/OrderService.Shared/
 COPY SharedService/SharedService.Contracts/ SharedService/SharedService.Contracts/
+COPY SharedService/SharedService.Consul/ SharedService/SharedService.Consul/
 
 # Light restore because in the previouse step, NuGet packages were already restored
 RUN dotnet restore "OrderService/OrderService.API/OrderService.API.csproj"
@@ -31,7 +33,7 @@ RUN dotnet restore "OrderService/OrderService.API/OrderService.API.csproj"
 RUN dotnet publish "OrderService/OrderService.API/OrderService.API.csproj" -c $CONFIGURATION -o /out --no-restore
 
 # Final runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 
 WORKDIR /app/orderservice
 

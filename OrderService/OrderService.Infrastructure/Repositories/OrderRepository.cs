@@ -21,14 +21,21 @@ namespace OrderService.Infrastructure.Repositories
 			await _context.SaveChangesAsync(cancelationToken);
 		}
 
+		public async Task<Order?> GetOrderByIdAsync(Guid id, CancellationToken cancelationToken)
+		{
+			return await _context.Orders
+				.Include(o => o.Items)
+				.FirstOrDefaultAsync(o => o.Id == id, cancelationToken);
+		}
+
 		public async Task<OrderDto?> GetByIdAsync(Guid id, CancellationToken cancelationToken)
 		{
 			var order = await _context.Orders
+			.AsNoTracking()
 			.Include(o => o.Items)
 			.FirstOrDefaultAsync(o => o.Id == id, cancelationToken);
 
-			if (order is null)
-				return null;
+			if (order is null) return null;
 
 			var items = order.Items.Select(i => new OrderItemDto(i.ProductId, i.Quantity, i.UnitPrice)).ToList();
 
@@ -42,6 +49,11 @@ namespace OrderService.Infrastructure.Repositories
 				order.TotalAmount,
 				items
 			);
+		}
+
+		public async Task SaveChangesAsync(CancellationToken cancellationToken)
+		{
+			await _context.SaveChangesAsync(cancellationToken);
 		}
 	}
 }

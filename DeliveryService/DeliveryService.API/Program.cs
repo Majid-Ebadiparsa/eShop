@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using DeliveryService.API.Configuration;
 using DeliveryService.Application;
 using DeliveryService.Infrastructure;
+using SharedService.Consul;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,22 +10,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers().AddJsonOptions(x =>
 	 x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
-
-// HealthChecks
-builder.Services.AddHealthChecks();
-
 builder.Services
 	.AddCustomEnvironmentSettings(builder.Configuration)
 	.AddCustomSwagger()
 	.AddMediatR()
-	.AddInfrastructure(builder.Configuration);
-
-// Add services to the container.
+	.AddInfrastructure(builder.Configuration)
+	.AddConsul(builder.Configuration);
 
 var app = builder.Build();
 
-// Map health endpoint
-app.MapHealthChecks("/health");
+// Health checks
+app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = _ => true });
+app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
+
+// Consul registration
+app.UseConsul(builder.Configuration, app.Lifetime);
 
 // Configure the HTTP request pipeline.
 app.UseCustomExceptionHandler();
@@ -32,7 +33,6 @@ app.UseSwagger();
 app.UseCustomSwaggerUiExceptionHandler();
 app.UseAuthorization();
 app.MapControllers();
-
 
 app.Run();
 

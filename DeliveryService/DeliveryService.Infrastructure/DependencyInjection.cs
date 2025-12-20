@@ -12,6 +12,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using RabbitMQ.Client;
 
 namespace DeliveryService.Infrastructure
 {
@@ -25,9 +26,22 @@ namespace DeliveryService.Infrastructure
 				.AddScoped<IShipmentRepository, ShipmentRepository>()
 				.AddScoped<IEventPublisher, EfOutboxEventPublisher>()
 				.AddScoped<IShipmentService, ShipmentService>()
-				.AddScoped<ICarrierClient, MockCarrierClient>()				
-				.RegisterMassTransit(cfg);
+				.AddScoped<ICarrierClient, MockCarrierClient>()
+				.RegisterOrderServiceClient(cfg)
+				.RegisterMassTransit(cfg)
+				.AddHealthChecks(cfg);
 
+			return services;
+		}
+
+		private static IServiceCollection RegisterOrderServiceClient(this IServiceCollection services, IConfiguration cfg)
+		{
+			var orderServiceUrl = cfg["OrderService:BaseUrl"] ?? "http://orderservice:8080";
+			services.AddHttpClient<IOrderServiceClient, OrderServiceClient>(client =>
+			{
+				client.BaseAddress = new Uri(orderServiceUrl);
+				client.Timeout = TimeSpan.FromSeconds(30);
+			});
 			return services;
 		}
 
@@ -58,6 +72,7 @@ namespace DeliveryService.Infrastructure
 
 				// Consumers
 				x.AddConsumer<OrderReadyToShipConsumer, OrderReadyToShipConsumerDefinition>();
+				x.AddConsumer<PaymentCapturedConsumer, PaymentCapturedConsumerDefinition>();
 				x.AddConsumer<OnShipmentCreatedConsumer, OnShipmentCreatedConsumerDefinition>();
 
 				// Outbox EF (Recommended)
@@ -81,6 +96,29 @@ namespace DeliveryService.Infrastructure
 					cfgBus.ConfigureEndpoints(context);
 				});
 			});
+
+			return services;
+		}
+
+		private static IServiceCollection AddHealthChecks(this IServiceCollection services, IConfiguration configuration)
+		{
+			var rabbitMqSettings = new RabbitMqSettings();
+			configuration.GetSection("RabbitMq").Bind(rabbitMqSettings);
+
+			var rabbitMqConn = $"amqp://{rabbitMqSettings.Username}:{rabbitMqSettings.Password}@{rabbitMqSettings.Host}:5672{rabbitMqSettings.VirtualHost}";
+
+			services
+				.AddHealthChecks()
+				.AddDbContextCheck<DeliveryDbContext>(name: "sqlserver")
+				.AddRabbitMQ(sp =>
+				{
+					var factory = new ConnectionFactory
+					{
+						Uri = new Uri(rabbitMqConn),
+						AutomaticRecoveryEnabled = true
+					};
+					return factory.CreateConnectionAsync("healthcheck");
+				}, name: "rabbitmq", tags: new[] { "ready" });
 
 			return services;
 		}

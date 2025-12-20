@@ -1,12 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
 
-  <ItemGroup>
+	<ItemGroup>
+    <ProjectReference Include="..\..\SharedService\SharedService.Consul\SharedService.Consul.csproj" />
     <ProjectReference Include="..\..\SharedService\SharedService.Contracts\SharedService.Contracts.csproj" />
     <ProjectReference Include="..\DeliveryService.Domain\DeliveryService.Domain.csproj" />
   </ItemGroup>

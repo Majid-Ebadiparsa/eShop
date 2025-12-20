@@ -4,7 +4,7 @@
 # ===========================================================================
 
 # -------- Build stage --------
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG CONFIGURATION=Release
 WORKDIR /src
 
@@ -14,6 +14,7 @@ COPY DeliveryService/DeliveryService.Application/DeliveryService.Application.csp
 COPY DeliveryService/DeliveryService.Infrastructure/DeliveryService.Infrastructure.csproj DeliveryService/DeliveryService.Infrastructure/
 COPY DeliveryService/DeliveryService.Domain/DeliveryService.Domain.csproj DeliveryService/DeliveryService.Domain/
 COPY SharedService/SharedService.Contracts/SharedService.Contracts.csproj SharedService/SharedService.Contracts/
+COPY SharedService/SharedService.Consul/SharedService.Consul.csproj SharedService/SharedService.Consul/
 
 # Using the API csproj as the entry point for restore (Without copying full source)
 RUN dotnet restore DeliveryService/DeliveryService.API/DeliveryService.API.csproj
@@ -21,13 +22,14 @@ RUN dotnet restore DeliveryService/DeliveryService.API/DeliveryService.API.cspro
 # Copy the rest of the source code (Delivery + Shared)
 COPY DeliveryService/ DeliveryService/
 COPY SharedService/SharedService.Contracts/ SharedService/SharedService.Contracts/
+COPY SharedService/SharedService.Consul/ SharedService/SharedService.Consul/
 
 # Publish (Without apphost for smaller image)
 RUN dotnet publish DeliveryService/DeliveryService.API/DeliveryService.API.csproj \
     -c $CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # -------- Runtime stage --------
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 
 # For healthcheck, we use curl  
@@ -52,7 +54,7 @@ COPY --from=build /app/publish ./
 EXPOSE 8080
 
 # For tracking OCI version labels (optional)
-ARG BUILD_VERSION=0.0.0
+ARG BUILD_VERSION=1.0.0
 ARG BUILD_SHA=dev
 LABEL org.opencontainers.image.title="DeliveryService" \
       org.opencontainers.image.version=$BUILD_VERSION \

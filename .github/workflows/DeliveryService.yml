@@ -51,10 +51,10 @@ jobs:
         id: meta
         run: echo "sha_short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
-      - name: Setup .NET 8
+      - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Restore
         run: dotnet restore ${{ env.SLN }}
@@ -83,7 +83,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
-        with: { dotnet-version: '8.0.x' }
+        with: { dotnet-version: '10.0.x' }
 
       - name: Restore local tools
         run: dotnet tool restore

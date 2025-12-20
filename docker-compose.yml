@@ -1,0 +1,278 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver-db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=eSh@pDem@1
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P eSh@pDem@1 -C -Q 'SELECT 1' || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - eshop-network
+
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - eshop-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - eshop-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - eshop-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+
+  consul:
+    image: hashicorp/consul:latest
+    container_name: consul
+    command: agent -server -ui -node=server-1 -bootstrap-expect=1 -client=0.0.0.0
+    ports:
+      - "8500:8500"
+    volumes:
+      - consul-data:/consul/data
+    networks:
+      - eshop-network
+    healthcheck:
+      test: ["CMD-SHELL", "consul members || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  orderservice:
+    build:
+      context: .
+      dockerfile: OrderService/OrderService.API/Dockerfile
+    container_name: orderservice
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__OrderDb=Server=sqlserver;Database=OrderDb;User Id=sa;Password=eSh@pDem@1;TrustServerCertificate=True
+      - RabbitMq__Host=rabbitmq
+      - RabbitMq__VirtualHost=/
+      - RabbitMq__Username=guest
+      - RabbitMq__Password=guest
+      - RabbitMq__ReceiveEndpoint=order-service-queue
+      - Consul__Host=consul
+      - Consul__Port=8500
+      - ServiceName=orderservice
+      - ServiceAddress=orderservice
+      - ServicePort=8080
+      - HealthCheckPath=/health/ready
+    ports:
+      - "5000:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+    networks:
+      - eshop-network
+    restart: unless-stopped
+
+  inventoryservice:
+    build:
+      context: .
+      dockerfile: InventoryService/InventoryService.API/Dockerfile
+    container_name: inventoryservice
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__InventoryDb=Server=sqlserver;Database=InventoryDb;User Id=sa;Password=eSh@pDem@1;TrustServerCertificate=True
+      - RabbitMq__Host=rabbitmq
+      - RabbitMq__VirtualHost=/
+      - RabbitMq__Username=guest
+      - RabbitMq__Password=guest
+      - RabbitMq__ReceiveEndpoint=inventory-service-queue
+      - Consul__Host=consul
+      - Consul__Port=8500
+      - ServiceName=inventoryservice
+      - ServiceAddress=inventoryservice
+      - ServicePort=8080
+      - HealthCheckPath=/health/ready
+    ports:
+      - "5001:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+    networks:
+      - eshop-network
+    restart: unless-stopped
+
+  paymentservice:
+    build:
+      context: .
+      dockerfile: PaymentService/PaymentService.API/Dockerfile
+    container_name: paymentservice
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__PaymentDb=Server=sqlserver;Database=PaymentDb;User Id=sa;Password=eSh@pDem@1;TrustServerCertificate=True
+      - Mongo__Connection=mongodb://root:example@mongodb:27017
+      - RabbitMq__Host=rabbitmq
+      - RabbitMq__VirtualHost=/
+      - RabbitMq__Username=guest
+      - RabbitMq__Password=guest
+      - Consul__Host=consul
+      - Consul__Port=8500
+      - ServiceName=paymentservice
+      - ServiceAddress=paymentservice
+      - ServicePort=8080
+      - HealthCheckPath=/health/ready
+    ports:
+      - "5002:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+    networks:
+      - eshop-network
+    restart: unless-stopped
+
+  deliveryservice:
+    build:
+      context: .
+      dockerfile: DeliveryService/DeliveryService.API/Dockerfile
+    container_name: deliveryservice
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DeliveryDb=Server=sqlserver;Database=DeliveryDb;User Id=sa;Password=eSh@pDem@1;TrustServerCertificate=True
+      - RabbitMq__Host=rabbitmq
+      - RabbitMq__VirtualHost=/
+      - RabbitMq__Username=guest
+      - RabbitMq__Password=guest
+      - RabbitMq__ReceiveEndpoint=delivery-service-queue
+      - OrderService__BaseUrl=http://orderservice:8080
+      - Consul__Host=consul
+      - Consul__Port=8500
+      - ServiceName=deliveryservice
+      - ServiceAddress=deliveryservice
+      - ServicePort=8080
+      - HealthCheckPath=/health/ready
+    ports:
+      - "5003:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+    networks:
+      - eshop-network
+    restart: unless-stopped
+
+  apigateway:
+    build:
+      context: .
+      dockerfile: ApiGateway/Dockerfile
+    container_name: apigateway
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=http://+:8080
+      - Consul__Host=consul
+      - Consul__Port=8500
+    ports:
+      - "8080:8080"
+    depends_on:
+      - orderservice
+      - inventoryservice
+      - paymentservice
+      - deliveryservice
+      - consul
+    networks:
+      - eshop-network
+    restart: unless-stopped
+
+  healthmonitorservice:
+    build:
+      context: .
+      dockerfile: HealthMonitorService/Dockerfile
+    container_name: healthmonitorservice
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__HealthMonitorDb=Server=sqlserver;Database=HealthMonitorDb;User Id=sa;Password=eSh@pDem@1;TrustServerCertificate=True
+      - Consul__Host=consul
+      - Consul__Port=8500
+    ports:
+      - "5004:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+    networks:
+      - eshop-network
+    restart: unless-stopped
+
+networks:
+  eshop-network:
+    driver: bridge
+
+volumes:
+  sqlserver-data:
+  mongo-data:
+  redis-data:
+  rabbitmq-data:
+  consul-data:
+

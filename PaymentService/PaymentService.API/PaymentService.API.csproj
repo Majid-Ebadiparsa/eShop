@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>9612da10-55e8-4a23-9c17-7651e040cb3d</UserSecretsId>
@@ -22,7 +22,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PaymentService.Infrastructure\PaymentService.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\SharedService\SharedService.Consul\SharedService.Consul.csproj" />
   </ItemGroup>
 
 </Project>

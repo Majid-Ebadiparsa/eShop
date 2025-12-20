@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedService.Contracts", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedService.Consul", "SharedService\SharedService.Consul\SharedService.Consul.csproj", "{A9BF5405-3E7C-D70F-0703-3B64C5A6A390}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedService.Caching", "SharedService\SharedService.Caching\SharedService.Caching.csproj", "{FDA7F908-A323-FE88-09A1-2547E618B95B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{A9BF5405-3E7C-D70F-0703-3B64C5A6A390}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9BF5405-3E7C-D70F-0703-3B64C5A6A390}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9BF5405-3E7C-D70F-0703-3B64C5A6A390}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDA7F908-A323-FE88-09A1-2547E618B95B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDA7F908-A323-FE88-09A1-2547E618B95B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDA7F908-A323-FE88-09A1-2547E618B95B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDA7F908-A323-FE88-09A1-2547E618B95B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,6 +1,8 @@
 ﻿using MediatR;
 using OrderService.Application.Interfaces;
 using OrderService.Domain.AggregatesModel;
+using SharedService.Caching;
+using SharedService.Caching.Abstractions;
 using SharedService.Contracts.Events;
 
 namespace OrderService.Application.Commands
@@ -9,12 +11,14 @@ namespace OrderService.Application.Commands
 	{
 		private readonly IOrderRepository _orderRepository;
 		private readonly IEventPublisher _eventPublisher;
+    private readonly IRedisCacheClient _cache;
 
-		public PlaceOrderCommandHandler(IOrderRepository orderRepository, IEventPublisher eventPublisher)
+    public PlaceOrderCommandHandler(IOrderRepository orderRepository, IEventPublisher eventPublisher, IRedisCacheClient cache)
 		{
 			_orderRepository = orderRepository;
 			_eventPublisher = eventPublisher;
-		}
+      _cache = cache;
+    }
 
 		public async Task<Guid> Handle(PlaceOrderCommand request, CancellationToken cancellationToken)
 		{
@@ -31,13 +35,15 @@ namespace OrderService.Application.Commands
 			// Publish the OrderCreatedEvent after the order is saved
 			var orderCreatedEvent = new OrderCreatedEvent(
 				order.Id,
-				order.Items.Select(i => new SharedService.Contracts.Events.OrderItem(i.ProductId, i.Quantity)).ToList()
+				order.Items.Select(i => new SharedService.Contracts.Events.OrderItem(i.ProductId, i.Quantity, i.UnitPrice)).ToList()
 			);
 
-			await _eventPublisher.PublishOrderCreatedAsync(order.Id, order.Items
-				.Select(i => (i.ProductId, i.Quantity)).ToList());
+			await _eventPublisher.PublishOrderCreatedAsync(order.Id, [.. order.Items.Select(i => (i.ProductId, i.Quantity, i.UnitPrice))]);
 
-			return order.Id;
+      // invalidate cache (in case order is read soon after creation)
+      await _cache.RemoveAsync($"order:{order.Id}");
+
+      return order.Id;
 		}
 	}
 

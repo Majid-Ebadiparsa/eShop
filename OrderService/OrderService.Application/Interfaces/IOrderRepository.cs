@@ -8,6 +8,10 @@ namespace OrderService.Application.Interfaces
 	{
 		Task AddAsync(Order order, CancellationToken cancelationToken);
 
+		Task<Order?> GetOrderByIdAsync(Guid id, CancellationToken cancelationToken);
+
 		Task<OrderDto?> GetByIdAsync(Guid id, CancellationToken cancelationToken);
+
+		Task SaveChangesAsync(CancellationToken cancellationToken);
 	}
 }

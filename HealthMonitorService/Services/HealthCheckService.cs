@@ -1,7 +1,9 @@
 using Consul;
 using HealthMonitorService.Data;
 using HealthMonitorService.Models;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using SharedService.Caching.Abstractions;
 
 namespace HealthMonitorService.Services
 {
@@ -10,16 +12,22 @@ namespace HealthMonitorService.Services
 		private readonly IServiceProvider _serviceProvider;
 		private readonly ILogger<HealthCheckService> _logger;
 		private readonly IConfiguration _configuration;
+		private readonly IRedisCacheClient? _cache;
+		private readonly IPublishEndpoint? _publish;
 		private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(30);
 
 		public HealthCheckService(
 			IServiceProvider serviceProvider,
 			ILogger<HealthCheckService> logger,
-			IConfiguration configuration)
+			IConfiguration configuration,
+			IRedisCacheClient? cache = null,
+			IPublishEndpoint? publish = null)
 		{
 			_serviceProvider = serviceProvider;
 			_logger = logger;
 			_configuration = configuration;
+			_cache = cache;
+			_publish = publish;
 		}
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -202,6 +210,32 @@ namespace HealthMonitorService.Services
 			}
 
 			await dbContext.SaveChangesAsync(cancellationToken);
+
+			// Invalidate the cached aggregated health summary (if any)
+			try
+			{
+				if (_cache is not null)
+				{
+					await _cache.RemoveAsync("health:services:summary");
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger.LogWarning(ex, "Failed to invalidate health cache");
+			}
+
+			// Publish integration event so other interested services can react and invalidate their caches
+			try
+			{
+				if (_publish is not null)
+				{
+					await _publish.Publish(new SharedService.Contracts.Events.ServiceHealthChanged(status.ServiceName, status.IsHealthy, status.ResponseTimeMs, status.CheckedAt), cancellationToken);
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger.LogWarning(ex, "Failed to publish ServiceHealthChanged event");
+			}
 		}
 	}
 }

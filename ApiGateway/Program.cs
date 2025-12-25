@@ -20,10 +20,15 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Basic health endpoints so Consul / HealthMonitor can probe the gateway
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
 app.UseCors("AllowAll");
+app.MapHealthChecks("/health/ready");
+app.MapHealthChecks("/health/live");
 await app.UseOcelot();
 
 app.Run();

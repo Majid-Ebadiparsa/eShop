@@ -68,6 +68,24 @@
       "UpstreamPathTemplate": "/health/delivery/{everything}",
       "UpstreamHttpMethod": [ "GET" ]
     }
+    ,
+    {
+      "DownstreamPathTemplate": "/api/v1/invoices/{everything}",
+      "DownstreamScheme": "http",
+      "UpstreamPathTemplate": "/api/v1/invoices/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "ServiceName": "invoiceservice",
+      "LoadBalancerOptions": {
+        "Type": "LeastConnection"
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/health/{everything}",
+      "DownstreamScheme": "http",
+      "UpstreamPathTemplate": "/api/health/{everything}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "ServiceName": "healthmonitorservice"
+    }
   ],
   "GlobalConfiguration": {
     "BaseUrl": "http://apigateway:8080",

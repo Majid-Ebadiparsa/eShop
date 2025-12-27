@@ -4,7 +4,7 @@
 # ==================================================
 
 # ---------- build stage ----------
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG CONFIGURATION=Release
 WORKDIR /src
 
@@ -30,7 +30,7 @@ RUN dotnet publish InventoryService/InventoryService.API/InventoryService.API.cs
     -c $CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # ---------- runtime stage ----------
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
 # Install curl for healthcheck (if your base image doesn't have it)
@@ -53,6 +53,10 @@ LABEL org.opencontainers.image.title="InventoryService" \
 
 # Copy published output
 COPY --from=build /app/publish ./
+
+# For healthcheck, we use curl + adduser
+RUN apt-get update && apt-get install -y --no-install-recommends curl adduser \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user and run as it
 RUN adduser --disabled-password --gecos "" appuser \

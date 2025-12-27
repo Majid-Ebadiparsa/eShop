@@ -5,6 +5,7 @@ using InventoryService.Infrastructure.Messaging;
 using InventoryService.Infrastructure.Repositories;
 using InventoryService.Infrastructure.Repositories.EF;
 using MassTransit;
+using MongoDB.Driver;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,7 +24,11 @@ namespace InventoryService.Infrastructure
 				.AddHealthChecks(configuration);
 
 			services.AddScoped<IOrderEventConsumer, OrderEventConsumerHandler>();
-			services.AddScoped<IEventPublisher, Messaging.RabbitMqEventPublisher>();
+			services.AddScoped<IEventPublisher, EfOutboxEventPublisher>();
+
+			// MongoDB read model projection
+			services.AddSingleton<IMongoClient>(_ => new MongoClient(configuration["Mongo:Connection"] ?? configuration.GetConnectionString("Mongo")));
+			services.AddScoped<IInventoryProjectionWriter, Infrastructure.Projections.MongoInventoryProjectionWriter>();
 
 			return services;
 		}
@@ -36,7 +41,19 @@ namespace InventoryService.Infrastructure
 			services.AddMassTransit(x =>
 			{
 				x.AddConsumer<OrderCreatedEventConsumer>();
+				x.AddConsumer<InventoryProjectionConsumer>();
 				x.AddConsumer<InventoryReleaseRequestedConsumer>();
+
+				// EF Outbox ensures atomicity between DB and message broker
+				x.AddEntityFrameworkOutbox<InventoryDbContext>(o =>
+				{
+					o.QueryDelay = TimeSpan.FromSeconds(15);
+					o.UseSqlServer();
+					o.DuplicateDetectionWindow = TimeSpan.FromMinutes(5);
+					o.DisableInboxCleanupService();
+				});
+
+				x.SetKebabCaseEndpointNameFormatter();
 
 				x.UsingRabbitMq((context, cfg) =>
 				{
@@ -53,12 +70,15 @@ namespace InventoryService.Infrastructure
 					{
 						e.ConfigureConsumer<OrderCreatedEventConsumer>(context);
 						e.ConfigureConsumer<InventoryReleaseRequestedConsumer>(context);
+							e.ConfigureConsumer<InventoryProjectionConsumer>(context);
 					});
 				});
 			});
 
 			return services;
 		}
+
+
 
 		private static IServiceCollection RegisterDbContext(this IServiceCollection services, IConfiguration configuration)
 		{

@@ -9,6 +9,7 @@ using DeliveryService.Infrastructure.Persistence;
 using DeliveryService.Infrastructure.Persistence.Repositories;
 using DeliveryService.Infrastructure.Services;
 using MassTransit;
+using MongoDB.Driver;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,8 +30,18 @@ namespace DeliveryService.Infrastructure
 				.AddScoped<ICarrierClient, MockCarrierClient>()
 				.RegisterOrderServiceClient(cfg)
 				.RegisterMassTransit(cfg)
+				.RegisterMongoProjections(cfg)
 				.AddHealthChecks(cfg);
 
+			return services;
+		}
+
+		// Register Mongo and projections
+		private static IServiceCollection RegisterMongoProjections(this IServiceCollection services, IConfiguration cfg)
+		{
+			services.AddSingleton<IMongoClient>(_ => new MongoClient(cfg["Mongo:Connection"] ?? cfg.GetConnectionString("Mongo")));
+			services.AddScoped<DeliveryService.Application.Abstractions.IShipmentProjectionWriter, DeliveryService.Infrastructure.Projections.MongoShipmentProjectionWriter>();
+			services.AddScoped<ShipmentProjectionConsumer>();
 			return services;
 		}
 
@@ -68,6 +79,7 @@ namespace DeliveryService.Infrastructure
 
 			services.AddMassTransit(x =>
 			{
+				x.AddConsumer<ShipmentProjectionConsumer>();
 				x.SetKebabCaseEndpointNameFormatter();
 
 				// Consumers

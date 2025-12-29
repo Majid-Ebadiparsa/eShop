@@ -67,6 +67,8 @@ namespace DeliveryService.Infrastructure.Persistence
 			modelBuilder.Entity<OutboxMessage>().ToTable("OutboxMessage", schema: SCHEMA);
 			modelBuilder.Entity<OutboxState>().ToTable("OutboxState", schema: SCHEMA);
 			modelBuilder.Entity<InboxState>().ToTable("InboxState", schema: SCHEMA);
+
+			// Note: shippping projection will be stored in MongoDB (eshop_query.shipments)
 		}
 	}
 }

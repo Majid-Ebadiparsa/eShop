@@ -27,4 +27,8 @@
     <ProjectReference Include="..\InvoiceService.Infrastructure\InvoiceService.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="data\" />
+  </ItemGroup>
+
 </Project>

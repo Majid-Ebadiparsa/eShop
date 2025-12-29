@@ -6,11 +6,14 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace InvoiceService.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Init_InvoiceModel : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "bus");
+
             migrationBuilder.CreateTable(
                 name: "InboxState",
                 columns: table => new
@@ -62,6 +65,22 @@ namespace InvoiceService.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_OutboxState", x => x.OutboxId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProcessedMessage",
+                schema: "bus",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    MessageId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    ConsumerName = table.Column<string>(type: "TEXT", maxLength: 160, nullable: false),
+                    CorrelationId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    ProcessedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProcessedMessage", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -163,6 +182,13 @@ namespace InvoiceService.Infrastructure.Migrations
                 name: "IX_OutboxState_Created",
                 table: "OutboxState",
                 column: "Created");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProcessedMessage_MessageId_ConsumerName",
+                schema: "bus",
+                table: "ProcessedMessage",
+                columns: new[] { "MessageId", "ConsumerName" },
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -173,6 +199,10 @@ namespace InvoiceService.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "OutboxMessage");
+
+            migrationBuilder.DropTable(
+                name: "ProcessedMessage",
+                schema: "bus");
 
             migrationBuilder.DropTable(
                 name: "Invoices");

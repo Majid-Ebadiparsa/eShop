@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InvoiceService.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251213231610_Fix_InvoiceModel")]
-    partial class Fix_InvoiceModel
+    [Migration("20251224151014_Init_InvoiceModel")]
+    partial class Init_InvoiceModel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -70,6 +70,34 @@ namespace InvoiceService.Infrastructure.Migrations
                     b.HasIndex("InvoiceId");
 
                     b.ToTable("InvoiceLines", (string)null);
+                });
+
+            modelBuilder.Entity("InvoiceService.Infrastructure.Persistence.ProcessedMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ConsumerName")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("CorrelationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ProcessedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MessageId", "ConsumerName")
+                        .IsUnique();
+
+                    b.ToTable("ProcessedMessage", "bus");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.InboxState", b =>

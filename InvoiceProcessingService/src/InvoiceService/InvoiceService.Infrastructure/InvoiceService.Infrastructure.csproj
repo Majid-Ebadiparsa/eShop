@@ -28,4 +28,8 @@
     <ProjectReference Include="..\InvoiceService.Application\InvoiceService.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
 </Project>

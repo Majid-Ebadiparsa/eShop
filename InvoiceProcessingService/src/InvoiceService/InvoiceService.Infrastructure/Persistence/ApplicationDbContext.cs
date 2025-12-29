@@ -11,6 +11,8 @@ namespace InvoiceService.Infrastructure.Persistence
 		public DbSet<Invoice> Invoices => Set<Invoice>();
 		public DbSet<InvoiceLine> InvoiceLines => Set<InvoiceLine>();
 
+		public DbSet<ProcessedMessage> ProcessedMessages => Set<ProcessedMessage>();
+
 		public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
 		{
 		}
@@ -22,6 +24,16 @@ namespace InvoiceService.Infrastructure.Persistence
 			modelBuilder.AddInboxStateEntity();
 			modelBuilder.AddOutboxMessageEntity();
 			modelBuilder.AddOutboxStateEntity();
+
+			// ProcessedMessage table for consumer idempotency
+			modelBuilder.Entity<ProcessedMessage>(pm =>
+			{
+				pm.ToTable("ProcessedMessage", schema: "bus");
+				pm.HasKey(x => x.Id);
+				pm.Property(x => x.MessageId).IsRequired();
+				pm.Property(x => x.ConsumerName).HasMaxLength(160).IsRequired();
+				pm.HasIndex(x => new { x.MessageId, x.ConsumerName }).IsUnique();
+			});
 
 			base.OnModelCreating(modelBuilder);
 		}

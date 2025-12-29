@@ -18,7 +18,7 @@ namespace InvoiceService.Infrastructure.Configuration
 		{
 			services
 				.AddTransient(typeof(IInvoiceRepository), typeof(InvoiceRepository))
-				.AddScoped<IEventPublisher, RabbitMqEventPublisher>()
+				.AddScoped<IEventPublisher, EfOutboxEventPublisher>()
 				.AddScoped<IDateTimeProvider, SystemDateTimeProvider>()
 				.RegisterDbContext(cfg, env)
 				.RegisterMassTransit(cfg)

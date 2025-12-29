@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace DeliveryService.Infrastructure.Persistence.Migrations
+namespace DeliveryService.Infrastructure.Migrations
 {
     [DbContext(typeof(DeliveryDbContext))]
     partial class DeliveryDbContextModelSnapshot : ModelSnapshot

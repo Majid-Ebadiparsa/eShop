@@ -3,7 +3,7 @@ using InvoiceService.Application.Invoices.Queries.Models;
 using InvoiceSubscriber.Console.Abstractions;
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Shared.Contracts.Events;
+using SharedService.Contracts.Events.Invoice;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -29,8 +29,8 @@ namespace InvoiceSubscriber.Console.Messaging.Consumers
 			var msg = context.Message;
 
 			var key =
-					context.MessageId?.ToString("D")
-					?? context.CorrelationId?.ToString("D")
+					msg.MessageId.ToString("D")
+					?? msg.CorrelationId.ToString("D")
 					?? $"InvoiceSubmitted::{msg.InvoiceId}";
 
 			if (await _inbox.ExistsAsync(key, context.CancellationToken))
@@ -71,7 +71,7 @@ namespace InvoiceSubscriber.Console.Messaging.Consumers
 				InvoiceNumber = msg.InvoiceId.ToString(),
 				CustomerName = msg.Supplier,
 				IssuedDate = msg.DueDate,
-				TotalAmount = msg.Lines?.Sum(l => (l?.Price ?? 0) * (l?.Quantity ?? 1)) ?? 0
+				TotalAmount = (double)(msg.Lines?.Sum(l => l.Price * l.Quantity) ?? 0)
 			};
 		}
 	}

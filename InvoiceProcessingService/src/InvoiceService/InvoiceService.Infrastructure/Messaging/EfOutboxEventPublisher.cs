@@ -1,6 +1,6 @@
 using InvoiceService.Application.Abstractions;
 using MassTransit;
-using Shared.Contracts.Events;
+using SharedService.Contracts.Events.Invoice;
 
 namespace InvoiceService.Infrastructure.Messaging
 {
@@ -9,8 +9,27 @@ namespace InvoiceService.Infrastructure.Messaging
         private readonly IPublishEndpoint _publish;
         public EfOutboxEventPublisher(IPublishEndpoint publish) => _publish = publish;
 
-        public Task PublishInvoiceSubmittedAsync(InvoiceSubmitted @event, CancellationToken ct)
+        public Task PublishInvoiceSubmittedAsync(
+            Guid invoiceId,
+            string description,
+            DateTime dueDate,
+            string supplier,
+            IReadOnlyList<InvoiceLineItem> lines,
+            Guid correlationId,
+            CancellationToken ct)
         {
+            var @event = new InvoiceSubmitted(
+                InvoiceId: invoiceId,
+                Description: description,
+                DueDate: dueDate,
+                Supplier: supplier,
+                Lines: lines,
+                MessageId: Guid.NewGuid(),
+                CorrelationId: correlationId,
+                CausationId: null,
+                OccurredAtUtc: DateTime.UtcNow
+            );
+
             return _publish.Publish(@event, ct);
         }
     }

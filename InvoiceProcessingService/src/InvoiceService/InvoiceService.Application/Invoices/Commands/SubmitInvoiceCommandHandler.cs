@@ -1,7 +1,7 @@
 ﻿using InvoiceService.Application.Abstractions;
 using InvoiceService.Domain.Entities;
 using MediatR;
-using Shared.Contracts.Events;
+using SharedService.Contracts.Events.Invoice;
 
 namespace InvoiceService.Application.Invoices.Commands
 {
@@ -25,16 +25,18 @@ namespace InvoiceService.Application.Invoices.Commands
 			await _invoiceRepository.AddAsync(invoice, ct); // Transactional with Outbox (configured in Infrastructure)
 
 			// Publish domain integration event (goes to Outbox first, then RabbitMQ)
-			var evt = new InvoiceSubmitted
-			{
-				InvoiceId = invoice.Id,
-				Description = invoice.Description,
-				DueDate = invoice.DueDate,
-				Supplier = invoice.Supplier,
-				Lines = invoice.Lines.Select(x => new InvoiceLineItem { Description = x.Description, Price = x.Price, Quantity = x.Quantity }).ToList()
-			};
+			var eventLines = invoice.Lines
+				.Select(x => new InvoiceLineItem(x.Description, (decimal)x.Price, x.Quantity))
+				.ToList();
 
-			await _eventPublisher.PublishInvoiceSubmittedAsync(evt, ct);
+			await _eventPublisher.PublishInvoiceSubmittedAsync(
+				invoice.Id,
+				invoice.Description,
+				invoice.DueDate,
+				invoice.Supplier,
+				eventLines,
+				invoice.Id, // Use InvoiceId as CorrelationId
+				ct);
 
 			return invoice.Id;
 		}

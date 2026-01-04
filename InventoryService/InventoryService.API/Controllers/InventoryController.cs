@@ -20,11 +20,7 @@ namespace InventoryService.API.Controllers
 			if (result is null)
 				return NotFound();
 
-			return Ok(new
-			{
-				result.ProductId,
-				result.Quantity
-			});
+			return Ok(result);
 		}
 	}
 }

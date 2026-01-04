@@ -3,6 +3,8 @@ using InvoiceService.Application;
 using InvoiceService.Infrastructure.Configuration;
 using System.Text.Json.Serialization;
 using InvoiceService.Infrastructure.Mongo;
+using SharedService.Consul;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,13 +24,19 @@ builder.Services
 .AddInfrastructure(builder.Configuration, builder.Environment)
 .AddMongoInfrastructure(builder.Configuration)
 .RegisterJwtBearer(builder.Configuration)
-.AddCustomApiVersioning();
+.AddCustomApiVersioning()
+.AddConsul(builder.Configuration);
 
 
 var app = builder.Build();
 
-app.MapHealthChecks("/health/live");
-app.MapHealthChecks("/health/ready");
+// Health checks
+app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = _ => true });
+app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
+
+// Consul registration
+app.UseConsul(builder.Configuration, app.Lifetime);
+
 app
 	.UseCustomExceptionHandler()
 	.UseHttpsRedirection()

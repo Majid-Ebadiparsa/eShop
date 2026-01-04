@@ -36,14 +36,18 @@ namespace DeliveryService.Infrastructure
 			return services;
 		}
 
-		// Register Mongo and projections
-		private static IServiceCollection RegisterMongoProjections(this IServiceCollection services, IConfiguration cfg)
-		{
-			services.AddSingleton<IMongoClient>(_ => new MongoClient(cfg["Mongo:Connection"] ?? cfg.GetConnectionString("Mongo")));
-			services.AddScoped<DeliveryService.Application.Abstractions.IShipmentProjectionWriter, DeliveryService.Infrastructure.Projections.MongoShipmentProjectionWriter>();
-			services.AddScoped<ShipmentProjectionConsumer>();
-			return services;
-		}
+	// Register Mongo and projections
+	private static IServiceCollection RegisterMongoProjections(this IServiceCollection services, IConfiguration cfg)
+	{
+		services.AddSingleton<IMongoClient>(_ => new MongoClient(cfg["Mongo:Connection"] ?? cfg.GetConnectionString("Mongo")));
+		services.AddScoped<DeliveryService.Application.Abstractions.IShipmentProjectionWriter, DeliveryService.Infrastructure.Projections.MongoShipmentProjectionWriter>();
+		services.AddScoped<ShipmentProjectionConsumer>();
+		
+		// MongoDB read repository for CQRS
+		services.AddScoped<IShipmentReadRepository, MongoShipmentReadRepository>();
+		
+		return services;
+	}
 
 		private static IServiceCollection RegisterOrderServiceClient(this IServiceCollection services, IConfiguration cfg)
 		{

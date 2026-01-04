@@ -4,26 +4,26 @@ namespace InvoiceService.API.Configuration
 {
 	public static class HealthChecksExtension
 	{
-		public static IServiceCollection RegisterHealthChecks(this IServiceCollection services, IConfiguration cfg)
-		{
-			var rabbitMqConn = BuildRabbitConnectionString(cfg);
-			var sqliteConn = cfg.GetConnectionString("InvoicesDb");
-			ArgumentNullException.ThrowIfNullOrEmpty(sqliteConn);
+	public static IServiceCollection RegisterHealthChecks(this IServiceCollection services, IConfiguration cfg)
+	{
+		var rabbitMqConn = BuildRabbitConnectionString(cfg);
+		var sqlServerConn = cfg.GetConnectionString("InvoicesDb");
+		ArgumentNullException.ThrowIfNullOrEmpty(sqlServerConn);
 
-			services.AddHealthChecks()
-					.AddSqlite(sqliteConn, name: "sqlite", tags: new[] { "ready" })
-					.AddRabbitMQ(sp =>
+		services.AddHealthChecks()
+				.AddSqlServer(sqlServerConn, name: "sqlserver", tags: new[] { "ready" })
+				.AddRabbitMQ(sp =>
+				{
+					var factory = new ConnectionFactory
 					{
-						var factory = new ConnectionFactory
-						{
-							Uri = new Uri(rabbitMqConn),
-							AutomaticRecoveryEnabled = true
-						};
-						return factory.CreateConnectionAsync("healthcheck");
-					}, name: "rabbitmq", tags: new[] { "ready" });
+						Uri = new Uri(rabbitMqConn),
+						AutomaticRecoveryEnabled = true
+					};
+					return factory.CreateConnectionAsync("healthcheck");
+				}, name: "rabbitmq", tags: new[] { "ready" });
 
-			return services;
-		}
+		return services;
+	}
 
 		private static string BuildRabbitConnectionString(IConfiguration cfg)
 		{

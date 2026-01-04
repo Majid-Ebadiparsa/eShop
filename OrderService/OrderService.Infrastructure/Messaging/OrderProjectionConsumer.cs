@@ -34,7 +34,14 @@ namespace OrderService.Infrastructure.Messaging
 
             var items = context.Message.Items?.Select(i => (i.ProductId, i.Quantity, i.UnitPrice)).ToList() ?? new();
 
-            await _writer.UpsertOrderAsync(context.Message.OrderId, items, context.CancellationToken);
+            await _writer.UpsertOrderAsync(
+                context.Message.OrderId,
+                context.Message.CustomerId,
+                context.Message.Street,
+                context.Message.City,
+                context.Message.PostalCode,
+                items,
+                context.CancellationToken);
         }
 
         public async Task Consume(ConsumeContext<InventoryReserved> context)

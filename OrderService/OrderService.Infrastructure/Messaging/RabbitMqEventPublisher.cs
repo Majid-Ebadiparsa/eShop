@@ -14,11 +14,15 @@ namespace OrderService.Infrastructure.Messaging
 			_publishEndpoint = publishEndpoint;
 		}
 
-	public async Task PublishOrderCreatedAsync(Guid orderId, List<(Guid ProductId, int Quantity, decimal UnitPrice)> items)
+	public async Task PublishOrderCreatedAsync(Guid orderId, Guid customerId, string street, string city, string postalCode, List<(Guid ProductId, int Quantity, decimal UnitPrice)> items)
 	{
 		var eventItems = items.Select(i => new OrderItem(i.ProductId, i.Quantity, i.UnitPrice)).ToList();
 		var @event = new OrderCreatedEvent(
 			OrderId: orderId,
+			CustomerId: customerId,
+			Street: street,
+			City: city,
+			PostalCode: postalCode,
 			Items: eventItems,
 			MessageId: Guid.NewGuid(),
 			CorrelationId: orderId, // Use OrderId as CorrelationId for the entire order flow

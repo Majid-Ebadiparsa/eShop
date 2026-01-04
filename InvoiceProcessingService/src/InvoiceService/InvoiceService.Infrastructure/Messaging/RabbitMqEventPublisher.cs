@@ -1,6 +1,6 @@
 ﻿using InvoiceService.Application.Abstractions;
 using MassTransit;
-using Shared.Contracts.Events;
+using SharedService.Contracts.Events.Invoice;
 
 namespace InvoiceService.Infrastructure.Messaging
 {
@@ -13,8 +13,27 @@ namespace InvoiceService.Infrastructure.Messaging
 			_publishEndpoint = publishEndpoint;
 		}
 
-		public async Task PublishInvoiceSubmittedAsync(InvoiceSubmitted @event, CancellationToken ct)
+		public async Task PublishInvoiceSubmittedAsync(
+			Guid invoiceId,
+			string description,
+			DateTime dueDate,
+			string supplier,
+			IReadOnlyList<InvoiceLineItem> lines,
+			Guid correlationId,
+			CancellationToken ct)
 		{
+			var @event = new InvoiceSubmitted(
+				InvoiceId: invoiceId,
+				Description: description,
+				DueDate: dueDate,
+				Supplier: supplier,
+				Lines: lines,
+				MessageId: Guid.NewGuid(),
+				CorrelationId: correlationId,
+				CausationId: null,
+				OccurredAtUtc: DateTime.UtcNow
+			);
+
 			await _publishEndpoint.Publish(@event, ct);
 		}
 	}

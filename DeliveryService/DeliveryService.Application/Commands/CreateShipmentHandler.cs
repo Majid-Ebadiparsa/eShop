@@ -25,14 +25,18 @@ namespace DeliveryService.Application.Commands
 			var shipment = Shipment.Create(cmd.OrderId, address, items);
 			await _repo.AddAsync(shipment, ct);
 
-			// Domain Event => Outbox row (ShipmentCreated)
-			await _publisher.AddAsync(new ShipmentCreated(
-				shipment.Id,
-				shipment.OrderId,
-				Guid.NewGuid(),
-				cmd.OrderId, // Use OrderId as CorrelationId for tracing
-				null,
-				DateTime.UtcNow), ct);
+		// Domain Event => Outbox row (ShipmentCreated)
+		await _publisher.AddAsync(new ShipmentCreated(
+			shipment.Id,
+			shipment.OrderId,
+			address.Street,
+			address.City,
+			address.Zip,
+			address.Country,
+			Guid.NewGuid(),
+			cmd.OrderId, // Use OrderId as CorrelationId for tracing
+			null,
+			DateTime.UtcNow), ct);
 
 			await _uow.SaveChangesAsync(ct);
 			return shipment.Id;

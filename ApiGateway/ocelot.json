@@ -67,8 +67,7 @@
       "ServiceName": "deliveryservice",
       "UpstreamPathTemplate": "/health/delivery/{everything}",
       "UpstreamHttpMethod": [ "GET" ]
-    }
-    ,
+    },
     {
       "DownstreamPathTemplate": "/api/v1/invoices/{everything}",
       "DownstreamScheme": "http",
@@ -78,6 +77,13 @@
       "LoadBalancerOptions": {
         "Type": "LeastConnection"
       }
+    },
+    {
+      "DownstreamPathTemplate": "/health/{everything}",
+      "DownstreamScheme": "http",
+      "ServiceName": "invoiceservice",
+      "UpstreamPathTemplate": "/health/invoice/{everything}",
+      "UpstreamHttpMethod": [ "GET" ]
     },
     {
       "DownstreamPathTemplate": "/api/health/{everything}",

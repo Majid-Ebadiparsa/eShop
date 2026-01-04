@@ -29,6 +29,9 @@ namespace InventoryService.Infrastructure
 			// MongoDB read model projection
 			services.AddSingleton<IMongoClient>(_ => new MongoClient(configuration["Mongo:Connection"] ?? configuration.GetConnectionString("Mongo")));
 			services.AddScoped<IInventoryProjectionWriter, Infrastructure.Projections.MongoInventoryProjectionWriter>();
+			
+			// MongoDB read repository for CQRS
+			services.AddScoped<IInventoryReadRepository, MongoInventoryReadRepository>();
 
 			return services;
 		}

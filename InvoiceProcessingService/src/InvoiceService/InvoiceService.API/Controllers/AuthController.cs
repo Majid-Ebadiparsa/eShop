@@ -41,7 +41,7 @@ namespace InvoiceService.API.Controllers
 			signingCredentials: creds);
 
 
-			return Ok(new { access_token = new JwtSecurityTokenHandler().WriteToken(token), expires });
+			return Ok(new { accessToken = new JwtSecurityTokenHandler().WriteToken(token), expiresIn = (int)(expires - DateTime.UtcNow).TotalSeconds });
 		}
 	}
 }

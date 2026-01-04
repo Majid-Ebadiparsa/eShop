@@ -15,13 +15,18 @@ namespace InvoiceService.Infrastructure.Configuration
 	{
 		public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration cfg, IHostEnvironment env)
 		{
+			// Check if we should skip outbox (for integration tests)
+			var skipOutbox = cfg.GetValue<bool>("Testing:SkipOutbox");
+
 			services
 				.AddTransient(typeof(IInvoiceRepository), typeof(InvoiceRepository))
 				.AddScoped<IEventPublisher, EfOutboxEventPublisher>()
 				.AddScoped<IDateTimeProvider, SystemDateTimeProvider>()
 				.RegisterDbContext(cfg, env)
-				.RegisterMassTransit(cfg)
-				.AddHostedService<ApplyMigrationsHostedService>();
+				.RegisterMassTransit(cfg, skipOutbox);
+
+			if (!skipOutbox)
+				services.AddHostedService<ApplyMigrationsHostedService>();
 
 			return services;
 		}
@@ -31,17 +36,29 @@ namespace InvoiceService.Infrastructure.Configuration
 		var connectionString = cfg.GetConnectionString(ApplicationDbContext.SECTION_NAME) 
 			?? throw new InvalidOperationException($"Connection string '{ApplicationDbContext.SECTION_NAME}' not found.");
 
+		// Check if we're using SQLite for testing
+		var useSqlite = cfg.GetValue<bool>("Testing:UseSqlite");
+
 		services.AddDbContext<ApplicationDbContext>(options =>
 		{
-			options.UseSqlServer(
-				connectionString,
-				b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
+			if (useSqlite)
+			{
+				// For integration tests
+				options.UseSqlite(connectionString);
+			}
+			else
+			{
+				// For production
+				options.UseSqlServer(
+					connectionString,
+					b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
+			}
 		});
 
 		return services;
 	}
 
-		private static IServiceCollection RegisterMassTransit(this IServiceCollection services, IConfiguration cfg)
+		private static IServiceCollection RegisterMassTransit(this IServiceCollection services, IConfiguration cfg, bool skipOutbox = false)
 		{
 			// Bind RabbitMQ settings
 			var rabbitMqSettings = new RabbitMqSettings();
@@ -50,12 +67,16 @@ namespace InvoiceService.Infrastructure.Configuration
 		services.AddMassTransit(x =>
 		{
 			// EF Outbox ensures atomicity between DB and message broker
-			x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>
+			// Skip outbox for integration tests to avoid SQL Server provider conflicts
+			if (!skipOutbox)
 			{
-				o.QueryDelay = TimeSpan.FromSeconds(15);
-				o.UseSqlServer();
-				o.DuplicateDetectionWindow = TimeSpan.FromMinutes(5);
-			});
+				x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>
+				{
+					o.QueryDelay = TimeSpan.FromSeconds(15);
+					o.UseSqlServer();
+					o.DuplicateDetectionWindow = TimeSpan.FromMinutes(5);
+				});
+			}
 
 			x.SetKebabCaseEndpointNameFormatter();
 

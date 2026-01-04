@@ -1,4 +1,5 @@
-﻿using InventoryService.Application.Queries;
+﻿using InventoryService.Application.Commands;
+using InventoryService.Application.Queries;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryService.API.Controllers
@@ -21,6 +22,14 @@ namespace InventoryService.API.Controllers
 				return NotFound();
 
 			return Ok(result);
+		}
+
+		[HttpPost("seed")]
+		public async Task<IActionResult> SeedInventory()
+		{
+			_logger.LogInformation("Seed inventory endpoint called");
+			var count = await Mediator.Send(new SeedInventoryCommand());
+			return Ok(new { Message = $"Successfully seeded {count} products", SeededCount = count });
 		}
 	}
 }

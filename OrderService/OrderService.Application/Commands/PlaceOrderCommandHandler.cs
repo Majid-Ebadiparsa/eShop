@@ -32,7 +32,13 @@ namespace OrderService.Application.Commands
 		await _orderRepository.AddAsync(order, cancellationToken);
 
 		// Publish the OrderCreatedEvent after the order is saved
-		await _eventPublisher.PublishOrderCreatedAsync(order.Id, [.. order.Items.Select(i => (i.ProductId, i.Quantity, i.UnitPrice))]);
+		await _eventPublisher.PublishOrderCreatedAsync(
+			order.Id,
+			request.CustomerId,
+			request.Street,
+			request.City,
+			request.PostalCode,
+			[.. order.Items.Select(i => (i.ProductId, i.Quantity, i.UnitPrice))]);
 
 		// invalidate cache (in case order is read soon after creation)
 		await _cache.RemoveAsync($"order:{order.Id}");

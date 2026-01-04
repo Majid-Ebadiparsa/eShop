@@ -105,6 +105,7 @@ namespace OrderService.Infrastructure
             // MongoDB read model projection
             services.AddSingleton<IMongoClient>(_ => new MongoClient(configuration["Mongo:Connection"] ?? configuration.GetConnectionString("Mongo")));
             services.AddScoped<IOrderProjectionWriter, MongoOrderProjectionWriter>();
+            services.AddScoped<IOrderReadRepository, MongoOrderReadRepository>();
 
 
             return services;

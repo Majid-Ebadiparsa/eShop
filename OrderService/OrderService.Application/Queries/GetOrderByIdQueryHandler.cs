@@ -7,13 +7,13 @@ namespace OrderService.Application.Queries
 {
 	public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, OrderDto?>
 	{
-		private readonly IOrderRepository _orderRepository;
+		private readonly IOrderReadRepository _orderReadRepository;
 		private readonly IRedisCacheClient _cache;
 		private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(5);
 
-		public GetOrderByIdQueryHandler(IOrderRepository orderRepository, IRedisCacheClient cache)
+		public GetOrderByIdQueryHandler(IOrderReadRepository orderReadRepository, IRedisCacheClient cache)
 		{
-			_orderRepository = orderRepository;
+			_orderReadRepository = orderReadRepository;
 			_cache = cache;
 		}
 
@@ -23,9 +23,13 @@ namespace OrderService.Application.Queries
 			var cached = await _cache.GetAsync<OrderDto>(cacheKey);
 			if (cached != null) return cached;
 
-			var dto = await _orderRepository.GetByIdAsync(request.OrderId, cancellationToken);
+			var dto = await _orderReadRepository.GetByIdAsync(request.OrderId, cancellationToken);
 
-			await _cache.SetAsync(cacheKey, dto, CacheTtl);
+			if (dto != null)
+			{
+				await _cache.SetAsync(cacheKey, dto, CacheTtl);
+			}
+
 			return dto;
 		}
 	}

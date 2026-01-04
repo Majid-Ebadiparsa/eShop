@@ -2,7 +2,6 @@
 using OrderService.Application.Interfaces;
 using OrderService.Domain.AggregatesModel;
 using OrderService.Infrastructure.Repositories.EF;
-using OrderService.Shared.DTOs;
 
 namespace OrderService.Infrastructure.Repositories
 {
@@ -26,29 +25,6 @@ namespace OrderService.Infrastructure.Repositories
 			return await _context.Orders
 				.Include(o => o.Items)
 				.FirstOrDefaultAsync(o => o.Id == id, cancelationToken);
-		}
-
-		public async Task<OrderDto?> GetByIdAsync(Guid id, CancellationToken cancelationToken)
-		{
-			var order = await _context.Orders
-			.AsNoTracking()
-			.Include(o => o.Items)
-			.FirstOrDefaultAsync(o => o.Id == id, cancelationToken);
-
-			if (order is null) return null;
-
-			var items = order.Items.Select(i => new OrderItemDto(i.ProductId, i.Quantity, i.UnitPrice)).ToList();
-
-			return new OrderDto(
-				order.Id,
-				order.CustomerId,
-				order.ShippingAddress.Street,
-				order.ShippingAddress.City,
-				order.ShippingAddress.PostalCode,
-				order.OrderDate,
-				order.TotalAmount,
-				items
-			);
 		}
 
 		public async Task SaveChangesAsync(CancellationToken cancellationToken)

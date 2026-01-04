@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace SharedService.Contracts.Events.Payment;
 
-namespace SharedService.Contracts.Events.Payment
-{
-	public record PaymentCaptured(Guid OrderId, Guid PaymentId, string CaptureId);
-}
+public record PaymentCaptured(
+	Guid OrderId,
+	Guid PaymentId,
+	string CaptureId,
+	Guid MessageId,
+	Guid CorrelationId,
+	Guid? CausationId,
+	DateTime OccurredAtUtc) : IIntegrationEvent;

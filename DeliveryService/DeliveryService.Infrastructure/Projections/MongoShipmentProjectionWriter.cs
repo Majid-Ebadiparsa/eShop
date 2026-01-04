@@ -26,5 +26,14 @@ namespace DeliveryService.Infrastructure.Projections
 
             return _col.UpdateOneAsync(v => v.ShipmentId == shipmentId, update, new UpdateOptions { IsUpsert = true }, ct);
         }
+
+        public Task UpdateStatusAsync(Guid shipmentId, string status, DateTime occurredAtUtc, CancellationToken ct)
+        {
+            var update = Builders<ShipmentView>.Update
+                .Set(v => v.Status, status)
+                .Set(v => v.OccurredAtUtc, occurredAtUtc);
+
+            return _col.UpdateOneAsync(v => v.ShipmentId == shipmentId, update, new UpdateOptions { IsUpsert = false }, ct);
+        }
     }
 }

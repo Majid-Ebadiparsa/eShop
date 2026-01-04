@@ -29,20 +29,15 @@ namespace OrderService.Application.Commands
                 order.AddItem(item.ProductId, item.Quantity, item.UnitPrice);
             }
 
-            await _orderRepository.AddAsync(order, cancellationToken);
+		await _orderRepository.AddAsync(order, cancellationToken);
 
-            // Publish the OrderCreatedEvent after the order is saved
-            var orderCreatedEvent = new OrderCreatedEvent(
-                order.Id,
-                order.Items.Select(i => new SharedService.Contracts.Events.OrderItem(i.ProductId, i.Quantity, i.UnitPrice)).ToList()
-            );
+		// Publish the OrderCreatedEvent after the order is saved
+		await _eventPublisher.PublishOrderCreatedAsync(order.Id, [.. order.Items.Select(i => (i.ProductId, i.Quantity, i.UnitPrice))]);
 
-            await _eventPublisher.PublishOrderCreatedAsync(order.Id, [.. order.Items.Select(i => (i.ProductId, i.Quantity, i.UnitPrice))]);
+		// invalidate cache (in case order is read soon after creation)
+		await _cache.RemoveAsync($"order:{order.Id}");
 
-            // invalidate cache (in case order is read soon after creation)
-            await _cache.RemoveAsync($"order:{order.Id}");
-
-            return order.Id;
+		return order.Id;
         }
     }
 

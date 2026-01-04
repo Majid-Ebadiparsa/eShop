@@ -33,5 +33,13 @@ namespace OrderService.Infrastructure.Projections
 
             return _views.UpdateOneAsync(v => v.OrderId == orderId, update, new UpdateOptions { IsUpsert = true }, ct);
         }
+
+        public Task UpdateStatusAsync(Guid orderId, string status, CancellationToken ct)
+        {
+            var update = Builders<OrderView>.Update
+                .Set(v => v.Status, status);
+
+            return _views.UpdateOneAsync(v => v.OrderId == orderId, update, new UpdateOptions { IsUpsert = false }, ct);
+        }
     }
 }

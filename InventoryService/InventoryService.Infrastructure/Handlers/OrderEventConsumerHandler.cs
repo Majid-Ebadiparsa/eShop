@@ -22,73 +22,78 @@ namespace InventoryService.Infrastructure.Handlers
 			_eventPublisher = eventPublisher;
 		}
 
-		public async Task Handle(OrderCreatedEvent @event, CancellationToken cancellationToken)
+	public async Task Handle(OrderCreatedEvent @event, Guid correlationId, Guid causationId, CancellationToken cancellationToken)
+	{
+		_logger.LogInformation(
+			"Processing OrderCreatedEvent for OrderId: {OrderId}, CorrelationId: {CorrelationId}",
+			@event.OrderId,
+			correlationId);
+
+		var failedItems = new List<(Guid ProductId, string Reason)>();
+		decimal totalAmount = 0;
+
+		foreach (var item in @event.Items)
 		{
-			var failedItems = new List<(Guid ProductId, string Reason)>();
-			decimal totalAmount = 0;
+			var inventory = await _context.InventoryItems
+				.FirstOrDefaultAsync(i => i.ProductId == item.ProductId, cancellationToken);
 
-			foreach (var item in @event.Items)
+			if (inventory is null)
 			{
-				var inventory = await _context.InventoryItems
-					.FirstOrDefaultAsync(i => i.ProductId == item.ProductId, cancellationToken);
-
-				if (inventory is null)
-				{
-					failedItems.Add((item.ProductId, $"Inventory not found for ProductId {item.ProductId}"));
-					_logger.LogWarning("Inventory not found for ProductId {ProductId}", item.ProductId);
-					continue;
-				}
-
-				try
-				{
-					inventory.Decrease(item.Quantity);
-					totalAmount += item.UnitPrice * item.Quantity;
-				}
-				catch (InvalidOperationException ex)
-				{
-					failedItems.Add((item.ProductId, ex.Message));
-					_logger.LogWarning("Failed to reserve inventory for ProductId {ProductId}: {Reason}", item.ProductId, ex.Message);
-				}
+				failedItems.Add((item.ProductId, $"Inventory not found for ProductId {item.ProductId}"));
+				_logger.LogWarning("Inventory not found for ProductId {ProductId}, CorrelationId: {CorrelationId}", item.ProductId, correlationId);
+				continue;
 			}
 
-			if (failedItems.Any())
+			try
 			{
-				var reason = string.Join("; ", failedItems.Select(f => $"Product {f.ProductId}: {f.Reason}"));
-				await _eventPublisher.PublishInventoryReservationFailedAsync(@event.OrderId, reason, cancellationToken);
-				_logger.LogInformation("Published InventoryReservationFailed for OrderId: {OrderId}", @event.OrderId);
-				return;
+				inventory.Decrease(item.Quantity);
+				totalAmount += item.UnitPrice * item.Quantity;
 			}
-
-			await _context.SaveChangesAsync(cancellationToken);
-
-			// Calculate total amount from all items
-			totalAmount = @event.Items.Sum(i => i.UnitPrice * i.Quantity);
-			await _eventPublisher.PublishInventoryReservedAsync(@event.OrderId, totalAmount, "USD", cancellationToken);
-			_logger.LogInformation("Published InventoryReserved for OrderId: {OrderId}, TotalAmount: {TotalAmount}", @event.OrderId, totalAmount);
+			catch (InvalidOperationException ex)
+			{
+				failedItems.Add((item.ProductId, ex.Message));
+				_logger.LogWarning("Failed to reserve inventory for ProductId {ProductId}: {Reason}, CorrelationId: {CorrelationId}", item.ProductId, ex.Message, correlationId);
+			}
 		}
 
-		public async Task HandleInventoryReleaseRequestedAsync(SharedService.Contracts.Events.Inventory.InventoryReleaseRequested @event, CancellationToken cancellationToken)
+		if (failedItems.Any())
 		{
-			_logger.LogInformation("Releasing inventory for OrderId: {OrderId}", @event.OrderId);
-
-			foreach (var item in @event.Items)
-			{
-				var inventory = await _context.InventoryItems
-					.FirstOrDefaultAsync(i => i.ProductId == item.ProductId, cancellationToken);
-
-				if (inventory != null)
-				{
-					inventory.Increase(item.Quantity);
-					_logger.LogInformation("Released {Quantity} units of ProductId {ProductId} for OrderId {OrderId}", item.Quantity, item.ProductId, @event.OrderId);
-				}
-				else
-				{
-					_logger.LogWarning("Inventory not found for ProductId {ProductId} when releasing for OrderId {OrderId}", item.ProductId, @event.OrderId);
-				}
-			}
-
-			await _context.SaveChangesAsync(cancellationToken);
-			_logger.LogInformation("Completed inventory release for OrderId: {OrderId}", @event.OrderId);
+			var reason = string.Join("; ", failedItems.Select(f => $"Product {f.ProductId}: {f.Reason}"));
+			await _eventPublisher.PublishInventoryReservationFailedAsync(@event.OrderId, reason, correlationId, causationId, cancellationToken);
+			_logger.LogInformation("Published InventoryReservationFailed for OrderId: {OrderId}, CorrelationId: {CorrelationId}", @event.OrderId, correlationId);
+			return;
 		}
+
+		await _context.SaveChangesAsync(cancellationToken);
+
+		// Calculate total amount from all items
+		totalAmount = @event.Items.Sum(i => i.UnitPrice * i.Quantity);
+		await _eventPublisher.PublishInventoryReservedAsync(@event.OrderId, totalAmount, "USD", correlationId, causationId, cancellationToken);
+		_logger.LogInformation("Published InventoryReserved for OrderId: {OrderId}, TotalAmount: {TotalAmount}, CorrelationId: {CorrelationId}", @event.OrderId, totalAmount, correlationId);
+	}
+
+	public async Task HandleInventoryReleaseRequestedAsync(SharedService.Contracts.Events.Inventory.InventoryReleaseRequested @event, Guid correlationId, Guid causationId, CancellationToken cancellationToken)
+	{
+		_logger.LogInformation("Releasing inventory for OrderId: {OrderId}, CorrelationId: {CorrelationId}", @event.OrderId, correlationId);
+
+		foreach (var item in @event.Items)
+		{
+			var inventory = await _context.InventoryItems
+				.FirstOrDefaultAsync(i => i.ProductId == item.ProductId, cancellationToken);
+
+			if (inventory != null)
+			{
+				inventory.Increase(item.Quantity);
+				_logger.LogInformation("Released {Quantity} units of ProductId {ProductId} for OrderId {OrderId}, CorrelationId: {CorrelationId}", item.Quantity, item.ProductId, @event.OrderId, correlationId);
+			}
+			else
+			{
+				_logger.LogWarning("Inventory not found for ProductId {ProductId} when releasing for OrderId {OrderId}, CorrelationId: {CorrelationId}", item.ProductId, @event.OrderId, correlationId);
+			}
+		}
+
+		await _context.SaveChangesAsync(cancellationToken);
+		_logger.LogInformation("Completed inventory release for OrderId: {OrderId}, CorrelationId: {CorrelationId}", @event.OrderId, correlationId);
+	}
 	}
 }

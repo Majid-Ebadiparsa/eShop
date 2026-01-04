@@ -27,5 +27,19 @@ namespace InventoryService.Infrastructure.Projections
                 await _col.UpdateOneAsync(filter, update, new UpdateOptions { IsUpsert = true }, ct);
             }
         }
+
+        public async Task ReleaseReservedInventoryAsync(Guid orderId, List<(Guid ProductId, int Quantity)> items, CancellationToken ct)
+        {
+            // Decrement Reserved for each product when inventory is released
+            foreach (var it in items)
+            {
+                var filter = Builders<InventoryView>.Filter.Eq(v => v.ProductId, it.ProductId);
+                var update = Builders<InventoryView>.Update
+                    .Inc(v => v.Reserved, -it.Quantity)
+                    .Set(v => v.LastUpdated, DateTime.UtcNow);
+
+                await _col.UpdateOneAsync(filter, update, new UpdateOptions { IsUpsert = false }, ct);
+            }
+        }
     }
 }

@@ -26,11 +26,29 @@ namespace PaymentService.Infrastructure.Projections
 																		 .Set(v => v.CaptureId, captureId),
 																 new UpdateOptions { IsUpsert = true }, ct);
 
-		public Task SetFailedAsync(Guid orderId, string reason, CancellationToken ct)
-				=> _views.UpdateOneAsync(v => v.OrderId == orderId,
-																 Builders<PaymentView>.Update
-																		 .Set(v => v.Status, "FAILED")
-																		 .Set(v => v.Reason, reason),
-																 new UpdateOptions { IsUpsert = true }, ct);
-	}
+	public Task SetFailedAsync(Guid orderId, string reason, CancellationToken ct)
+			=> _views.UpdateOneAsync(v => v.OrderId == orderId,
+															 Builders<PaymentView>.Update
+																	 .Set(v => v.Status, "FAILED")
+																	 .Set(v => v.Reason, reason),
+															 new UpdateOptions { IsUpsert = true }, ct);
+
+	public Task SetRefundedAsync(Guid paymentId, string refundId, CancellationToken ct)
+			=> _views.UpdateOneAsync(
+				Builders<PaymentView>.Filter.Eq(v => v.PaymentId, paymentId),
+				Builders<PaymentView>.Update
+					.Set(v => v.Status, "REFUNDED")
+					.Set(v => v.Reason, refundId),
+				new UpdateOptions { IsUpsert = false },
+				ct);
+
+	public Task SetCancelledAsync(Guid paymentId, string reason, CancellationToken ct)
+			=> _views.UpdateOneAsync(
+				Builders<PaymentView>.Filter.Eq(v => v.PaymentId, paymentId),
+				Builders<PaymentView>.Update
+					.Set(v => v.Status, "CANCELLED")
+					.Set(v => v.Reason, reason),
+				new UpdateOptions { IsUpsert = false },
+				ct);
+}
 }

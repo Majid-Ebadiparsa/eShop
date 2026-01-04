@@ -13,16 +13,42 @@ namespace InventoryService.Infrastructure.Messaging
 			_publishEndpoint = publishEndpoint;
 		}
 
-		public async Task PublishInventoryReservedAsync(Guid orderId, decimal totalAmount, string currency, CancellationToken cancellationToken)
-		{
-			var @event = new InventoryReserved(orderId, totalAmount, currency);
-			await _publishEndpoint.Publish(@event, cancellationToken);
-		}
+	public async Task PublishInventoryReservedAsync(
+		Guid orderId,
+		decimal totalAmount,
+		string currency,
+		Guid correlationId,
+		Guid causationId,
+		CancellationToken cancellationToken)
+	{
+		var @event = new InventoryReserved(
+			OrderId: orderId,
+			TotalAmount: totalAmount,
+			Currency: currency,
+			MessageId: Guid.NewGuid(),
+			CorrelationId: correlationId,
+			CausationId: causationId,
+			OccurredAtUtc: DateTime.UtcNow
+		);
+		await _publishEndpoint.Publish(@event, cancellationToken);
+	}
 
-		public async Task PublishInventoryReservationFailedAsync(Guid orderId, string reason, CancellationToken cancellationToken)
-		{
-			var @event = new InventoryReservationFailed(orderId, reason, DateTime.UtcNow);
-			await _publishEndpoint.Publish(@event, cancellationToken);
-		}
+	public async Task PublishInventoryReservationFailedAsync(
+		Guid orderId,
+		string reason,
+		Guid correlationId,
+		Guid causationId,
+		CancellationToken cancellationToken)
+	{
+		var @event = new InventoryReservationFailed(
+			OrderId: orderId,
+			Reason: reason,
+			MessageId: Guid.NewGuid(),
+			CorrelationId: correlationId,
+			CausationId: causationId,
+			OccurredAtUtc: DateTime.UtcNow
+		);
+		await _publishEndpoint.Publish(@event, cancellationToken);
+	}
 	}
 }

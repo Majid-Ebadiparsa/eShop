@@ -26,7 +26,13 @@ namespace DeliveryService.Application.Commands
 			await _repo.AddAsync(shipment, ct);
 
 			// Domain Event => Outbox row (ShipmentCreated)
-			await _publisher.AddAsync(new ShipmentCreated(shipment.Id, shipment.OrderId, DateTime.UtcNow), ct);
+			await _publisher.AddAsync(new ShipmentCreated(
+				shipment.Id,
+				shipment.OrderId,
+				Guid.NewGuid(),
+				cmd.OrderId, // Use OrderId as CorrelationId for tracing
+				null,
+				DateTime.UtcNow), ct);
 
 			await _uow.SaveChangesAsync(ct);
 			return shipment.Id;

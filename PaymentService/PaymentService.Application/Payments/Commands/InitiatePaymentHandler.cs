@@ -30,26 +30,52 @@ namespace PaymentService.Application.Payments.Commands
 			{
 				payment.MarkFailed("AUTHORIZE", auth.ErrorMessage!);
 				await _repo.SaveChangesAsync(ct);
-				await _bus.PublishAsync(new PaymentFailed(payment.OrderId, auth.ErrorMessage!), ct);
+				await _bus.PublishAsync(new PaymentFailed(
+					payment.OrderId,
+					auth.ErrorMessage!,
+					Guid.NewGuid(),
+					payment.OrderId,
+					null,
+					DateTime.UtcNow), ct);
 				return payment.Id;
 			}
 
 			payment.MarkAuthorized(auth.Code!);
 			await _repo.SaveChangesAsync(ct);
-			await _bus.PublishAsync(new PaymentAuthorized(payment.OrderId, payment.Id, auth.Code!), ct);
+			await _bus.PublishAsync(new PaymentAuthorized(
+				payment.OrderId,
+				payment.Id,
+				auth.Code!,
+				Guid.NewGuid(),
+				payment.OrderId,
+				null,
+				DateTime.UtcNow), ct);
 
 			var cap = await _psp.CaptureAsync(payment.Id, req.Amount, req.Currency, ct);
 			if (!cap.Success)
 			{
 				payment.MarkFailed("CAPTURE", cap.ErrorMessage!);
 				await _repo.SaveChangesAsync(ct);
-				await _bus.PublishAsync(new PaymentFailed(payment.OrderId, cap.ErrorMessage!), ct);
+				await _bus.PublishAsync(new PaymentFailed(
+					payment.OrderId,
+					cap.ErrorMessage!,
+					Guid.NewGuid(),
+					payment.OrderId,
+					null,
+					DateTime.UtcNow), ct);
 				return payment.Id;
 			}
 
 			payment.MarkCaptured(cap.Code!);
 			await _repo.SaveChangesAsync(ct);
-			await _bus.PublishAsync(new PaymentCaptured(payment.OrderId, payment.Id, cap.Code!), ct);
+			await _bus.PublishAsync(new PaymentCaptured(
+				payment.OrderId,
+				payment.Id,
+				cap.Code!,
+				Guid.NewGuid(),
+				payment.OrderId,
+				null,
+				DateTime.UtcNow), ct);
 
 			return payment.Id;
 		}

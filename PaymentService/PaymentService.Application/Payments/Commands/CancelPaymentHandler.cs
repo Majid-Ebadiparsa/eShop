@@ -20,7 +20,14 @@ namespace PaymentService.Application.Payments.Commands
 			payment.Cancel(req.Reason);
 			await _repo.SaveChangesAsync(ct);
 
-			await _bus.PublishAsync(new PaymentCancelled(payment.OrderId, payment.Id, req.Reason), ct);
+			await _bus.PublishAsync(new PaymentCancelled(
+				payment.OrderId,
+				payment.Id,
+				req.Reason,
+				Guid.NewGuid(),
+				payment.OrderId, // Use OrderId as CorrelationId
+				null,
+				DateTime.UtcNow), ct);
 			return true;
 		}
 	}

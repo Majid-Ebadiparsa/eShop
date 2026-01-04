@@ -11,6 +11,7 @@ namespace DeliveryService.Infrastructure.Persistence
 		const string SCHEMA = "bus";
 
 		public DbSet<Shipment> Shipments => Set<Shipment>();
+		public DbSet<ProcessedMessage> ProcessedMessages => Set<ProcessedMessage>();
 	
 		public DeliveryDbContext(DbContextOptions<DeliveryDbContext> options) : base(options) { }
 
@@ -55,20 +56,30 @@ namespace DeliveryService.Infrastructure.Persistence
 			nav.SetPropertyAccessMode(PropertyAccessMode.Field);
 
 
-			// ——— MassTransit EF Outbox/Inbox ———
-			// Outbox: For storing messages before sending to the broker
-			modelBuilder.AddOutboxMessageEntity();
-			modelBuilder.AddOutboxStateEntity();
+		// ——— MassTransit EF Outbox/Inbox ———
+		// Outbox: For storing messages before sending to the broker
+		modelBuilder.AddOutboxMessageEntity();
+		modelBuilder.AddOutboxStateEntity();
 
-			// Inbox: For ensuring idempotency in Consumers (preventing duplicate processing)
-			modelBuilder.AddInboxStateEntity();
+		// Inbox: For ensuring idempotency in Consumers (preventing duplicate processing)
+		modelBuilder.AddInboxStateEntity();
 
-			// To customize table/schema names, uncomment the following lines:
-			modelBuilder.Entity<OutboxMessage>().ToTable("OutboxMessage", schema: SCHEMA);
-			modelBuilder.Entity<OutboxState>().ToTable("OutboxState", schema: SCHEMA);
-			modelBuilder.Entity<InboxState>().ToTable("InboxState", schema: SCHEMA);
+		// To customize table/schema names, uncomment the following lines:
+		modelBuilder.Entity<OutboxMessage>().ToTable("OutboxMessage", schema: SCHEMA);
+		modelBuilder.Entity<OutboxState>().ToTable("OutboxState", schema: SCHEMA);
+		modelBuilder.Entity<InboxState>().ToTable("InboxState", schema: SCHEMA);
 
-			// Note: shippping projection will be stored in MongoDB (eshop_query.shipments)
-		}
+		// ProcessedMessage table for consumer idempotency
+		modelBuilder.Entity<ProcessedMessage>(pm =>
+		{
+			pm.ToTable("ProcessedMessage", schema: SCHEMA);
+			pm.HasKey(x => x.Id);
+			pm.Property(x => x.MessageId).IsRequired();
+			pm.Property(x => x.ConsumerName).HasMaxLength(160).IsRequired();
+			pm.HasIndex(x => new { x.MessageId, x.ConsumerName }).IsUnique();
+		});
+
+		// Note: shippping projection will be stored in MongoDB (eshop_query.shipments)
+	}
 	}
 }

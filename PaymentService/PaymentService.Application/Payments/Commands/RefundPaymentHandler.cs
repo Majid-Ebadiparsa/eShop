@@ -26,7 +26,14 @@ namespace PaymentService.Application.Payments.Commands
 			payment.Refund(result.Code!);
 			await _repo.SaveChangesAsync(ct);
 
-			await _bus.PublishAsync(new PaymentRefunded(payment.OrderId, payment.Id, result.Code!), ct);
+			await _bus.PublishAsync(new PaymentRefunded(
+				payment.OrderId,
+				payment.Id,
+				result.Code!,
+				Guid.NewGuid(),
+				payment.OrderId, // Use OrderId as CorrelationId
+				null,
+				DateTime.UtcNow), ct);
 			return true;
 		}
 	}

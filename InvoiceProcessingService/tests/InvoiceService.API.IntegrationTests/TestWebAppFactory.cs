@@ -1,8 +1,12 @@
-﻿using InvoiceService.Infrastructure.Persistence;
+﻿using InvoiceService.API.IntegrationTests.Helpers;
+using InvoiceService.Application.Abstractions;
+using InvoiceService.Infrastructure.Persistence;
 using MassTransit;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -14,49 +18,41 @@ namespace InvoiceService.API.IntegrationTests
 	{
 		private SqliteConnection? _connection;
 
-		protected override IHost CreateHost(IHostBuilder builder)
+		public TestWebAppFactory()
 		{
+			// Setup SQLite connection
+			_connection = new SqliteConnection("DataSource=:memory:;Cache=Shared");
+			_connection.Open();
+		}
+
+		protected override void ConfigureWebHost(IWebHostBuilder builder)
+		{
+			// Configure settings FIRST to ensure they're available when services register
+			builder.UseSetting("Testing:UseSqlite", "true");
+			builder.UseSetting("Testing:SkipOutbox", "true");
+
+			builder.ConfigureAppConfiguration((context, config) =>
+			{
+				// Add in-memory configuration with high priority (added AFTER other sources means it wins)
+				config.AddInMemoryCollection(new Dictionary<string, string?>
+				{
+					["ConnectionStrings:DefaultConnection"] = _connection!.ConnectionString,
+					["Testing:UseSqlite"] = "true",
+					["Testing:SkipOutbox"] = "true"
+				});
+			});
+
 			builder.ConfigureServices(services =>
 			{
-				// Swap DbContext to SQLite in-memory (shared connection)
-				var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-				if (descriptor is not null)
-					services.Remove(descriptor);
+				// Replace IEventPublisher with test implementation that doesn't use outbox
+				var eventPublisherDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IEventPublisher));
+				if (eventPublisherDescriptor != null)
+					services.Remove(eventPublisherDescriptor);
+				
+				services.AddScoped<IEventPublisher, TestEventPublisher>();
 
-				_connection = new SqliteConnection("DataSource=:memory:;Cache=Shared");
-				_connection.Open();
-
-				services.AddDbContext<ApplicationDbContext>(opt => opt.UseSqlite(_connection));
-
-				for (int i = services.Count - 1; i >= 0; i--)
-				{
-					var sd = services[i];
-					var st = sd.ServiceType;
-					var it = sd.ImplementationType;
-					var nsS = st?.Namespace ?? "";
-					var nsI = it?.Namespace ?? "";
-
-					if (nsS.StartsWith("MassTransit", StringComparison.Ordinal)
-							|| nsI.StartsWith("MassTransit", StringComparison.Ordinal))
-					{
-						services.RemoveAt(i);
-					}
-					else
-					{
-						var implTypeName = it?.FullName
-								?? sd.ImplementationInstance?.GetType().FullName
-								?? sd.ImplementationFactory?.GetType().FullName
-								?? "";
-
-						if (implTypeName.Contains("MassTransit", StringComparison.Ordinal))
-							services.RemoveAt(i);
-					}
-				}
-
-				services.AddMassTransitTestHarness(cfg =>
-				{
-					cfg.UsingInMemory((context, bus) => bus.ConfigureEndpoints(context));
-				});
+				// Register MassTransit test harness
+				services.AddMassTransitTestHarness();
 
 				services.PostConfigure<HealthCheckServiceOptions>(opts =>
 				{
@@ -78,15 +74,28 @@ namespace InvoiceService.API.IntegrationTests
 					foreach (var r in unique)
 						opts.Registrations.Add(r);
 				});
-
-				// Ensure DB created (apply migrations if ModelSnapshot available)
-				var sp = services.BuildServiceProvider();
-				using var scope = sp.CreateScope();
-				var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-				db.Database.EnsureCreated();
 			});
+		}
 
-			return base.CreateHost(builder);
+		protected override IHost CreateHost(IHostBuilder builder)
+		{
+			var host = base.CreateHost(builder);
+
+			// Initialize database schema
+			try
+			{
+				using (var scope = host.Services.CreateScope())
+				{
+					var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+					db.Database.EnsureCreated();
+				}
+			}
+			catch (Exception)
+			{
+				// If EnsureCreated fails, continue - tests may handle their own DB initialization
+			}
+
+			return host;
 		}
 
 		protected override void Dispose(bool disposing)

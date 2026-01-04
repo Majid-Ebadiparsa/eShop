@@ -4,7 +4,7 @@ using InvoiceService.Application.Invoices.Commands;
 using InvoiceService.Application.UnitTests.Builders;
 using InvoiceService.Domain.Entities;
 using Moq;
-using Shared.Contracts.Events;
+using SharedService.Contracts.Events.Invoice;
 
 namespace InvoiceService.Application.UnitTests.Invoices.Commands
 {
@@ -28,11 +28,31 @@ namespace InvoiceService.Application.UnitTests.Invoices.Commands
 					})
 					.Returns(Task.CompletedTask);
 
-			// Capture published event
-			InvoiceSubmitted? published = null;
-			publisher.Setup(p => p.PublishInvoiceSubmittedAsync(It.IsAny<InvoiceSubmitted>(), It.IsAny<CancellationToken>()))
-							 .Callback<InvoiceSubmitted, CancellationToken>((evt, _) => published = evt)
-							 .Returns(Task.CompletedTask);
+			// Capture published event parameters
+			Guid? publishedInvoiceId = null;
+			string? publishedDescription = null;
+			DateTime? publishedDueDate = null;
+			string? publishedSupplier = null;
+			IReadOnlyList<InvoiceLineItem>? publishedLines = null;
+			
+			publisher.Setup(p => p.PublishInvoiceSubmittedAsync(
+				It.IsAny<Guid>(),
+				It.IsAny<string>(),
+				It.IsAny<DateTime>(),
+				It.IsAny<string>(),
+				It.IsAny<IReadOnlyList<InvoiceLineItem>>(),
+				It.IsAny<Guid>(),
+				It.IsAny<CancellationToken>()))
+			.Callback<Guid, string, DateTime, string, IReadOnlyList<InvoiceLineItem>, Guid, CancellationToken>(
+				(invId, desc, due, sup, lines, corr, _) =>
+				{
+					publishedInvoiceId = invId;
+					publishedDescription = desc;
+					publishedDueDate = due;
+					publishedSupplier = sup;
+					publishedLines = lines;
+				})
+			.Returns(Task.CompletedTask);
 
 			var sut = new SubmitInvoiceCommandHandler(repo.Object, publisher.Object);
 			var cmd = new SubmitInvoiceCommandBuilder().Build();
@@ -49,16 +69,23 @@ namespace InvoiceService.Application.UnitTests.Invoices.Commands
 			saved.DueDate.Should().Be(cmd.DueDate);
 			saved.Lines.Should().HaveCount(cmd.Lines.Count);
 
-			published.Should().NotBeNull();
-			published!.InvoiceId.Should().Be(id);
-			published.Description.Should().Be(cmd.Description);
-			published.Supplier.Should().Be(cmd.Supplier);
-			published.DueDate.Should().Be(cmd.DueDate);
-			published.Lines.Should().NotBeNull();
-			published.Lines.Should().HaveCount(cmd.Lines.Count);
+			publishedInvoiceId.Should().NotBeNull();
+			publishedInvoiceId.Should().Be(id);
+			publishedDescription.Should().Be(cmd.Description);
+			publishedSupplier.Should().Be(cmd.Supplier);
+			publishedDueDate.Should().Be(cmd.DueDate);
+			publishedLines.Should().NotBeNull();
+			publishedLines.Should().HaveCount(cmd.Lines.Count);
 
 			repo.Verify(r => r.AddAsync(It.IsAny<Invoice>(), It.IsAny<CancellationToken>()), Times.Once);
-			publisher.Verify(p => p.PublishInvoiceSubmittedAsync(It.IsAny<InvoiceSubmitted>(), It.IsAny<CancellationToken>()), Times.Once);
+			publisher.Verify(p => p.PublishInvoiceSubmittedAsync(
+				It.IsAny<Guid>(),
+				It.IsAny<string>(),
+				It.IsAny<DateTime>(),
+				It.IsAny<string>(),
+				It.IsAny<IReadOnlyList<InvoiceLineItem>>(),
+				It.IsAny<Guid>(),
+				It.IsAny<CancellationToken>()), Times.Once);
 		}
 
 		[Fact]
@@ -78,10 +105,18 @@ namespace InvoiceService.Application.UnitTests.Invoices.Commands
 					})
 					.Returns(Task.CompletedTask);
 
-			InvoiceSubmitted? published = null;
-			publisher.Setup(p => p.PublishInvoiceSubmittedAsync(It.IsAny<InvoiceSubmitted>(), It.IsAny<CancellationToken>()))
-							 .Callback<InvoiceSubmitted, CancellationToken>((evt, _) => published = evt)
-							 .Returns(Task.CompletedTask);
+			IReadOnlyList<InvoiceLineItem>? publishedLines = null;
+			publisher.Setup(p => p.PublishInvoiceSubmittedAsync(
+				It.IsAny<Guid>(),
+				It.IsAny<string>(),
+				It.IsAny<DateTime>(),
+				It.IsAny<string>(),
+				It.IsAny<IReadOnlyList<InvoiceLineItem>>(),
+				It.IsAny<Guid>(),
+				It.IsAny<CancellationToken>()))
+			.Callback<Guid, string, DateTime, string, IReadOnlyList<InvoiceLineItem>, Guid, CancellationToken>(
+				(_, _, _, _, lines, _, _) => publishedLines = lines)
+			.Returns(Task.CompletedTask);
 
 			var sut = new SubmitInvoiceCommandHandler(repo.Object, publisher.Object);
 			var cmd = new SubmitInvoiceCommand(
@@ -98,14 +133,14 @@ namespace InvoiceService.Application.UnitTests.Invoices.Commands
 			_ = await sut.Handle(cmd, CancellationToken.None);
 
 			// Assert
-			published.Should().NotBeNull();
-			published!.Lines.Should().HaveCount(2);
-			published.Lines[0].Description.Should().Be("Paper");
-			published.Lines[0].Price.Should().Be(5.99);
-			published.Lines[0].Quantity.Should().Be(10);
-			published.Lines[1].Description.Should().Be("Pen");
-			published.Lines[1].Price.Should().Be(1.99);
-			published.Lines[1].Quantity.Should().Be(5);
+			publishedLines.Should().NotBeNull();
+			publishedLines.Should().HaveCount(2);
+			publishedLines![0].Description.Should().Be("Paper");
+			publishedLines[0].Price.Should().Be(5.99m);
+			publishedLines[0].Quantity.Should().Be(10);
+			publishedLines[1].Description.Should().Be("Pen");
+			publishedLines[1].Price.Should().Be(1.99m);
+			publishedLines[1].Quantity.Should().Be(5);
 		}
 	}
 }

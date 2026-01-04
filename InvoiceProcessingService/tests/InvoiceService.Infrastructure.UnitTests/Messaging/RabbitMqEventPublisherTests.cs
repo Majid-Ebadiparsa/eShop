@@ -1,7 +1,7 @@
 ﻿using InvoiceService.Infrastructure.Messaging;
 using MassTransit;
 using Moq;
-using Shared.Contracts.Events;
+using SharedService.Contracts.Events.Invoice;
 
 namespace InvoiceService.Infrastructure.UnitTests.Messaging
 {
@@ -13,29 +13,41 @@ namespace InvoiceService.Infrastructure.UnitTests.Messaging
 			var publishEndpoint = new Mock<IPublishEndpoint>(MockBehavior.Strict);
 			var sut = new RabbitMqEventPublisher(publishEndpoint.Object);
 
-			var evt = new InvoiceSubmitted
+			var invoiceId = Guid.NewGuid();
+			var description = "Office supplies";
+			var dueDate = DateTime.UtcNow.AddDays(3);
+			var supplier = "ACME GmbH";
+			var lines = new List<InvoiceLineItem>
 			{
-				InvoiceId = Guid.NewGuid(),
-				Description = "Office supplies",
-				Supplier = "ACME GmbH",
-				DueDate = DateTime.UtcNow.AddDays(3),
-				Lines = new List<InvoiceLineItem>
-				{
-						new InvoiceLineItem { Description = "Paper", Price = 5.99, Quantity = 10 }
-				}
+				new InvoiceLineItem("Paper", 5.99m, 10)
 			};
-
-
+			var correlationId = Guid.NewGuid();
 			var ct = new CancellationTokenSource().Token;
 
+			// Setup to capture the published event
+			InvoiceSubmitted? publishedEvent = null;
 			publishEndpoint
-					.Setup(p => p.Publish(evt, ct))
-					.Returns(Task.CompletedTask)
-					.Verifiable();
+				.Setup(p => p.Publish(It.IsAny<InvoiceSubmitted>(), ct))
+				.Callback<InvoiceSubmitted, CancellationToken>((evt, _) => publishedEvent = evt)
+				.Returns(Task.CompletedTask)
+				.Verifiable();
 
-			await sut.PublishInvoiceSubmittedAsync(evt, ct);
+			// Act
+			await sut.PublishInvoiceSubmittedAsync(invoiceId, description, dueDate, supplier, lines, correlationId, ct);
 
-			publishEndpoint.Verify(p => p.Publish(evt, ct), Times.Once);
+			// Assert
+			publishEndpoint.Verify(p => p.Publish(It.IsAny<InvoiceSubmitted>(), ct), Times.Once);
+			
+			Assert.NotNull(publishedEvent);
+			Assert.Equal(invoiceId, publishedEvent.InvoiceId);
+			Assert.Equal(description, publishedEvent.Description);
+			Assert.Equal(dueDate, publishedEvent.DueDate);
+			Assert.Equal(supplier, publishedEvent.Supplier);
+			Assert.Equal(correlationId, publishedEvent.CorrelationId);
+			Assert.Single(publishedEvent.Lines);
+			Assert.Equal("Paper", publishedEvent.Lines[0].Description);
+			Assert.Equal(5.99m, publishedEvent.Lines[0].Price);
+			Assert.Equal(10, publishedEvent.Lines[0].Quantity);
 		}
 	}
 

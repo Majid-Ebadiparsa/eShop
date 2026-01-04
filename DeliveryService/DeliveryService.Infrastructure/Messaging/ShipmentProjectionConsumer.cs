@@ -22,17 +22,33 @@ namespace DeliveryService.Infrastructure.Messaging
             _logger = logger;
         }
 
-        public Task Consume(ConsumeContext<ShipmentCreated> context)
-        {
-            _logger.LogInformation("Projecting ShipmentCreated {ShipmentId}", context.Message.ShipmentId);
-            return _writer.UpsertShipmentAsync(context.Message.ShipmentId, context.Message.OrderId, context.Message.OccurredAtUtc, context.CancellationToken);
-        }
+    public Task Consume(ConsumeContext<ShipmentCreated> context)
+    {
+        _logger.LogInformation("Projecting ShipmentCreated {ShipmentId}", context.Message.ShipmentId);
+        return _writer.UpsertShipmentAsync(
+            context.Message.ShipmentId, 
+            context.Message.OrderId,
+            context.Message.Street,
+            context.Message.City,
+            context.Message.Zip,
+            context.Message.Country,
+            context.Message.OccurredAtUtc, 
+            context.CancellationToken);
+    }
 
-        public Task Consume(ConsumeContext<ShipmentBooked> context)
-        {
-            _logger.LogInformation("Projecting ShipmentBooked {ShipmentId}", context.Message.ShipmentId);
-            return _writer.UpdateStatusAsync(context.Message.ShipmentId, "BOOKED", context.Message.OccurredAtUtc, context.CancellationToken);
-        }
+    public async Task Consume(ConsumeContext<ShipmentBooked> context)
+    {
+        _logger.LogInformation("Projecting ShipmentBooked {ShipmentId}", context.Message.ShipmentId);
+        
+        // Update both status and carrier info
+        await _writer.UpdateStatusAsync(context.Message.ShipmentId, "BOOKED", context.Message.OccurredAtUtc, context.CancellationToken);
+        await _writer.UpdateCarrierInfoAsync(
+            context.Message.ShipmentId, 
+            context.Message.Carrier, 
+            context.Message.TrackingNumber, 
+            context.Message.OccurredAtUtc, 
+            context.CancellationToken);
+    }
 
         public Task Consume(ConsumeContext<ShipmentDispatched> context)
         {

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Health Monitor Dashboard</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>🏥 Health Monitor Dashboard</h1>
+    <p class="subtitle">Real-time service health monitoring with historical trends and analytics</p>
+  </header>
+
+  <main>
+    <!-- Services Overview Section -->
+    <section id="services">
+      <div class="controls-bar">
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="🔍 Search services..." />
+        </div>
+        <div class="filter-buttons">
+          <button class="filter-btn active" data-filter="all">All Services</button>
+          <button class="filter-btn" data-filter="healthy">Healthy</button>
+          <button class="filter-btn" data-filter="unhealthy">Unhealthy</button>
+        </div>
+        <button id="exportBtn" class="export-btn">📥 Export CSV</button>
+      </div>
+
+      <div class="stats-cards">
+        <div class="stat-card">
+          <div class="stat-label">Total Services</div>
+          <div class="stat-value" id="totalServices">0</div>
+        </div>
+        <div class="stat-card stat-healthy">
+          <div class="stat-label">Healthy</div>
+          <div class="stat-value" id="healthyServices">0</div>
+        </div>
+        <div class="stat-card stat-unhealthy">
+          <div class="stat-label">Unhealthy</div>
+          <div class="stat-value" id="unhealthyServices">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Avg Latency</div>
+          <div class="stat-value" id="avgLatency">0 ms</div>
+        </div>
+      </div>
+
+      <table id="servicesTable">
+        <thead>
+          <tr>
+            <th>Service</th>
+            <th>Status</th>
+            <th>Last Checked</th>
+            <th>Latency (ms)</th>
+            <th>Last Error</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- History Section with Charts -->
+    <section id="historySection" hidden>
+      <div class="history-header">
+        <h2 id="historyTitle">Service History</h2>
+        <div class="history-actions">
+          <button id="exportHistoryBtn" class="export-btn-sm">📥 Export</button>
+          <button id="backBtn" class="back-btn">← Back to Services</button>
+        </div>
+      </div>
+
+      <!-- Charts Container -->
+      <div class="charts-container">
+        <div class="chart-card">
+          <h3>Latency Trend</h3>
+          <canvas id="latencyChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>Status Timeline</h3>
+          <canvas id="statusChart"></canvas>
+        </div>
+      </div>
+
+      <!-- History Table -->
+      <div class="table-container">
+        <h3>Detailed History</h3>
+        <table id="historyTable">
+          <thead>
+            <tr>
+              <th>Checked At</th>
+              <th>Status</th>
+              <th>Latency (ms)</th>
+              <th>Error Code</th>
+              <th>Error Details</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- Execution Logs -->
+      <div class="table-container" style="margin-top: 32px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3>Execution Logs</h3>
+          <button id="exportExecutionLogsBtn" class="export-btn-sm">📥 Export Logs</button>
+        </div>
+        <table id="executionLogsTable">
+          <thead>
+            <tr>
+              <th>Execution Time</th>
+              <th>Duration (ms)</th>
+              <th>Success</th>
+              <th>Service Health</th>
+              <th>HTTP Status</th>
+              <th>Error</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <small>HealthMonitorService Dashboard v2.0 — Real-time monitoring with analytics</small>
+  </footer>
+
+  <script src="/main.js"></script>
+</body>
+</html>

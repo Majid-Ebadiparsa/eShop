@@ -1,0 +1,100 @@
+# Development Environment Override
+# Usage: docker compose -f docker-compose.yml -f docker-compose.override.dev.yml up
+version: '3.8'
+
+services:
+  # Development-specific overrides
+  sqlserver:
+    environment:
+      - MSSQL_PID=Developer
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+
+  mongodb:
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
+    command: mongod --auth
+
+  rabbitmq:
+    ports:
+      - "15672:15672"  # Management UI accessible
+
+  consul:
+    ports:
+      - "8500:8500"  # UI accessible
+
+  # All services use Information logging in dev
+  orderservice:
+    environment:
+      - Logging__LogLevel__Default=Debug
+      - Logging__LogLevel__Microsoft.AspNetCore=Information
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+
+  inventoryservice:
+    environment:
+      - Logging__LogLevel__Default=Debug
+      - Logging__LogLevel__Microsoft.AspNetCore=Information
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+
+  paymentservice:
+    environment:
+      - Logging__LogLevel__Default=Debug
+      - Logging__LogLevel__Microsoft.AspNetCore=Information
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+
+  deliveryservice:
+    environment:
+      - Logging__LogLevel__Default=Debug
+      - Logging__LogLevel__Microsoft.AspNetCore=Information
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+
+  invoiceservice:
+    environment:
+      - Logging__LogLevel__Default=Debug
+      - Logging__LogLevel__Microsoft.AspNetCore=Information
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+
+  healthmonitorservice:
+    environment:
+      - Logging__LogLevel__Default=Debug
+      - Logging__LogLevel__Microsoft.AspNetCore=Information
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  apigateway:
+    environment:
+      - Logging__LogLevel__Default=Debug
+      - Logging__LogLevel__Microsoft.AspNetCore=Information
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+

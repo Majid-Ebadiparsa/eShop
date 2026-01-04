@@ -1,0 +1,176 @@
+# Production Environment Override
+# Usage: docker compose -f docker-compose.yml -f docker-compose.override.prod.yml up
+# NOTE: In real production, use Kubernetes or external managed services
+version: '3.8'
+
+services:
+  # Production-specific overrides
+  
+  sqlserver:
+    environment:
+      - MSSQL_PID=Enterprise
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '2'
+          memory: 2G
+    restart: always
+
+  mongodb:
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    restart: always
+
+  redis:
+    command: redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru --requirepass prodpass456
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    restart: always
+
+  rabbitmq:
+    environment:
+      - RABBITMQ_DEFAULT_USER=eshopprod
+      - RABBITMQ_DEFAULT_PASS=prodpass456
+      - RABBITMQ_VM_MEMORY_HIGH_WATERMARK=1GB
+    ports:
+      - "5672:5672"
+      # Management UI not exposed in production
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    restart: always
+
+  consul:
+    # Consul UI not exposed in production
+    ports: []
+    restart: always
+
+  # All services use Error level logging in production (minimal logs)
+  orderservice:
+    environment:
+      - Logging__LogLevel__Default=Error
+      - Logging__LogLevel__Microsoft.AspNetCore=Error
+      - RabbitMq__Username=eshopprod
+      - RabbitMq__Password=prodpass456
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '1'
+          memory: 512M
+    restart: always
+
+  inventoryservice:
+    environment:
+      - Logging__LogLevel__Default=Error
+      - Logging__LogLevel__Microsoft.AspNetCore=Error
+      - RabbitMq__Username=eshopprod
+      - RabbitMq__Password=prodpass456
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '1'
+          memory: 512M
+    restart: always
+
+  paymentservice:
+    environment:
+      - Logging__LogLevel__Default=Error
+      - Logging__LogLevel__Microsoft.AspNetCore=Error
+      - RabbitMq__Username=eshopprod
+      - RabbitMq__Password=prodpass456
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '1'
+          memory: 512M
+    restart: always
+
+  deliveryservice:
+    environment:
+      - Logging__LogLevel__Default=Error
+      - Logging__LogLevel__Microsoft.AspNetCore=Error
+      - RabbitMq__Username=eshopprod
+      - RabbitMq__Password=prodpass456
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '1'
+          memory: 512M
+    restart: always
+
+  invoiceservice:
+    environment:
+      - Logging__LogLevel__Default=Error
+      - Logging__LogLevel__Microsoft.AspNetCore=Error
+      - RabbitMq__Username=eshopprod
+      - RabbitMq__Password=prodpass456
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '1'
+          memory: 512M
+    restart: always
+
+  healthmonitorservice:
+    environment:
+      - Logging__LogLevel__Default=Error
+      - Logging__LogLevel__Microsoft.AspNetCore=Error
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    restart: always
+
+  apigateway:
+    environment:
+      - Logging__LogLevel__Default=Error
+      - Logging__LogLevel__Microsoft.AspNetCore=Error
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '1'
+          memory: 512M
+    restart: always
+

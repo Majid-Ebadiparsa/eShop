@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apigateway
+  namespace: eshop
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: apigateway
+  template:
+    metadata:
+      labels:
+        app: apigateway
+        version: v1
+    spec:
+      containers:
+      - name: apigateway
+        image: apigateway:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: eshop-config
+              key: ASPNETCORE_ENVIRONMENT
+        - name: Consul__Host
+          valueFrom:
+            configMapKeyRef:
+              name: eshop-config
+              key: CONSUL_HOST
+        - name: Consul__Port
+          valueFrom:
+            configMapKeyRef:
+              name: eshop-config
+              key: CONSUL_PORT
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apigateway
+  namespace: eshop
+  labels:
+    app: apigateway
+spec:
+  selector:
+    app: apigateway
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http
+  type: LoadBalancer
+

@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: invoiceservice
+  namespace: eshop
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: invoiceservice
+  template:
+    metadata:
+      labels:
+        app: invoiceservice
+        version: v1
+    spec:
+      containers:
+      - name: invoiceservice
+        image: invoiceservice:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: eshop-config
+              key: ASPNETCORE_ENVIRONMENT
+        - name: ConnectionStrings__InvoiceDb
+          valueFrom:
+            secretKeyRef:
+              name: eshop-secrets
+              key: INVOICEDB_CONNECTION
+        - name: ConnectionStrings__MongoDb
+          valueFrom:
+            secretKeyRef:
+              name: eshop-secrets
+              key: MONGODB_CONNECTION
+        - name: ConnectionStrings__Redis
+          valueFrom:
+            secretKeyRef:
+              name: eshop-secrets
+              key: REDIS_CONNECTION
+        - name: RabbitMQ__Host
+          valueFrom:
+            configMapKeyRef:
+              name: eshop-config
+              key: RABBITMQ_HOST
+        - name: RabbitMQ__Username
+          valueFrom:
+            configMapKeyRef:
+              name: eshop-config
+              key: RABBITMQ_USERNAME
+        - name: RabbitMQ__Password
+          valueFrom:
+            secretKeyRef:
+              name: eshop-secrets
+              key: RABBITMQ_PASSWORD
+        - name: Consul__Host
+          valueFrom:
+            configMapKeyRef:
+              name: eshop-config
+              key: CONSUL_HOST
+        - name: ServiceConfig__ServiceName
+          value: "invoiceservice"
+        - name: ServiceConfig__ServicePort
+          value: "8080"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: invoiceservice
+  namespace: eshop
+  labels:
+    app: invoiceservice
+spec:
+  selector:
+    app: invoiceservice
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http
+  type: ClusterIP
+

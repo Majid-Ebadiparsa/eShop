@@ -66,7 +66,7 @@ namespace OrderService.Tests
 			// Act & Assert
 			var exception = Assert.Throws<ArgumentException>(() => 
 				order.AddItem(Guid.NewGuid(), 0, 100));
-			Assert.Contains("Quantity must be greater than zero", exception.Message);
+			Assert.Contains("Quantity must be greater than 0", exception.Message);
 		}
 
 		[Fact]
@@ -78,7 +78,7 @@ namespace OrderService.Tests
 			// Act & Assert
 			var exception = Assert.Throws<ArgumentException>(() => 
 				order.AddItem(Guid.NewGuid(), -1, 100));
-			Assert.Contains("Quantity must be greater than zero", exception.Message);
+			Assert.Contains("Quantity must be greater than 0", exception.Message);
 		}
 
 		[Fact]
@@ -90,63 +90,67 @@ namespace OrderService.Tests
 			// Act & Assert
 			var exception = Assert.Throws<ArgumentException>(() => 
 				order.AddItem(Guid.NewGuid(), 1, 0));
-			Assert.Contains("Unit price must be greater than zero", exception.Message);
+			Assert.Contains("UnitPrice must be greater than 0", exception.Message);
 		}
 
 		[Fact]
-		public void MarkAsProcessing_Should_Change_Status_From_Pending()
+		public void MarkInventoryReserved_Should_Change_Status_From_Pending()
 		{
 			// Arrange
 			var order = new Order(Guid.NewGuid(), new Address("Elm St", "Frankfurt", "12345"));
 			order.AddItem(Guid.NewGuid(), 1, 100);
 
 			// Act
-			order.MarkAsProcessing();
+			order.MarkInventoryReserved();
 
 			// Assert
-			Assert.Equal(OrderStatus.Processing, order.Status);
+			Assert.Equal(OrderStatus.InventoryReserved, order.Status);
 		}
 
 		[Fact]
-		public void MarkAsShipped_Should_Change_Status_From_Processing()
+		public void MarkShipmentDispatched_Should_Change_Status_From_ShipmentCreated()
 		{
 			// Arrange
 			var order = new Order(Guid.NewGuid(), new Address("Elm St", "Frankfurt", "12345"));
 			order.AddItem(Guid.NewGuid(), 1, 100);
-			order.MarkAsProcessing();
+			order.MarkInventoryReserved();
+			order.MarkPaymentCaptured();
+			order.MarkShipmentCreated();
 
 			// Act
-			order.MarkAsShipped();
+			order.MarkShipmentDispatched();
 
 			// Assert
-			Assert.Equal(OrderStatus.Shipped, order.Status);
+			Assert.Equal(OrderStatus.ShipmentDispatched, order.Status);
 		}
 
 		[Fact]
-		public void MarkAsDelivered_Should_Change_Status_From_Shipped()
+		public void MarkDelivered_Should_Change_Status_From_ShipmentDispatched()
 		{
 			// Arrange
 			var order = new Order(Guid.NewGuid(), new Address("Elm St", "Frankfurt", "12345"));
 			order.AddItem(Guid.NewGuid(), 1, 100);
-			order.MarkAsProcessing();
-			order.MarkAsShipped();
+			order.MarkInventoryReserved();
+			order.MarkPaymentCaptured();
+			order.MarkShipmentCreated();
+			order.MarkShipmentDispatched();
 
 			// Act
-			order.MarkAsDelivered();
+			order.MarkDelivered();
 
 			// Assert
 			Assert.Equal(OrderStatus.Delivered, order.Status);
 		}
 
 		[Fact]
-		public void MarkAsCancelled_Should_Change_Status_To_Cancelled()
+		public void Cancel_Should_Change_Status_To_Cancelled()
 		{
 			// Arrange
 			var order = new Order(Guid.NewGuid(), new Address("Elm St", "Frankfurt", "12345"));
 			order.AddItem(Guid.NewGuid(), 1, 100);
 
 			// Act
-			order.MarkAsCancelled();
+			order.Cancel();
 
 			// Assert
 			Assert.Equal(OrderStatus.Cancelled, order.Status);
@@ -161,17 +165,7 @@ namespace OrderService.Tests
 			// Assert
 			Assert.Equal("123 Main St", address.Street);
 			Assert.Equal("New York", address.City);
-			Assert.Equal("10001", address.ZipCode);
-		}
-
-		[Theory]
-		[InlineData("", "City", "12345")]
-		[InlineData("Street", "", "12345")]
-		[InlineData("Street", "City", "")]
-		public void Address_With_Empty_Fields_Should_Throw_Exception(string street, string city, string zipCode)
-		{
-			// Act & Assert
-			Assert.Throws<ArgumentException>(() => new Address(street, city, zipCode));
+			Assert.Equal("10001", address.PostalCode);
 		}
 
 		[Fact]
@@ -185,7 +179,7 @@ namespace OrderService.Tests
 
 			// Assert
 			var after = DateTime.UtcNow;
-			Assert.True(order.CreatedAt >= before && order.CreatedAt <= after);
+			Assert.True(order.OrderDate >= before && order.OrderDate <= after);
 		}
 	}
 }

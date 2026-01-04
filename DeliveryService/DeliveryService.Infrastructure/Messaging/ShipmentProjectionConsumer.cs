@@ -6,7 +6,12 @@ using SharedService.Contracts.Events;
 
 namespace DeliveryService.Infrastructure.Messaging
 {
-    public class ShipmentProjectionConsumer : IConsumer<ShipmentCreated>
+    public class ShipmentProjectionConsumer : 
+        IConsumer<ShipmentCreated>,
+        IConsumer<ShipmentBooked>,
+        IConsumer<ShipmentDispatched>,
+        IConsumer<ShipmentDelivered>,
+        IConsumer<ShipmentFailed>
     {
         private readonly IShipmentProjectionWriter _writer;
         private readonly ILogger<ShipmentProjectionConsumer> _logger;
@@ -21,6 +26,30 @@ namespace DeliveryService.Infrastructure.Messaging
         {
             _logger.LogInformation("Projecting ShipmentCreated {ShipmentId}", context.Message.ShipmentId);
             return _writer.UpsertShipmentAsync(context.Message.ShipmentId, context.Message.OrderId, context.Message.OccurredAtUtc, context.CancellationToken);
+        }
+
+        public Task Consume(ConsumeContext<ShipmentBooked> context)
+        {
+            _logger.LogInformation("Projecting ShipmentBooked {ShipmentId}", context.Message.ShipmentId);
+            return _writer.UpdateStatusAsync(context.Message.ShipmentId, "BOOKED", context.Message.OccurredAtUtc, context.CancellationToken);
+        }
+
+        public Task Consume(ConsumeContext<ShipmentDispatched> context)
+        {
+            _logger.LogInformation("Projecting ShipmentDispatched {ShipmentId}", context.Message.ShipmentId);
+            return _writer.UpdateStatusAsync(context.Message.ShipmentId, "DISPATCHED", context.Message.OccurredAtUtc, context.CancellationToken);
+        }
+
+        public Task Consume(ConsumeContext<ShipmentDelivered> context)
+        {
+            _logger.LogInformation("Projecting ShipmentDelivered {ShipmentId}", context.Message.ShipmentId);
+            return _writer.UpdateStatusAsync(context.Message.ShipmentId, "DELIVERED", context.Message.OccurredAtUtc, context.CancellationToken);
+        }
+
+        public Task Consume(ConsumeContext<ShipmentFailed> context)
+        {
+            _logger.LogInformation("Projecting ShipmentFailed {ShipmentId}", context.Message.ShipmentId);
+            return _writer.UpdateStatusAsync(context.Message.ShipmentId, "FAILED", context.Message.OccurredAtUtc, context.CancellationToken);
         }
     }
 }

@@ -5,7 +5,11 @@ using SharedService.Contracts.Events.Payment;
 namespace PaymentService.Infrastructure.Messaging.Consumer
 {
 	public class PaymentProjectionConsumer :
-			IConsumer<PaymentAuthorized>, IConsumer<PaymentCaptured>, IConsumer<PaymentFailed>
+			IConsumer<PaymentAuthorized>, 
+			IConsumer<PaymentCaptured>, 
+			IConsumer<PaymentFailed>,
+			IConsumer<PaymentRefunded>,
+			IConsumer<PaymentCancelled>
 	{
 		private readonly IPaymentProjectionWriter _writer;
 		public PaymentProjectionConsumer(IPaymentProjectionWriter writer) => _writer = writer;
@@ -18,5 +22,11 @@ namespace PaymentService.Infrastructure.Messaging.Consumer
 
 		public Task Consume(ConsumeContext<PaymentFailed> ctx)
 				=> _writer.SetFailedAsync(ctx.Message.OrderId, ctx.Message.Reason, ctx.CancellationToken);
+
+		public Task Consume(ConsumeContext<PaymentRefunded> ctx)
+				=> _writer.SetRefundedAsync(ctx.Message.PaymentId, ctx.Message.RefundId, ctx.CancellationToken);
+
+		public Task Consume(ConsumeContext<PaymentCancelled> ctx)
+				=> _writer.SetCancelledAsync(ctx.Message.PaymentId, ctx.Message.Reason, ctx.CancellationToken);
 	}
 }

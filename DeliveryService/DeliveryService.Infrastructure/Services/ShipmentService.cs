@@ -31,14 +31,20 @@ namespace DeliveryService.Infrastructure.Services
 			if (shipment.Status == ShipmentStatus.Dispatched || shipment.Status == ShipmentStatus.InTransit)
 				return;
 
-			shipment.MarkDispatched();
+		shipment.MarkDispatched();
 
-			// For Outbox pattern, we publish the event after marking the shipment as dispatched
-			await _publisher.AddAsync(new ShipmentDispatched(
-					shipment.Id, shipment.OrderId, shipment.Carrier ?? "N/A",
-					shipment.TrackingNumber ?? string.Empty, DateTime.UtcNow), ct);
+		// For Outbox pattern, we publish the event after marking the shipment as dispatched
+		await _publisher.AddAsync(new ShipmentDispatched(
+				shipment.Id,
+				shipment.OrderId,
+				shipment.Carrier ?? "N/A",
+				shipment.TrackingNumber ?? string.Empty,
+				Guid.NewGuid(),
+				shipment.OrderId, // Use OrderId as CorrelationId for tracing
+				null,
+				DateTime.UtcNow), ct);
 
-			await _uow.SaveChangesAsync(ct);
+		await _uow.SaveChangesAsync(ct);
 		}
 
 		public async Task MarkDeliveredAsync(Guid shipmentId, CancellationToken ct = default)
@@ -50,13 +56,19 @@ namespace DeliveryService.Infrastructure.Services
 			if (shipment.Status == ShipmentStatus.Delivered)
 				return;
 
-			shipment.MarkDelivered();
+		shipment.MarkDelivered();
 
-			await _publisher.AddAsync(new ShipmentDelivered(
-					shipment.Id, shipment.OrderId, shipment.Carrier ?? "N/A",
-					shipment.TrackingNumber ?? string.Empty, DateTime.UtcNow), ct);
+		await _publisher.AddAsync(new ShipmentDelivered(
+				shipment.Id,
+				shipment.OrderId,
+				shipment.Carrier ?? "N/A",
+				shipment.TrackingNumber ?? string.Empty,
+				Guid.NewGuid(),
+				shipment.OrderId, // Use OrderId as CorrelationId for tracing
+				null,
+				DateTime.UtcNow), ct);
 
-			await _uow.SaveChangesAsync(ct);
+		await _uow.SaveChangesAsync(ct);
 		}
 	}
 }

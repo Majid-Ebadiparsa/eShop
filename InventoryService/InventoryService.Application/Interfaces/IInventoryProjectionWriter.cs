@@ -4,5 +4,6 @@ namespace InventoryService.Application.Interfaces
     {
         Task UpsertInventoryForOrderAsync(Guid orderId, List<(Guid ProductId, int Quantity)> items, CancellationToken ct);
         Task ReleaseReservedInventoryAsync(Guid orderId, List<(Guid ProductId, int Quantity)> items, CancellationToken ct);
+        Task SyncInventoryFromSourceAsync(Guid productId, int availableQuantity, CancellationToken ct);
     }
 }

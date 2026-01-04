@@ -1,21 +1,21 @@
 ﻿using InventoryService.Application.Interfaces;
-using InventoryService.Domain.AggregatesModel;
+using InventoryService.Shared.DTOs;
 using MediatR;
 
 namespace InventoryService.Application.Queries
 {
-	public class GetInventoryByProductIdQueryHandler : IRequestHandler<GetInventoryByProductIdQuery, InventoryItem?>
+	public class GetInventoryByProductIdQueryHandler : IRequestHandler<GetInventoryByProductIdQuery, InventoryDto?>
 	{
-		private readonly IInventoryRepository _repository;
+		private readonly IInventoryReadRepository _readRepository;
 
-		public GetInventoryByProductIdQueryHandler(IInventoryRepository repository)
+		public GetInventoryByProductIdQueryHandler(IInventoryReadRepository readRepository)
 		{
-			_repository = repository;
+			_readRepository = readRepository;
 		}
 
-		public async Task<InventoryItem?> Handle(GetInventoryByProductIdQuery request, CancellationToken cancellationToken)
+		public async Task<InventoryDto?> Handle(GetInventoryByProductIdQuery request, CancellationToken cancellationToken)
 		{
-			return await _repository.GetByProductIdAsync(request.ProductId, cancellationToken);
+			return await _readRepository.GetByProductIdAsync(request.ProductId, cancellationToken);
 		}
 	}
 }

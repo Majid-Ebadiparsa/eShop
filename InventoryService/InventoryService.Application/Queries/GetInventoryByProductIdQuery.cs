@@ -1,7 +1,7 @@
-﻿using InventoryService.Domain.AggregatesModel;
+﻿using InventoryService.Shared.DTOs;
 using MediatR;
 
 namespace InventoryService.Application.Queries
 {
-	public record GetInventoryByProductIdQuery(Guid ProductId) : IRequest<InventoryItem?>;
+	public record GetInventoryByProductIdQuery(Guid ProductId) : IRequest<InventoryDto?>;
 }

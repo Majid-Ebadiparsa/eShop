@@ -2,6 +2,7 @@
 using InventoryService.Infrastructure.Repositories.EF;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SharedService.Caching.Abstractions;
 using SharedService.Contracts.Events;
 
 namespace InventoryService.Infrastructure.Handlers
@@ -11,15 +12,18 @@ namespace InventoryService.Infrastructure.Handlers
 		private readonly InventoryDbContext _context;
 		private readonly ILogger<OrderEventConsumerHandler> _logger;
 		private readonly IEventPublisher _eventPublisher;
+		private readonly IRedisCacheClient _cache;
 
 		public OrderEventConsumerHandler(
 			InventoryDbContext context,
 			ILogger<OrderEventConsumerHandler> logger,
-			IEventPublisher eventPublisher)
+			IEventPublisher eventPublisher,
+			IRedisCacheClient cache)
 		{
 			_context = context;
 			_logger = logger;
 			_eventPublisher = eventPublisher;
+			_cache = cache;
 		}
 
 	public async Task Handle(OrderCreatedEvent @event, Guid correlationId, Guid causationId, CancellationToken cancellationToken)
@@ -66,6 +70,12 @@ namespace InventoryService.Infrastructure.Handlers
 
 		await _context.SaveChangesAsync(cancellationToken);
 
+		// Invalidate cache for all affected products
+		foreach (var item in @event.Items)
+		{
+			await _cache.RemoveAsync($"inventory:{item.ProductId}");
+		}
+
 		// Calculate total amount from all items
 		totalAmount = @event.Items.Sum(i => i.UnitPrice * i.Quantity);
 		await _eventPublisher.PublishInventoryReservedAsync(@event.OrderId, totalAmount, "USD", correlationId, causationId, cancellationToken);
@@ -93,6 +103,13 @@ namespace InventoryService.Infrastructure.Handlers
 		}
 
 		await _context.SaveChangesAsync(cancellationToken);
+
+		// Invalidate cache for all affected products
+		foreach (var item in @event.Items)
+		{
+			await _cache.RemoveAsync($"inventory:{item.ProductId}");
+		}
+
 		_logger.LogInformation("Completed inventory release for OrderId: {OrderId}, CorrelationId: {CorrelationId}", @event.OrderId, correlationId);
 	}
 	}

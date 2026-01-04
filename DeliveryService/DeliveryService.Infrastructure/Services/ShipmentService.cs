@@ -2,6 +2,7 @@
 using DeliveryService.Application.Abstractions.Persistence;
 using DeliveryService.Application.Abstractions.Services;
 using DeliveryService.Domain.SeedWork;
+using SharedService.Caching.Abstractions;
 using SharedService.Contracts.Events;
 
 namespace DeliveryService.Infrastructure.Services
@@ -11,15 +12,18 @@ namespace DeliveryService.Infrastructure.Services
 		private readonly IShipmentRepository _repo;
 		private readonly IUnitOfWork _uow;
 		private readonly IEventPublisher _publisher;
+		private readonly IRedisCacheClient _cache;
 
 		public ShipmentService(
 				IShipmentRepository repo,
 				IUnitOfWork uow,
-				IEventPublisher publisher)
+				IEventPublisher publisher,
+				IRedisCacheClient cache)
 		{
 			_repo = repo;
 			_uow = uow;
 			_publisher = publisher;
+			_cache = cache;
 		}
 
 		public async Task MarkDispatchedAsync(Guid shipmentId, CancellationToken ct = default)
@@ -45,6 +49,9 @@ namespace DeliveryService.Infrastructure.Services
 				DateTime.UtcNow), ct);
 
 		await _uow.SaveChangesAsync(ct);
+		
+		// Invalidate cache
+		await _cache.RemoveAsync($"shipment:{shipmentId}");
 		}
 
 		public async Task MarkDeliveredAsync(Guid shipmentId, CancellationToken ct = default)
@@ -69,6 +76,9 @@ namespace DeliveryService.Infrastructure.Services
 				DateTime.UtcNow), ct);
 
 		await _uow.SaveChangesAsync(ct);
+		
+		// Invalidate cache
+		await _cache.RemoveAsync($"shipment:{shipmentId}");
 		}
 	}
 }

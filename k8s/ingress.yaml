@@ -1,0 +1,81 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: eshop-ingress
+  namespace: eshop
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Optional: For SSL/TLS with cert-manager
+spec:
+  ingressClassName: nginx
+  rules:
+  # API Gateway - backend services
+  - host: api.eshop.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: apigateway
+            port:
+              number: 80
+  
+  # Next.js UI - customer-facing
+  - host: eshop.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: eshop-ui
+            port:
+              number: 80
+  
+  # Health Monitor UI
+  - host: health.eshop.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: healthmonitorservice
+            port:
+              number: 80
+  
+  # RabbitMQ Management UI (optional)
+  - host: rabbitmq.eshop.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: rabbitmq-management
+            port:
+              number: 15672
+  
+  # Consul UI (optional)
+  - host: consul.eshop.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: consul-ui
+            port:
+              number: 8500
+
+  # Optional: TLS configuration with cert-manager
+  # tls:
+  # - hosts:
+  #   - eshop.local
+  #   - api.eshop.local
+  #   - health.eshop.local
+  #   secretName: eshop-tls-secret
+

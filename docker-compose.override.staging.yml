@@ -1,0 +1,89 @@
+# Staging Environment Override
+# Usage: docker compose -f docker-compose.yml -f docker-compose.override.staging.yml up
+version: '3.8'
+
+services:
+  # Staging-specific overrides (tighter resource limits, production-like settings)
+  
+  sqlserver:
+    environment:
+      - MSSQL_PID=Standard
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  mongodb:
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  redis:
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru --requirepass stagingpass123
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  rabbitmq:
+    environment:
+      - RABBITMQ_DEFAULT_USER=eshopuser
+      - RABBITMQ_DEFAULT_PASS=stagingpass123
+    # Management UI not exposed externally in staging
+
+  # All services use Warning level logging in staging
+  orderservice:
+    environment:
+      - Logging__LogLevel__Default=Warning
+      - Logging__LogLevel__Microsoft.AspNetCore=Warning
+      - RabbitMq__Username=eshopuser
+      - RabbitMq__Password=stagingpass123
+
+  inventoryservice:
+    environment:
+      - Logging__LogLevel__Default=Warning
+      - Logging__LogLevel__Microsoft.AspNetCore=Warning
+      - RabbitMq__Username=eshopuser
+      - RabbitMq__Password=stagingpass123
+
+  paymentservice:
+    environment:
+      - Logging__LogLevel__Default=Warning
+      - Logging__LogLevel__Microsoft.AspNetCore=Warning
+      - RabbitMq__Username=eshopuser
+      - RabbitMq__Password=stagingpass123
+
+  deliveryservice:
+    environment:
+      - Logging__LogLevel__Default=Warning
+      - Logging__LogLevel__Microsoft.AspNetCore=Warning
+      - RabbitMq__Username=eshopuser
+      - RabbitMq__Password=stagingpass123
+
+  invoiceservice:
+    environment:
+      - Logging__LogLevel__Default=Warning
+      - Logging__LogLevel__Microsoft.AspNetCore=Warning
+      - RabbitMq__Username=eshopuser
+      - RabbitMq__Password=stagingpass123
+
+  healthmonitorservice:
+    environment:
+      - Logging__LogLevel__Default=Warning
+      - Logging__LogLevel__Microsoft.AspNetCore=Warning
+
+  apigateway:
+    environment:
+      - Logging__LogLevel__Default=Warning
+      - Logging__LogLevel__Microsoft.AspNetCore=Error
+

@@ -221,6 +221,42 @@ services:
       - eshop-network
     restart: unless-stopped
 
+  invoiceservice:
+    build:
+      context: .
+      dockerfile: InvoiceProcessingService/src/InvoiceService/InvoiceService.API/Dockerfile
+    container_name: invoiceservice
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__InvoicesDb=Server=sqlserver;Database=InvoiceDb;User Id=sa;Password=eSh@pDem@1;TrustServerCertificate=True
+      - MongoDb__ConnectionString=mongodb://root:example@mongodb:27017
+      - MongoDb__DatabaseName=InvoiceReadDb
+      - RabbitMq__Host=rabbitmq
+      - RabbitMq__VirtualHost=/
+      - RabbitMq__Username=guest
+      - RabbitMq__Password=guest
+      - Consul__Host=consul
+      - Consul__Port=8500
+      - ServiceName=invoiceservice
+      - ServiceAddress=invoiceservice
+      - ServicePort=8080
+      - HealthCheckPath=/health/ready
+    ports:
+      - "5005:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+    networks:
+      - eshop-network
+    restart: unless-stopped
+
   apigateway:
     build:
       context: .
@@ -238,6 +274,7 @@ services:
       - inventoryservice
       - paymentservice
       - deliveryservice
+      - invoiceservice
       - consul
     networks:
       - eshop-network

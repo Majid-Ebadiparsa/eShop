@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.Rabbitmq" Version="9.0.0" />
-    <PackageReference Include="AspNetCore.HealthChecks.Sqlite" Version="9.0.0" />
+    <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8">
@@ -25,10 +25,8 @@
   <ItemGroup>
     <ProjectReference Include="..\InvoiceService.Infrastructure.Mongo\InvoiceService.Infrastructure.Mongo.csproj" />
     <ProjectReference Include="..\InvoiceService.Infrastructure\InvoiceService.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\..\SharedService\SharedService.Consul\SharedService.Consul.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="data\" />
-  </ItemGroup>
 
 </Project>

@@ -14,6 +14,7 @@ COPY InventoryService/InventoryService.Application/InventoryService.Application.
 COPY InventoryService/InventoryService.Infrastructure/InventoryService.Infrastructure.csproj InventoryService/InventoryService.Infrastructure/
 COPY InventoryService/InventoryService.Domain/InventoryService.Domain.csproj InventoryService/InventoryService.Domain/
 COPY InventoryService/InventoryService.Shared/InventoryService.Shared.csproj InventoryService/InventoryService.Shared/
+COPY SharedService/SharedService.Caching/SharedService.Caching.csproj SharedService/SharedService.Caching/
 COPY SharedService/SharedService.Contracts/SharedService.Contracts.csproj SharedService/SharedService.Contracts/
 COPY SharedService/SharedService.Consul/SharedService.Consul.csproj SharedService/SharedService.Consul/
 
@@ -22,6 +23,7 @@ RUN dotnet restore InventoryService/InventoryService.API/InventoryService.API.cs
 
 # (2) Copy the rest of the source
 COPY InventoryService/ InventoryService/
+COPY SharedService/SharedService.Caching/ SharedService/SharedService.Caching/
 COPY SharedService/SharedService.Contracts/ SharedService/SharedService.Contracts/
 COPY SharedService/SharedService.Consul/ SharedService/SharedService.Consul/
 

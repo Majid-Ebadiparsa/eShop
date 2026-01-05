@@ -103,14 +103,14 @@ services:
     container_name: rabbitmq
     environment:
       - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
-      - RABBITMQ_VM_MEMORY_HIGH_WATERMARK=512MB
+      - RABBITMQ_DEFAULT_PASS=guest     
     ports:
       - "5672:5672"
       - "15672:15672"
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
       - rabbitmq-logs:/var/log/rabbitmq
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
     networks:
       - eshop-network
     healthcheck:

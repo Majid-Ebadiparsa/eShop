@@ -55,7 +55,7 @@ namespace PaymentService.Domain.Aggregates
 			_attempts.Add(PaymentAttempt.Success("REFUND", refundId));
 		}
 
-		public void Cancel(string reason)
+		public void MarkCancelled(string reason)
 		{
 			if (Status is PaymentStatus.Captured or PaymentStatus.Refunded)
 				throw new InvalidOperationException("Cannot cancel finalized payment.");

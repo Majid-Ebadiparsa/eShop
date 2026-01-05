@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace InvoiceService.Infrastructure.Migrations
+namespace OrderService.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate_SqlServer : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,6 +16,7 @@ namespace InvoiceService.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "InboxState",
+                schema: "bus",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
@@ -38,21 +39,25 @@ namespace InvoiceService.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Invoices",
+                name: "Orders",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    DueDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Supplier = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false)
+                    CustomerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ShippingAddress_Street = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ShippingAddress_City = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ShippingAddress_PostalCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Invoices", x => x.Id);
+                    table.PrimaryKey("PK_Orders", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
                 name: "OutboxState",
+                schema: "bus",
                 columns: table => new
                 {
                     OutboxId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -72,9 +77,10 @@ namespace InvoiceService.Infrastructure.Migrations
                 schema: "bus",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     MessageId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ConsumerName = table.Column<string>(type: "nvarchar(160)", maxLength: 160, nullable: false),
+                    ConsumerName = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CorrelationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     ProcessedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -84,28 +90,28 @@ namespace InvoiceService.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "InvoiceLines",
+                name: "OrderItem",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    Price = table.Column<double>(type: "float(18)", precision: 18, scale: 2, nullable: false),
+                    ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
-                    InvoiceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    OrderId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_InvoiceLines", x => x.Id);
+                    table.PrimaryKey("PK_OrderItem", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_InvoiceLines_Invoices_InvoiceId",
-                        column: x => x.InvoiceId,
-                        principalTable: "Invoices",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_OrderItem_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
                 name: "OutboxMessage",
+                schema: "bus",
                 columns: table => new
                 {
                     SequenceNumber = table.Column<long>(type: "bigint", nullable: false)
@@ -137,37 +143,43 @@ namespace InvoiceService.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_OutboxMessage_InboxState_InboxMessageId_InboxConsumerId",
                         columns: x => new { x.InboxMessageId, x.InboxConsumerId },
+                        principalSchema: "bus",
                         principalTable: "InboxState",
                         principalColumns: new[] { "MessageId", "ConsumerId" });
                     table.ForeignKey(
                         name: "FK_OutboxMessage_OutboxState_OutboxId",
                         column: x => x.OutboxId,
+                        principalSchema: "bus",
                         principalTable: "OutboxState",
                         principalColumn: "OutboxId");
                 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_InboxState_Delivered",
+                schema: "bus",
                 table: "InboxState",
                 column: "Delivered");
 
             migrationBuilder.CreateIndex(
-                name: "IX_InvoiceLines_InvoiceId",
-                table: "InvoiceLines",
-                column: "InvoiceId");
+                name: "IX_OrderItem_OrderId",
+                table: "OrderItem",
+                column: "OrderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_EnqueueTime",
+                schema: "bus",
                 table: "OutboxMessage",
                 column: "EnqueueTime");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_ExpirationTime",
+                schema: "bus",
                 table: "OutboxMessage",
                 column: "ExpirationTime");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_InboxMessageId_InboxConsumerId_SequenceNumber",
+                schema: "bus",
                 table: "OutboxMessage",
                 columns: new[] { "InboxMessageId", "InboxConsumerId", "SequenceNumber" },
                 unique: true,
@@ -175,6 +187,7 @@ namespace InvoiceService.Infrastructure.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_OutboxId_SequenceNumber",
+                schema: "bus",
                 table: "OutboxMessage",
                 columns: new[] { "OutboxId", "SequenceNumber" },
                 unique: true,
@@ -182,6 +195,7 @@ namespace InvoiceService.Infrastructure.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_OutboxState_Created",
+                schema: "bus",
                 table: "OutboxState",
                 column: "Created");
 
@@ -197,23 +211,26 @@ namespace InvoiceService.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "InvoiceLines");
+                name: "OrderItem");
 
             migrationBuilder.DropTable(
-                name: "OutboxMessage");
+                name: "OutboxMessage",
+                schema: "bus");
 
             migrationBuilder.DropTable(
                 name: "ProcessedMessage",
                 schema: "bus");
 
             migrationBuilder.DropTable(
-                name: "Invoices");
+                name: "Orders");
 
             migrationBuilder.DropTable(
-                name: "InboxState");
+                name: "InboxState",
+                schema: "bus");
 
             migrationBuilder.DropTable(
-                name: "OutboxState");
+                name: "OutboxState",
+                schema: "bus");
         }
     }
 }

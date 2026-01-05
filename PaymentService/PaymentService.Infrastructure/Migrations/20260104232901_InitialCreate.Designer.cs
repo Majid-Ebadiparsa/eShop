@@ -12,8 +12,8 @@ using PaymentService.Infrastructure.Persistence;
 namespace PaymentService.Infrastructure.Migrations
 {
     [DbContext(typeof(PaymentDbContext))]
-    [Migration("20250912195849_INIT")]
-    partial class INIT
+    [Migration("20260104232901_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

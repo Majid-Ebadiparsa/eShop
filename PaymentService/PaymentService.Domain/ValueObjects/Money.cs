@@ -10,6 +10,11 @@ namespace PaymentService.Domain.ValueObjects
 	{
 		public static Money From(decimal amount, string currency)
 				=> new(amount < 0 ? throw new ArgumentException("Amount < 0") : amount,
-							 string.IsNullOrWhiteSpace(currency) ? "EUR" : currency.Trim().ToUpperInvariant());
+							 string.IsNullOrWhiteSpace(currency) ? "EUR" : currency.Trim().ToUpperInvariant());		
+
+		public Money Add(Money other)
+			=> Currency != other.Currency
+					? throw new InvalidOperationException("Cannot add amounts with different currencies.")
+					: new Money(Amount + other.Amount, Currency);
 	}
 }

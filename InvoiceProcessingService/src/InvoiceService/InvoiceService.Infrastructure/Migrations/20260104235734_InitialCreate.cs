@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace InventoryService.Infrastructure.Migrations
+namespace InvoiceService.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class Init_InventoryModel : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,7 +16,6 @@ namespace InventoryService.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "InboxState",
-                schema: "bus",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
@@ -39,21 +38,21 @@ namespace InventoryService.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "InventoryItems",
+                name: "Invoices",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false)
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    DueDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Supplier = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_InventoryItems", x => x.Id);
+                    table.PrimaryKey("PK_Invoices", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
                 name: "OutboxState",
-                schema: "bus",
                 columns: table => new
                 {
                     OutboxId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -85,8 +84,28 @@ namespace InventoryService.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "InvoiceLines",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    Price = table.Column<double>(type: "float(18)", precision: 18, scale: 2, nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    InvoiceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_InvoiceLines", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_InvoiceLines_Invoices_InvoiceId",
+                        column: x => x.InvoiceId,
+                        principalTable: "Invoices",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "OutboxMessage",
-                schema: "bus",
                 columns: table => new
                 {
                     SequenceNumber = table.Column<long>(type: "bigint", nullable: false)
@@ -118,43 +137,37 @@ namespace InventoryService.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_OutboxMessage_InboxState_InboxMessageId_InboxConsumerId",
                         columns: x => new { x.InboxMessageId, x.InboxConsumerId },
-                        principalSchema: "bus",
                         principalTable: "InboxState",
                         principalColumns: new[] { "MessageId", "ConsumerId" });
                     table.ForeignKey(
                         name: "FK_OutboxMessage_OutboxState_OutboxId",
                         column: x => x.OutboxId,
-                        principalSchema: "bus",
                         principalTable: "OutboxState",
                         principalColumn: "OutboxId");
                 });
 
-            migrationBuilder.InsertData(
-                table: "InventoryItems",
-                columns: new[] { "Id", "ProductId", "Quantity" },
-                values: new object[] { new Guid("3fa85f64-5717-4562-b3fc-2c963f66afa6"), new Guid("11111111-1111-1111-1111-111111111111"), 100 });
-
             migrationBuilder.CreateIndex(
                 name: "IX_InboxState_Delivered",
-                schema: "bus",
                 table: "InboxState",
                 column: "Delivered");
 
             migrationBuilder.CreateIndex(
+                name: "IX_InvoiceLines_InvoiceId",
+                table: "InvoiceLines",
+                column: "InvoiceId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_EnqueueTime",
-                schema: "bus",
                 table: "OutboxMessage",
                 column: "EnqueueTime");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_ExpirationTime",
-                schema: "bus",
                 table: "OutboxMessage",
                 column: "ExpirationTime");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_InboxMessageId_InboxConsumerId_SequenceNumber",
-                schema: "bus",
                 table: "OutboxMessage",
                 columns: new[] { "InboxMessageId", "InboxConsumerId", "SequenceNumber" },
                 unique: true,
@@ -162,7 +175,6 @@ namespace InventoryService.Infrastructure.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_OutboxId_SequenceNumber",
-                schema: "bus",
                 table: "OutboxMessage",
                 columns: new[] { "OutboxId", "SequenceNumber" },
                 unique: true,
@@ -170,7 +182,6 @@ namespace InventoryService.Infrastructure.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_OutboxState_Created",
-                schema: "bus",
                 table: "OutboxState",
                 column: "Created");
 
@@ -186,23 +197,23 @@ namespace InventoryService.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "InventoryItems");
+                name: "InvoiceLines");
 
             migrationBuilder.DropTable(
-                name: "OutboxMessage",
-                schema: "bus");
+                name: "OutboxMessage");
 
             migrationBuilder.DropTable(
                 name: "ProcessedMessage",
                 schema: "bus");
 
             migrationBuilder.DropTable(
-                name: "InboxState",
-                schema: "bus");
+                name: "Invoices");
 
             migrationBuilder.DropTable(
-                name: "OutboxState",
-                schema: "bus");
+                name: "InboxState");
+
+            migrationBuilder.DropTable(
+                name: "OutboxState");
         }
     }
 }

@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace OrderService.Infrastructure.Migrations
+namespace DeliveryService.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class Init_OrderModel : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -39,23 +39,6 @@ namespace OrderService.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Orders",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CustomerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ShippingAddress_Street = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ShippingAddress_City = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ShippingAddress_PostalCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Orders", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "OutboxState",
                 schema: "bus",
                 columns: table => new
@@ -80,7 +63,7 @@ namespace OrderService.Infrastructure.Migrations
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     MessageId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ConsumerName = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ConsumerName = table.Column<string>(type: "nvarchar(160)", maxLength: 160, nullable: false),
                     CorrelationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     ProcessedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -90,23 +73,26 @@ namespace OrderService.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "OrderItem",
+                name: "Shipments",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false),
-                    UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    OrderId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    OrderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Address_Street = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Address_City = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Address_Zip = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Address_Country = table.Column<string>(type: "nvarchar(2)", maxLength: 2, nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    Carrier = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TrackingNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Version = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OrderItem", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_OrderItem_Orders_OrderId",
-                        column: x => x.OrderId,
-                        principalTable: "Orders",
-                        principalColumn: "Id");
+                    table.PrimaryKey("PK_Shipments", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -154,16 +140,31 @@ namespace OrderService.Infrastructure.Migrations
                         principalColumn: "OutboxId");
                 });
 
+            migrationBuilder.CreateTable(
+                name: "ShipmentItems",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    ShipmentId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ShipmentItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ShipmentItems_Shipments_ShipmentId",
+                        column: x => x.ShipmentId,
+                        principalTable: "Shipments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_InboxState_Delivered",
                 schema: "bus",
                 table: "InboxState",
                 column: "Delivered");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OrderItem_OrderId",
-                table: "OrderItem",
-                column: "OrderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_EnqueueTime",
@@ -205,14 +206,16 @@ namespace OrderService.Infrastructure.Migrations
                 table: "ProcessedMessage",
                 columns: new[] { "MessageId", "ConsumerName" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ShipmentItems_ShipmentId",
+                table: "ShipmentItems",
+                column: "ShipmentId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "OrderItem");
-
             migrationBuilder.DropTable(
                 name: "OutboxMessage",
                 schema: "bus");
@@ -222,7 +225,7 @@ namespace OrderService.Infrastructure.Migrations
                 schema: "bus");
 
             migrationBuilder.DropTable(
-                name: "Orders");
+                name: "ShipmentItems");
 
             migrationBuilder.DropTable(
                 name: "InboxState",
@@ -231,6 +234,9 @@ namespace OrderService.Infrastructure.Migrations
             migrationBuilder.DropTable(
                 name: "OutboxState",
                 schema: "bus");
+
+            migrationBuilder.DropTable(
+                name: "Shipments");
         }
     }
 }

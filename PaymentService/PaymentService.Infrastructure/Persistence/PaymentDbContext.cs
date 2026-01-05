@@ -7,8 +7,8 @@ namespace PaymentService.Infrastructure.Persistence
 	{
 		public DbSet<Payment> Payments => Set<Payment>();
 
-		public PaymentDbContext(DbContextOptions options) : base(options) { }
-
+		public PaymentDbContext(DbContextOptions<PaymentDbContext> options) : base(options) { }
+		
 		protected override void OnModelCreating(ModelBuilder b)
 		{
 			b.Entity<Payment>(e =>

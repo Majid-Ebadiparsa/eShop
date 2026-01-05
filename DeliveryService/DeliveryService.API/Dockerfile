@@ -13,6 +13,7 @@ COPY DeliveryService/DeliveryService.API/DeliveryService.API.csproj DeliveryServ
 COPY DeliveryService/DeliveryService.Application/DeliveryService.Application.csproj DeliveryService/DeliveryService.Application/
 COPY DeliveryService/DeliveryService.Infrastructure/DeliveryService.Infrastructure.csproj DeliveryService/DeliveryService.Infrastructure/
 COPY DeliveryService/DeliveryService.Domain/DeliveryService.Domain.csproj DeliveryService/DeliveryService.Domain/
+COPY SharedService/SharedService.Caching/SharedService.Caching.csproj SharedService/SharedService.Caching/
 COPY SharedService/SharedService.Contracts/SharedService.Contracts.csproj SharedService/SharedService.Contracts/
 COPY SharedService/SharedService.Consul/SharedService.Consul.csproj SharedService/SharedService.Consul/
 
@@ -21,6 +22,7 @@ RUN dotnet restore DeliveryService/DeliveryService.API/DeliveryService.API.cspro
 
 # Copy the rest of the source code (Delivery + Shared)
 COPY DeliveryService/ DeliveryService/
+COPY SharedService/SharedService.Caching/ SharedService/SharedService.Caching/
 COPY SharedService/SharedService.Contracts/ SharedService/SharedService.Contracts/
 COPY SharedService/SharedService.Consul/ SharedService/SharedService.Consul/
 

@@ -17,7 +17,7 @@ namespace PaymentService.Application.Payments.Commands
 			var payment = await _reader.FindAsync(req.PaymentId, ct)
 							?? throw new KeyNotFoundException("Payment not found");
 
-			payment.Cancel(req.Reason);
+			payment.MarkCancelled(req.Reason);
 			await _repo.SaveChangesAsync(ct);
 
 			await _bus.PublishAsync(new PaymentCancelled(
